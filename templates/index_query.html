@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>业务查询 - 数据分析系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index_query.css') }}">
-    <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
-    <header>
-        <h1>业务查询</h1>
-        <div class="nav-buttons">
-            <a href="{{ url_for('index') }}" class="back-btn">返回首页</a>
-            <a href="{{ url_for('settings') }}" class="settings-btn">设置</a>
-        </div>
-    </header>
+    {# 设置当前页面变量，用于头部组件判断 #}
+    {% set current_page = 'index_query' %}
+    {% set page_title = '业务查询' %}
+    
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
     
     <main>
         <!-- 业务查询内容将在这里 -->
@@ -25,6 +25,7 @@
         <p>&copy; 2025 数据分析系统</p>
     </footer>
 
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_query.js') }}"></script>
 </body>
