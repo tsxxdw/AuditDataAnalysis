@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据导入 - 数据分析系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_import.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>数据导入</h1>
+        <div class="nav-buttons">
+            <a href="{{ url_for('index') }}" class="back-btn">返回首页</a>
+            <a href="{{ url_for('settings') }}" class="settings-btn">设置</a>
+        </div>
+    </header>
+    
+    <main>
+        <!-- 数据导入内容将在这里 -->
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 数据分析系统</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index_import.js') }}"></script>
+</body>
+</html> 

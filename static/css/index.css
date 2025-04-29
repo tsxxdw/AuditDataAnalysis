@@ -1,0 +1,37 @@
+/* 首页样式 */
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.main-btn {
+    display: inline-block;
+    width: 300px;
+    padding: 1.5rem 2rem;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.main-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-5px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 响应式设计 */
+@media (min-width: 768px) {
+    .buttons-container {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+} 

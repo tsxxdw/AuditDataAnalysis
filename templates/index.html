@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析网站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>数据分析系统</h1>
+        <div class="settings-btn">
+            <a href="{{ url_for('settings') }}">设置</a>
+        </div>
+    </header>
+    
+    <main>
+        <div class="buttons-container">
+            <a href="{{ url_for('index_db') }}" class="main-btn">数据库表结构管理</a>
+            <a href="{{ url_for('index_import') }}" class="main-btn">数据导入</a>
+            <a href="{{ url_for('index_query') }}" class="main-btn">业务查询</a>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 数据分析系统</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html> 
