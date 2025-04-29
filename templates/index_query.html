@@ -10,10 +10,6 @@
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
-    {# 设置当前页面变量，用于头部组件判断 #}
-    {% set current_page = 'index_query' %}
-    {% set page_title = '业务查询' %}
-    
     {# 引入头部组件 #}
     {% include 'components/header.html' %}
     
