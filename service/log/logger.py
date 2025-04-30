@@ -120,6 +120,10 @@ def reload_log_config():
     """重新加载日志配置"""
     global LOG_DIR
     
+    # 获取当前的请求ID
+    req_id = get_request_id()
+    log_instance = logger.bind(request_id=req_id)
+    
     # 移除原有的处理器
     for handler_id in list(logger._core.handlers.keys()):
         if handler_id != 0:  # ID 0是默认的stderr处理器
@@ -155,4 +159,5 @@ def reload_log_config():
         enqueue=True,
     )
     
-    logger.info(f"日志配置已重新加载，日志保存路径: {LOG_DIR}") 
+    # 使用带有请求ID的logger实例记录日志
+    log_instance.info(f"日志配置已重新加载，日志保存路径: {LOG_DIR}") 

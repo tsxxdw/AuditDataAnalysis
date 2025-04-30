@@ -1,5 +1,5 @@
 import functools
-from utils.log.logger import app_logger
+from service.log.logger import app_logger
 from service.exception import AppException
 
 def log_with_context(func=None, *, level='INFO', with_args=False, success_msg=None, error_msg=None):

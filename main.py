@@ -5,8 +5,8 @@ import time
 import os
 from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
-from utils.log.logger import app_logger
-from utils.log.middleware import init_log_middleware
+from service.log.logger import app_logger
+from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
 
 app = Flask(__name__)

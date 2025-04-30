@@ -1,7 +1,7 @@
 from flask import request, g
 import time
 from functools import wraps
-from utils.log.logger import set_request_id, app_logger
+from service.log.logger import set_request_id, app_logger
 
 class RequestIdMiddleware:
     """为每个请求分配唯一ID的中间件"""

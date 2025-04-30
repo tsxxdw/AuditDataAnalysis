@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import os
 import json
 from datetime import datetime
-from utils.log.logger import reload_log_config, app_logger
+from service.log.logger import reload_log_config, app_logger
 
 log_settings_bp = Blueprint('log_settings', __name__, url_prefix='/api/settings/log')
 

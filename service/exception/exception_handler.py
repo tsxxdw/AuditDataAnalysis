@@ -5,7 +5,7 @@ from flask import jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 import traceback
 from datetime import datetime
-from utils.log.logger import app_logger
+from service.log.logger import app_logger
 from .app_exception import AppException
 
 def register_error_handlers(app):
