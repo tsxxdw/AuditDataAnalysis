@@ -4,15 +4,17 @@
         "mysql": {
             "host": "localhost",
             "port": "3306",
-            "database": "yb_2026",
+            "database": "yb_2025",
             "username": "root",
             "password": "123456"
         },
         "sqlserver": {
-            "host": "",
+            "host": "localhost",
             "instance": "qqq",
-            "database": "",
-            "authType": "windows"
+            "database": "sa",
+            "authType": "sql",
+            "username": "root",
+            "password": "123456"
         },
         "oracle": {
             "host": "主机地址",
