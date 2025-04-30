@@ -1,6 +1,6 @@
 import functools
 from utils.log.logger import app_logger
-from utils.log.exceptions import AppException, DatabaseException, ValidationException
+from service.exception import AppException
 
 def log_with_context(func=None, *, level='INFO', with_args=False, success_msg=None, error_msg=None):
     """
@@ -68,7 +68,7 @@ def safe_db_operation(func):
             # 这里可以根据具体的数据库类型捕获不同的异常
             # 例如 sqlalchemy.exc.SQLAlchemyError, pymysql.MySQLError 等
             app_logger.error(f"数据库操作失败: {str(e)}", exc_info=True)
-            raise DatabaseException(f"数据库操作失败: {str(e)}")
+            raise AppException(f"数据库操作失败: {str(e)}", code=500)
     return wrapper
 
 def validate_input(validation_func):
@@ -85,7 +85,7 @@ def validate_input(validation_func):
             is_valid, error_message = validation_func(*args, **kwargs)
             if not is_valid:
                 app_logger.warning(f"输入验证失败: {error_message}")
-                raise ValidationException(error_message)
+                raise AppException(error_message, code=400)
             return func(*args, **kwargs)
         return wrapper
     return decorator

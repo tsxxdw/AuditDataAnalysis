@@ -42,11 +42,11 @@
 
 3. 异常处理:
    ```python
-   from utils.log.exceptions import AppException, DatabaseException, ValidationException
+   from service.exception import AppException
 
    # 抛出自定义异常
-   raise DatabaseException("数据库连接失败")
-   raise ValidationException("输入参数无效")
+   raise AppException("数据库连接失败", code=500)
+   raise AppException("输入参数无效", code=400)
    ```
 
 4. 输入验证装饰器:
