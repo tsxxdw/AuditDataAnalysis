@@ -27,9 +27,8 @@ $(document).ready(function() {
     // 保存日志设置
     $('.save-logs-btn').click(function() {
         var logPath = $('#log-path').val();
-        var logLevel = $('#log-level').val();
         
         // 这里仅做演示，实际操作需要后端支持
-        alert('日志设置已保存!\n路径: ' + logPath + '\n日志级别: ' + logLevel);
+        alert('日志设置已保存!\n路径: ' + logPath);
     });
 }); 

@@ -4,7 +4,7 @@ import os
 from datetime import timedelta
 import uuid
 import contextvars
-from flask import request, g
+from flask import request, g, has_request_context
 
 # 创建日志目录
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'logs')
@@ -54,9 +54,11 @@ logger.add(
 
 def get_request_id():
     """获取当前请求ID，如果不存在则生成一个新的"""
-    # 首先尝试从Flask g对象获取
-    if hasattr(g, 'request_id'):
-        return g.request_id
+    # 首先检查是否在请求上下文中
+    if has_request_context():
+        # 在请求上下文中，尝试从Flask g对象获取
+        if hasattr(g, 'request_id'):
+            return g.request_id
     
     # 然后尝试从contextvars获取
     req_id = request_id_var.get()
@@ -72,7 +74,7 @@ def set_request_id(req_id=None):
         req_id = str(uuid.uuid4())
     
     # 同时设置到Flask g对象和contextvars
-    if hasattr(request, 'environ'):
+    if has_request_context():
         g.request_id = req_id
     
     request_id_var.set(req_id)
