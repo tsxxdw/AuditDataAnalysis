@@ -1,8 +1,8 @@
 import json
 import os
 
-class SettingsDatabaseController:
-    """数据库设置控制器，处理数据库配置的读取和保存"""
+class SettingsDatabaseService:
+    """数据库设置服务，处理数据库配置的读取和保存"""
     
     def __init__(self):
         # 配置文件路径
@@ -47,5 +47,5 @@ class SettingsDatabaseController:
             print(f"保存数据库配置出错: {str(e)}")
             return False
 
-# 创建控制器实例
-db_controller = SettingsDatabaseController() 
+# 创建服务实例
+db_service = SettingsDatabaseService() 
