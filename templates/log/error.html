@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <style>
+        .error-container {
+            padding: 40px 15px;
+            text-align: center;
+        }
+        .error-code {
+            font-size: 120px;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        .error-message {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .error-request-id {
+            color: #666;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+        .error-details {
+            margin-top: 30px;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .back-btn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-container">
+            <div class="error-code">{{ error_code }}</div>
+            <div class="error-message">{{ error_message }}</div>
+            
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <a href="/" class="btn btn-primary back-btn">返回首页</a>
+                    
+                    {% if error_details and error_code == 500 %}
+                    <div class="error-details">
+                        <h5>错误详情：</h5>
+                        <pre>{{ error_details }}</pre>
+                    </div>
+                    {% endif %}
+                    
+                    {% if request_id %}
+                    <div class="error-request-id">
+                        请求ID: {{ request_id }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</body>
+</html> 
