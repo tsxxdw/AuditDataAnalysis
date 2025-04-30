@@ -14,7 +14,150 @@
     {% include 'components/header.html' %}
     
     <main>
-        <!-- 设置内容将在这里 -->
+        <div class="settings-container">
+            <h2 class="settings-title">系统设置</h2>
+            
+            <div class="settings-layout">
+                <!-- 左侧导航栏 -->
+                <div class="settings-nav">
+                    <ul class="nav-list">
+                        <li class="nav-item active" data-target="db-settings">
+                            <span class="nav-icon">🔌</span>
+                            <span class="nav-text">数据库设置</span>
+                        </li>
+                        <li class="nav-item" data-target="log-settings">
+                            <span class="nav-icon">📝</span>
+                            <span class="nav-text">日志设置</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- 右侧内容区 -->
+                <div class="settings-content">
+                    <!-- 数据库设置部分 -->
+                    <div class="settings-section active" id="db-settings">
+                        <h3 class="section-title">数据库设置</h3>
+                        <div class="db-settings-form">
+                            <div class="form-group">
+                                <label for="db-type">数据库类型：</label>
+                                <select id="db-type" class="select-input">
+                                    <option value="mysql">MySQL</option>
+                                    <option value="sqlserver">SQL Server</option>
+                                    <option value="oracle">Oracle</option>
+                                </select>
+                            </div>
+                            
+                            <!-- MySQL 连接信息 -->
+                            <div class="db-connection-form" id="mysql-form">
+                                <div class="form-group">
+                                    <label for="mysql-host">主机地址：</label>
+                                    <input type="text" id="mysql-host" class="text-input" placeholder="localhost">
+                                </div>
+                                <div class="form-group">
+                                    <label for="mysql-port">端口：</label>
+                                    <input type="text" id="mysql-port" class="text-input" placeholder="3306">
+                                </div>
+                                <div class="form-group">
+                                    <label for="mysql-database">数据库名：</label>
+                                    <input type="text" id="mysql-database" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="mysql-username">用户名：</label>
+                                    <input type="text" id="mysql-username" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="mysql-password">密码：</label>
+                                    <input type="password" id="mysql-password" class="text-input">
+                                </div>
+                            </div>
+                            
+                            <!-- SQL Server 连接信息 -->
+                            <div class="db-connection-form" id="sqlserver-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="sqlserver-host">服务器地址：</label>
+                                    <input type="text" id="sqlserver-host" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sqlserver-instance">实例名：</label>
+                                    <input type="text" id="sqlserver-instance" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sqlserver-database">数据库名：</label>
+                                    <input type="text" id="sqlserver-database" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sqlserver-auth">认证方式：</label>
+                                    <select id="sqlserver-auth" class="select-input">
+                                        <option value="windows">Windows 身份验证</option>
+                                        <option value="sql">SQL Server 身份验证</option>
+                                    </select>
+                                </div>
+                                <div class="form-group sql-auth-field">
+                                    <label for="sqlserver-username">用户名：</label>
+                                    <input type="text" id="sqlserver-username" class="text-input">
+                                </div>
+                                <div class="form-group sql-auth-field">
+                                    <label for="sqlserver-password">密码：</label>
+                                    <input type="password" id="sqlserver-password" class="text-input">
+                                </div>
+                            </div>
+                            
+                            <!-- Oracle 连接信息 -->
+                            <div class="db-connection-form" id="oracle-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="oracle-host">主机地址：</label>
+                                    <input type="text" id="oracle-host" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="oracle-port">端口：</label>
+                                    <input type="text" id="oracle-port" class="text-input" placeholder="1521">
+                                </div>
+                                <div class="form-group">
+                                    <label for="oracle-service">服务名：</label>
+                                    <input type="text" id="oracle-service" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="oracle-username">用户名：</label>
+                                    <input type="text" id="oracle-username" class="text-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="oracle-password">密码：</label>
+                                    <input type="password" id="oracle-password" class="text-input">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button class="save-db-btn primary-btn">保存设置</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日志设置部分 -->
+                    <div class="settings-section" id="log-settings">
+                        <h3 class="section-title">日志设置</h3>
+                        <div class="log-settings-form">
+                            <div class="form-group">
+                                <label for="log-path">日志保存路径：</label>
+                                <input type="text" id="log-path" value="C:\logs\data_analysis" class="text-input">
+                                <button class="browse-btn">浏览...</button>
+                            </div>
+                            <div class="form-group">
+                                <label for="log-level">日志级别：</label>
+                                <select id="log-level" class="select-input">
+                                    <option value="info">一般信息</option>
+                                    <option value="warning">警告</option>
+                                    <option value="error">错误</option>
+                                    <option value="debug">调试</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button class="save-logs-btn primary-btn">保存设置</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     
     <footer>
