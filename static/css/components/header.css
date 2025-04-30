@@ -1,4 +1,4 @@
-/* 头部组件样式 - 小巧精致版 */
+/* 头部组件样式 */
 .site-header {
     background: #2c3e50;
     color: white;
@@ -17,15 +17,22 @@
     width: 100%;
     height: 40px;
     position: relative;
+    padding: 0 15px;
 }
 
-.logo-container {
+/* 左侧导航区域 */
+.left-nav {
+    flex: 1;
     display: flex;
-    align-items: center;
+    justify-content: flex-start;
+}
+
+/* 中间logo区域 */
+.logo-container {
+    flex: 2;
+    display: flex;
     justify-content: center;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    align-items: center;
 }
 
 .logo-container h1 {
@@ -33,14 +40,17 @@
     margin: 0;
     font-weight: 500;
     color: #ecf0f1;
+    text-align: center;
 }
 
-.nav-buttons {
+/* 右侧导航区域 */
+.right-nav {
+    flex: 1;
     display: flex;
-    gap: 0.8rem;
-    align-items: center;
+    justify-content: flex-end;
 }
 
+/* 按钮样式 */
 .back-btn, .settings-btn {
     color: #ecf0f1;
     text-decoration: none;
@@ -56,12 +66,10 @@
 
 .back-btn {
     background-color: rgba(52, 152, 219, 0.7);
-    margin-left: 15px;
 }
 
 .settings-btn {
     background-color: rgba(255, 255, 255, 0.1);
-    margin-right: 15px;
 }
 
 .back-btn:hover {
@@ -94,8 +102,6 @@
     height: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
-    position: absolute;
-    right: 15px;
 }
 
 .mobile-menu-toggle span {
@@ -110,21 +116,19 @@
 /* 响应式设计 */
 @media (max-width: 768px) {
     .logo-container {
-        left: 15px;
-        transform: none;
         justify-content: flex-start;
+    }
+    
+    .left-nav, .right-nav {
+        display: none;
     }
     
     .mobile-menu-toggle {
         display: flex;
     }
     
-    .back-btn, .settings-btn {
-        display: none;
-    }
-    
-    .header-container.menu-active .back-btn,
-    .header-container.menu-active .settings-btn {
+    .header-container.menu-active .left-nav,
+    .header-container.menu-active .right-nav {
         display: flex;
         position: absolute;
         top: 100%;
@@ -133,14 +137,13 @@
         padding: 0.6rem 15px;
         background: #2c3e50;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
-        margin: 0;
     }
     
-    .header-container.menu-active .back-btn {
+    .header-container.menu-active .left-nav {
         top: calc(100% + 0.6rem);
     }
     
-    .header-container.menu-active .settings-btn {
+    .header-container.menu-active .right-nav {
         top: calc(100% + 2.4rem);
     }
 } 

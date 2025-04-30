@@ -1,13 +1,22 @@
-<!-- 头部组件 - 小巧精致版 -->
+<!-- 头部组件 -->
 <header class="site-header">
     <div class="header-container">
-        <a href="{{ url_for('index') }}" class="back-btn">首页</a>
-        
-        <div class="logo-container">
-            <h1>数据分析系统</h1>
+        <!-- 左侧返回按钮 -->
+        <div class="left-nav">
+            {% if request.path != '/' %}
+                <a href="{{ url_for('index') }}" class="back-btn">返回首页</a>
+            {% endif %}
         </div>
         
-        <a href="{{ url_for('settings') }}" class="settings-btn">设置</a>
+        <!-- 中间标题 -->
+        <div class="logo-container">
+            <h1>{{ page_title|default('数据分析系统') }}</h1>
+        </div>
+        
+        <!-- 右侧设置按钮 -->
+        <div class="right-nav">
+            <a href="{{ url_for('settings') }}" class="settings-btn">设置</a>
+        </div>
         
         <!-- 移动端菜单按钮 -->
         <div class="mobile-menu-toggle">

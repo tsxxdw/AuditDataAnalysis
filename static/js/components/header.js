@@ -7,7 +7,7 @@ $(document).ready(function() {
     
     // 点击页面其他区域关闭菜单
     $(document).on('click', function(event) {
-        if (!$(event.target).closest('.mobile-menu-toggle, .back-btn, .settings-btn').length) {
+        if (!$(event.target).closest('.mobile-menu-toggle, .header-container').length) {
             $('.header-container').removeClass('menu-active');
         }
     });
