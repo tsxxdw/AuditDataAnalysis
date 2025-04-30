@@ -6,6 +6,7 @@
     <title>业务查询 - 数据分析系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index_query.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
@@ -17,9 +18,8 @@
         <!-- 业务查询内容将在这里 -->
     </main>
     
-    <footer>
-        <p>&copy; 2025 数据分析系统</p>
-    </footer>
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
 
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_query.js') }}"></script>

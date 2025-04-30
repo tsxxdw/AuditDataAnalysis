@@ -6,6 +6,7 @@
     <title>设置 - 数据分析系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
@@ -171,9 +172,8 @@
         </div>
     </main>
     
-    <footer>
-        <p>&copy; 2025 数据分析系统</p>
-    </footer>
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
 
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/settings/database.js') }}"></script>
