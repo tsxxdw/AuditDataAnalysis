@@ -1,13 +1,39 @@
 from loguru import logger
 import sys
 import os
+import json
 from datetime import timedelta
 import uuid
 import contextvars
 from flask import request, g, has_request_context
 
-# 创建日志目录
-LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'logs')
+# 获取日志配置
+def get_log_config():
+    """获取日志配置文件中的设置"""
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 
+                              'config', 'settings', 'log_config.json')
+    
+    # 默认配置
+    default_config = {
+        "log_path": "logs"
+    }
+    
+    # 如果配置文件存在，读取配置
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            return config
+        except Exception:
+            # 如果读取失败，使用默认配置
+            return default_config
+    else:
+        # 如果文件不存在，使用默认配置
+        return default_config
+
+# 获取日志目录
+log_config = get_log_config()
+LOG_DIR = os.path.abspath(log_config.get('log_path', 'logs'))
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # 请求ID上下文变量
@@ -87,4 +113,46 @@ def get_logger():
     return logger.bind(request_id=req_id)
 
 # 方便在其他模块中导入
-app_logger = get_logger() 
+app_logger = get_logger()
+
+# 提供重置日志配置的方法
+def reload_log_config():
+    """重新加载日志配置"""
+    global LOG_DIR
+    
+    # 移除原有的处理器
+    for handler_id in list(logger._core.handlers.keys()):
+        if handler_id != 0:  # ID 0是默认的stderr处理器
+            logger.remove(handler_id)
+    
+    # 重新获取日志配置
+    log_config = get_log_config()
+    LOG_DIR = os.path.abspath(log_config.get('log_path', 'logs'))
+    os.makedirs(LOG_DIR, exist_ok=True)
+    
+    # 重新添加处理器
+    logger.add(
+        os.path.join(LOG_DIR, "app_{time:YYYY-MM-DD}.log"),
+        rotation="00:00",
+        retention=timedelta(days=30),
+        compression="zip",
+        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | RequestID: {extra[request_id]} | {message}",
+        level="DEBUG",
+        backtrace=True,
+        diagnose=True,
+        enqueue=True,
+    )
+    
+    logger.add(
+        os.path.join(LOG_DIR, "error_{time:YYYY-MM-DD}.log"),
+        rotation="00:00",
+        retention=timedelta(days=60),
+        compression="zip",
+        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | RequestID: {extra[request_id]} | {message}",
+        level="ERROR",
+        backtrace=True,
+        diagnose=True,
+        enqueue=True,
+    )
+    
+    logger.info(f"日志配置已重新加载，日志保存路径: {LOG_DIR}") 
