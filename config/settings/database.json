@@ -1,3 +1,25 @@
 {
-    "databases": {}
-} 
+    "defaultDbType": "mysql",
+    "databases": {
+        "mysql": {
+            "host": "localhost",
+            "port": "3306",
+            "database": "yb_2026",
+            "username": "root",
+            "password": "123456"
+        },
+        "sqlserver": {
+            "host": "",
+            "instance": "qqq",
+            "database": "",
+            "authType": "windows"
+        },
+        "oracle": {
+            "host": "主机地址",
+            "port": "1521",
+            "service": "服务名",
+            "username": "root",
+            "password": "123456"
+        }
+    }
+}

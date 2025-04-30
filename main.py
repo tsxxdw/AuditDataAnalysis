@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 import webbrowser
 import threading
 import time
 import os
+from routes.settings.settings_database_api import settings_database_bp
 
 app = Flask(__name__)
+
+# 注册蓝图
+app.register_blueprint(settings_database_bp)
 
 # 定义一个函数，在短暂延迟后打开浏览器
 def open_browser():
