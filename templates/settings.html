@@ -39,7 +39,18 @@
                         <h3 class="section-title">数据库设置</h3>
                         <div class="db-settings-form">
                             <div class="form-group">
-                                <label for="db-type">数据库类型：</label>
+                                <label for="default-db" class="highlight-label">默认数据库：</label>
+                                <select id="default-db" class="select-input">
+                                    <option value="mysql">MySQL</option>
+                                    <option value="sqlserver">SQL Server</option>
+                                    <option value="oracle">Oracle</option>
+                                </select>
+                            </div>
+                            
+                            <div class="db-divider"></div>
+                            
+                            <div class="form-group">
+                                <label for="db-type" class="highlight-label">数据库类型：</label>
                                 <select id="db-type" class="select-input">
                                     <option value="mysql">MySQL</option>
                                     <option value="sqlserver">SQL Server</option>
@@ -127,7 +138,7 @@
                             </div>
                             
                             <div class="form-group">
-                                <button class="save-db-btn primary-btn">保存设置</button>
+                                <button class="save-db-btn primary-btn">保存数据库设置</button>
                             </div>
                         </div>
                     </div>

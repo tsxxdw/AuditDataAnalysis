@@ -29,6 +29,14 @@ $(document).ready(function() {
         handleSqlServerAuth();
     }
 
+    // 默认数据库类型切换
+    $('#default-db').change(function() {
+        var defaultDbType = $(this).val();
+        
+        // 可以在这里添加加载默认数据库配置的逻辑
+        console.log('默认数据库类型已切换为：' + defaultDbType);
+    });
+
     // 数据库类型切换
     $('#db-type').change(function() {
         var dbType = $(this).val();
@@ -61,12 +69,17 @@ $(document).ready(function() {
 
     // 保存数据库设置
     $('.save-db-btn').click(function() {
+        var defaultDbType = $('#default-db').val();
         var dbType = $('#db-type').val();
         var formData = {};
         
+        // 添加默认数据库类型
+        formData.defaultDbType = defaultDbType;
+        formData.type = dbType;
+        
         // 根据数据库类型收集表单数据
         if (dbType === 'mysql') {
-            formData = {
+            formData.connection = {
                 host: $('#mysql-host').val(),
                 port: $('#mysql-port').val(),
                 database: $('#mysql-database').val(),
@@ -74,7 +87,7 @@ $(document).ready(function() {
                 password: $('#mysql-password').val()
             };
         } else if (dbType === 'sqlserver') {
-            formData = {
+            formData.connection = {
                 host: $('#sqlserver-host').val(),
                 instance: $('#sqlserver-instance').val(),
                 database: $('#sqlserver-database').val(),
@@ -82,11 +95,11 @@ $(document).ready(function() {
             };
             
             if ($('#sqlserver-auth').val() === 'sql') {
-                formData.username = $('#sqlserver-username').val();
-                formData.password = $('#sqlserver-password').val();
+                formData.connection.username = $('#sqlserver-username').val();
+                formData.connection.password = $('#sqlserver-password').val();
             }
         } else if (dbType === 'oracle') {
-            formData = {
+            formData.connection = {
                 host: $('#oracle-host').val(),
                 port: $('#oracle-port').val(),
                 service: $('#oracle-service').val(),
@@ -96,7 +109,7 @@ $(document).ready(function() {
         }
         
         // 这里仅做演示，实际操作需要后端支持
-        alert('数据库设置已保存!\n类型: ' + dbType + '\n连接信息已收集');
+        alert('数据库设置已保存!\n默认数据库类型: ' + defaultDbType + '\n当前配置数据库类型: ' + dbType + '\n连接信息已收集');
         console.log('保存的设置:', formData);
     });
 

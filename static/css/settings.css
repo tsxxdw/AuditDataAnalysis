@@ -95,13 +95,20 @@
 .db-settings-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.8rem;
+}
+
+/* 数据库分割线 */
+.db-divider {
+    border-top: 1px solid #eee;
+    margin: 0.5rem 0 1rem 0;
 }
 
 .db-connection-form {
-    border-top: 1px solid #eee;
-    padding-top: 1.2rem;
-    margin-top: 0.5rem;
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
 }
 
 /* 表单组件样式 */
@@ -109,13 +116,19 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0;
 }
 
 .form-group label {
     width: 120px;
     font-weight: 500;
     color: #555;
+}
+
+/* 高亮标签样式 */
+.highlight-label {
+    color: #e74c3c !important;
+    font-weight: 600;
 }
 
 .text-input {
@@ -157,6 +170,7 @@
     font-size: 0.9rem;
     align-self: flex-end;
     transition: background-color 0.2s;
+    margin-top: 0.8rem;
 }
 
 .primary-btn:hover {
