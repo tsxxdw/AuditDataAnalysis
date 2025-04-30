@@ -6,7 +6,7 @@ class SettingsDatabaseController:
     
     def __init__(self):
         # 配置文件路径
-        self.config_path = 'config/settings/database.json'
+        self.config_path = 'config/settings/database_config.json'
         
     def get_database_settings(self):
         """获取数据库设置"""
