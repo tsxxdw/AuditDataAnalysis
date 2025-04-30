@@ -55,4 +55,7 @@ coverage.xml
 *.xls
 *.xlsx
 *.db
-*.sqlite 
+*.sqlite
+
+#日志文件
+*.log
