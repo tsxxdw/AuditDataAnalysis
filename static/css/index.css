@@ -3,28 +3,50 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
     margin-top: 3rem;
 }
 
 .main-btn {
-    display: inline-block;
-    width: 300px;
-    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 170px;
+    padding: 0.8rem 1.2rem;
     background-color: #3498db;
     color: white;
     text-decoration: none;
     text-align: center;
-    font-size: 1.2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+}
+
+.main-btn:before {
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+/* 表结构管理按钮图标 */
+.db-btn:before {
+    content: "🗃️";
+}
+
+/* 数据导入按钮图标 */
+.import-btn:before {
+    content: "📥";
+}
+
+/* 大数据分析按钮图标 */
+.query-btn:before {
+    content: "🔍";
 }
 
 .main-btn:hover {
     background-color: #2980b9;
-    transform: translateY(-5px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.12);
 }
 
 /* 响应式设计 */
@@ -33,5 +55,6 @@
         flex-direction: row;
         justify-content: center;
         flex-wrap: wrap;
+        gap: 1.5rem;
     }
 } 
