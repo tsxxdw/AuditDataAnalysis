@@ -211,18 +211,54 @@ class DatabasePoolManager:
                 password = quote_plus(config.get('password', ''))
                 instance = config.get('instance', '')
                 host = config.get('host', '')
-                server = f"{host}\\{instance}" if instance else host
-                driver = DEFAULT_POOL_CONFIG['sqlserver'].get('driver', '{ODBC Driver 17 for SQL Server}')
+                db = config.get('database', '')
+                
+                # 构建服务器部分
+                if instance:
+                    server = f"{host}\\{instance}"
+                else:
+                    server = host
+                
+                # 尝试多种驱动程序选项
+                # 如果配置中指定了驱动程序，使用配置的驱动
+                driver = DEFAULT_POOL_CONFIG.get('sqlserver', {}).get('driver', '{ODBC Driver 17 for SQL Server}')
+                
+                # 构建连接字符串
+                connection_prefix = DB_DRIVERS['sqlserver']['connection_prefix']
                 
                 # 处理不同的认证方式
                 if config.get('auth_type') == 'windows':
-                    # Windows认证
-                    return f"{DB_DRIVERS['sqlserver']['connection_prefix']}://{server}:{config.get('port', '1433')}/{config.get('database', '')}?driver={driver}&trusted_connection=yes"
+                    # Windows认证 - 直接DSN-less连接
+                    conn_str = f"{connection_prefix}:///?odbc_connect="
+                    params = [
+                        f"DRIVER={driver}",
+                        f"SERVER={server}",
+                        f"DATABASE={db}",
+                        "Trusted_Connection=yes"
+                    ]
+                    
+                    if config.get('port'):
+                        params.append(f"PORT={config.get('port')}")
+                    
+                    return conn_str + quote_plus(';'.join(params))
                 else:
-                    # SQL Server认证
+                    # SQL Server认证 - 直接DSN-less连接
                     username = config.get('username', '')
-                    auth_part = f"{username}:{password}@" if username else ""
-                    return f"{DB_DRIVERS['sqlserver']['connection_prefix']}://{auth_part}{server}:{config.get('port', '1433')}/{config.get('database', '')}?driver={driver}"
+                    conn_str = f"{connection_prefix}:///?odbc_connect="
+                    params = [
+                        f"DRIVER={driver}",
+                        f"SERVER={server}",
+                        f"DATABASE={db}"
+                    ]
+                    
+                    if config.get('port'):
+                        params.append(f"PORT={config.get('port')}")
+                    
+                    if username:
+                        params.append(f"UID={username}")
+                        params.append(f"PWD={password}")
+                    
+                    return conn_str + quote_plus(';'.join(params))
             
             elif db_type == 'oracle':
                 password = quote_plus(config.get('password', ''))

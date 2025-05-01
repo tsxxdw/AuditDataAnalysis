@@ -10,7 +10,7 @@
         },
         "sqlserver": {
             "host": "localhost",
-            "instance": "qqq12",
+            "instance": "",
             "database": "sa",
             "authType": "sql",
             "username": "root",
