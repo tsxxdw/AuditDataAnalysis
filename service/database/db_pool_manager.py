@@ -4,7 +4,6 @@
 管理不同类型数据库的连接池，包括创建、获取、测试和关闭连接池
 """
 
-import logging
 import sys
 import importlib
 import time
@@ -13,8 +12,8 @@ from sqlalchemy.pool import QueuePool
 from config.database_config import DEFAULT_POOL_CONFIG, TEST_CONNECTION_CONFIG
 from urllib.parse import quote_plus
 from service.exception import AppException
-
-logger = logging.getLogger(__name__)
+from service.log.logger import app_logger
+from service.log.tools import safe_db_operation
 
 # 数据库驱动配置
 DB_DRIVERS = {
@@ -74,11 +73,11 @@ class DatabasePoolManager:
         try:
             importlib.import_module(module_name)
             self._drivers_loaded[db_type] = True
-            logger.info(f"已成功加载{db_type}数据库驱动: {module_name}")
+            app_logger.info(f"已成功加载{db_type}数据库驱动: {module_name}")
             return True
         except ImportError as e:
             error_msg = f"无法加载{db_type}数据库驱动({module_name})，请确保已安装: pip install {module_name}"
-            logger.error(f"{error_msg}. 错误: {str(e)}")
+            app_logger.error(f"{error_msg}. 错误: {str(e)}")
             raise AppException(error_msg, code=500, details={"original_error": str(e)})
     
     def get_pool(self, db_type, config):
@@ -92,19 +91,21 @@ class DatabasePoolManager:
             # 创建新连接池
             engine = self._create_engine(db_type, config)
             self._pools[pool_key] = engine
-            logger.info(f"已创建新的{db_type}数据库连接池")
+            app_logger.info(f"已创建新的{db_type}数据库连接池")
         
         return self._pools[pool_key]
     
+    @safe_db_operation
     def get_connection(self, db_type, config):
         """获取数据库连接"""
         pool = self.get_pool(db_type, config)
         try:
             return pool.connect()
         except Exception as e:
-            logger.error(f"获取{db_type}数据库连接失败: {str(e)}")
+            app_logger.error(f"获取{db_type}数据库连接失败: {str(e)}")
             raise AppException(f"获取数据库连接失败: {str(e)}", code=500)
     
+    @safe_db_operation
     def test_connection(self, config):
         """测试数据库连接但不创建连接池"""
         db_type = config.get('type')
@@ -129,7 +130,7 @@ class DatabasePoolManager:
                 result.close()
             return True
         except Exception as e:
-            logger.error(f"数据库连接测试失败: {str(e)}")
+            app_logger.error(f"数据库连接测试失败: {str(e)}")
             raise AppException(f"数据库连接测试失败: {str(e)}", code=500)
         finally:
             # 确保关闭临时引擎
@@ -160,6 +161,7 @@ class DatabasePoolManager:
         else:
             raise AppException(f"不支持的数据库类型: {db_type}", code=400)
     
+    @safe_db_operation
     def _create_engine(self, db_type, config, for_test=False):
         """创建数据库引擎"""
         # 构建连接字符串
@@ -192,7 +194,7 @@ class DatabasePoolManager:
                 **pool_options
             )
         except Exception as e:
-            logger.error(f"创建数据库引擎失败: {str(e)}")
+            app_logger.error(f"创建数据库引擎失败: {str(e)}")
             raise AppException(f"创建数据库连接池失败: {str(e)}", code=500)
     
     def _build_connection_string(self, db_type, config):
@@ -230,7 +232,7 @@ class DatabasePoolManager:
             else:
                 raise AppException(f"不支持的数据库类型: {db_type}", code=400)
         except Exception as e:
-            logger.error(f"构建连接字符串失败: {str(e)}")
+            app_logger.error(f"构建连接字符串失败: {str(e)}")
             raise AppException(f"构建数据库连接字符串失败: {str(e)}", code=500)
     
     def _get_test_query(self, db_type):
@@ -257,16 +259,16 @@ class DatabasePoolManager:
             else:
                 raise AppException(f"不支持的数据库类型: {db_type}", code=400)
         except Exception as e:
-            logger.error(f"生成连接池键名失败: {str(e)}")
+            app_logger.error(f"生成连接池键名失败: {str(e)}")
             raise AppException(f"生成连接池键名失败: {str(e)}", code=500)
     
     def shutdown(self):
         """关闭所有连接池"""
         for key, engine in list(self._pools.items()):
             try:
-                logger.info(f"正在关闭连接池: {key}")
+                app_logger.info(f"正在关闭连接池: {key}")
                 engine.dispose()
                 self._pools.pop(key, None)
             except Exception as e:
-                logger.error(f"关闭连接池 {key} 失败: {str(e)}")
+                app_logger.error(f"关闭连接池 {key} 失败: {str(e)}")
         self._pools.clear()

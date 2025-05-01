@@ -11,11 +11,9 @@ import concurrent.futures
 import threading
 import queue
 import time
-import logging
 from typing import Callable, Any, Dict, Optional
 from config.thread_pool_config import thread_pool_config
-
-logger = logging.getLogger(__name__)
+from service.log.logger import app_logger
 
 class ThreadPoolRejectionError(Exception):
     """当任务提交被拒绝时抛出的异常。"""
@@ -59,7 +57,7 @@ class CustomThreadPoolExecutor:
         # 启动工作线程
         self._adjust_pool_size(self._min_workers)
         
-        logger.info(f"初始化 {pool_name} 线程池，最小线程数={self._min_workers}，最大线程数={self._max_workers}")
+        app_logger.info(f"初始化 {pool_name} 线程池，最小线程数={self._min_workers}，最大线程数={self._max_workers}")
 
     def submit(self, fn: Callable, *args, **kwargs) -> concurrent.futures.Future:
         """提交任务到线程池。"""
@@ -156,7 +154,7 @@ class CustomThreadPoolExecutor:
                             if len(self._workers) > self._min_workers:
                                 # 从活动工作线程中移除此工作线程
                                 self._workers.pop(worker_id, None)
-                                logger.debug(f"终止空闲工作线程 {thread_name}")
+                                app_logger.debug(f"终止空闲工作线程 {thread_name}")
                                 return
                             
                 # 检查是否关闭
@@ -165,7 +163,7 @@ class CustomThreadPoolExecutor:
                         return
                         
             except Exception as e:
-                logger.exception(f"工作线程 {thread_name} 中的错误: {e}")
+                app_logger.exception(f"工作线程 {thread_name} 中的错误: {e}")
     
     def _adjust_pool_size(self, target_size=None):
         """根据负载或目标大小调整池大小。"""
@@ -203,7 +201,7 @@ class CustomThreadPoolExecutor:
                 self._workers[worker_id] = worker_thread
                 worker_thread.start()
                 current_size += 1
-                logger.debug(f"在 {self.pool_name} 中启动新工作线程，总计={current_size}")
+                app_logger.debug(f"在 {self.pool_name} 中启动新工作线程，总计={current_size}")
     
     def _monitor_pool(self):
         """定期记录池统计信息并调整大小的监控线程。"""
@@ -217,7 +215,7 @@ class CustomThreadPoolExecutor:
                 worker_count = len(self._workers)
                 queue_size = self._task_queue.qsize()
                 
-                logger.debug(
+                app_logger.debug(
                     f"{self.pool_name} 池统计: 活动工作线程={worker_count}, "
                     f"队列大小={queue_size}/{self._max_queue_size}"
                 )

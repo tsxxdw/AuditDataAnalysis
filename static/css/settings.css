@@ -202,6 +202,19 @@
     margin-right: 10px;
 }
 
+/* 按钮操作区样式 */
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+.form-actions .secondary-btn,
+.form-actions .primary-btn {
+    margin-top: 0;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .settings-layout {
@@ -225,5 +238,11 @@
     
     .text-input, .select-input {
         width: 100%;
+    }
+    
+    /* 确保在移动设备上按钮仍然在一行 */
+    .form-actions {
+        width: 100%;
+        justify-content: space-between;
     }
 } 

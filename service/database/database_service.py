@@ -4,11 +4,10 @@
 提供数据库操作的服务，包括测试连接、执行查询等
 """
 
-import logging
 from .db_pool_manager import DatabasePoolManager
 from service.exception import AppException
-
-logger = logging.getLogger(__name__)
+from service.log.logger import app_logger
+from service.log.tools import safe_db_operation, handle_exceptions
 
 class DatabaseService:
     """数据库服务类"""
@@ -17,6 +16,7 @@ class DatabaseService:
         """初始化数据库服务"""
         self.pool_manager = DatabasePoolManager.get_instance()
     
+    @safe_db_operation
     def test_connection(self, config):
         """测试数据库连接
         
@@ -30,16 +30,17 @@ class DatabaseService:
             AppException: 连接失败时抛出
         """
         try:
-            logger.info(f"正在测试数据库连接: {config.get('type')} - {config.get('host', '')}")
+            app_logger.info(f"正在测试数据库连接: {config.get('type')} - {config.get('host', '')}")
             result = self.pool_manager.test_connection(config)
-            logger.info(f"数据库连接测试成功: {config.get('type')} - {config.get('host', '')}")
+            app_logger.info(f"数据库连接测试成功: {config.get('type')} - {config.get('host', '')}")
             return result
         except Exception as e:
-            logger.error(f"数据库连接测试失败: {str(e)}")
+            app_logger.error(f"数据库连接测试失败: {str(e)}")
             # 转换为友好的错误消息
             error_message = self._get_friendly_error_message(e, config.get('type'))
             raise AppException(error_message, code=500, details={"original_error": str(e), "db_type": config.get('type')})
     
+    @safe_db_operation
     def execute_query(self, db_type, config, query, params=None):
         """执行查询
         
@@ -60,12 +61,13 @@ class DatabaseService:
             result = connection.execute(query, params or {})
             return result
         except Exception as e:
-            logger.error(f"执行查询失败: {str(e)}")
+            app_logger.error(f"执行查询失败: {str(e)}")
             raise AppException(f"执行查询失败: {str(e)}", code=500, details={"query": query, "db_type": db_type})
         finally:
             if 'connection' in locals() and connection:
                 connection.close()
     
+    @handle_exceptions(fallback_value="未知错误", reraise=True)
     def _get_friendly_error_message(self, exception, db_type):
         """获取友好的错误消息
         

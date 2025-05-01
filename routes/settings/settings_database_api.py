@@ -4,28 +4,29 @@
 提供数据库设置相关的API接口
 """
 
-import logging
 from flask import Blueprint, jsonify, request
 from service.settings.database.settings_database_service import db_service
 from service.database import DatabaseService
 from service.exception import AppException
-
-logger = logging.getLogger(__name__)
+from service.log.logger import app_logger
+from service.log.tools import log_with_context, handle_exceptions
 
 # 创建蓝图
 settings_database_bp = Blueprint('settings_database', __name__)
 
 @settings_database_bp.route('/api/settings/database', methods=['GET'])
+@log_with_context(level="INFO")
 def get_database_settings():
     """获取数据库设置"""
     try:
         settings = db_service.get_database_settings()
         return jsonify(settings)
     except Exception as e:
-        logger.exception("获取数据库设置时发生错误")
+        app_logger.exception("获取数据库设置时发生错误")
         return jsonify({"success": False, "message": str(e)})
 
 @settings_database_bp.route('/api/settings/database', methods=['POST'])
+@log_with_context(level="INFO", with_args=True)
 def save_database_settings():
     """保存数据库设置"""
     try:
@@ -35,10 +36,11 @@ def save_database_settings():
         else:
             return jsonify({"status": "error", "message": "保存数据库设置失败"}), 500
     except Exception as e:
-        logger.exception("保存数据库设置时发生错误")
+        app_logger.exception("保存数据库设置时发生错误")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @settings_database_bp.route('/api/settings/database/test', methods=['POST'])
+@log_with_context(level="INFO", with_args=True)
 def test_database_connection():
     """测试数据库连接接口"""
     try:
@@ -74,17 +76,18 @@ def test_database_connection():
         
     except AppException as e:
         # 处理应用异常
-        logger.warning(f"数据库连接测试失败: {e.message}")
+        app_logger.warning(f"数据库连接测试失败: {e.message}")
         return jsonify({"success": False, "message": e.message})
     except Exception as e:
         # 处理其他异常
-        logger.exception("测试数据库连接时发生错误")
+        app_logger.exception("测试数据库连接时发生错误")
         return jsonify({"success": False, "message": f"系统错误: {str(e)}"})
 
 def register_routes(app):
     """注册路由"""
     
     @app.route('/api/settings/database/save', methods=['POST'])
+    @log_with_context(level="INFO", with_args=True)
     def save_database_settings():
         """保存数据库设置"""
         try:
@@ -100,10 +103,11 @@ def register_routes(app):
             return jsonify({"success": True})
             
         except Exception as e:
-            logger.exception("保存数据库设置时发生错误")
+            app_logger.exception("保存数据库设置时发生错误")
             return jsonify({"success": False, "message": str(e)})
     
     @app.route('/api/settings/database/test', methods=['POST'])
+    @log_with_context(level="INFO", with_args=True)
     def test_database_connection():
         """测试数据库连接接口"""
         try:
@@ -139,14 +143,15 @@ def register_routes(app):
             
         except AppException as e:
             # 处理应用异常
-            logger.warning(f"数据库连接测试失败: {e.message}")
+            app_logger.warning(f"数据库连接测试失败: {e.message}")
             return jsonify({"success": False, "message": e.message})
         except Exception as e:
             # 处理其他异常
-            logger.exception("测试数据库连接时发生错误")
+            app_logger.exception("测试数据库连接时发生错误")
             return jsonify({"success": False, "message": f"系统错误: {str(e)}"})
     
     @app.route('/api/settings/database/get', methods=['GET'])
+    @log_with_context(level="INFO")
     def get_database_settings():
         """获取数据库设置"""
         try:
@@ -168,5 +173,5 @@ def register_routes(app):
             })
             
         except Exception as e:
-            logger.exception("获取数据库设置时发生错误")
+            app_logger.exception("获取数据库设置时发生错误")
             return jsonify({"success": False, "message": str(e)}) 
