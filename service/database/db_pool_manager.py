@@ -263,7 +263,37 @@ class DatabasePoolManager:
             elif db_type == 'oracle':
                 password = quote_plus(config.get('password', ''))
                 username = config.get('username', '')
-                return f"{DB_DRIVERS['oracle']['connection_prefix']}://{username}:{password}@{config.get('host', '')}:{config.get('port', '1521')}/{config.get('service', '')}"
+                host = config.get('host', '')
+                port = config.get('port', '1521')
+                service = config.get('service', '')
+                
+                # 使用正确的SQLAlchemy cx_Oracle连接格式
+                # 注意：service_name是作为查询参数而不是路径
+                connection_string = f"{DB_DRIVERS['oracle']['connection_prefix']}://{username}:{password}@{host}:{port}/?service_name={service}"
+                
+                # 打印连接字符串(隐藏密码)
+                masked_connection = f"{DB_DRIVERS['oracle']['connection_prefix']}://{username}:******@{host}:{port}/?service_name={service}"
+                app_logger.info(f"Oracle连接字符串: {masked_connection}")
+                
+                # 尝试其他连接方式
+                if host == 'localhost':
+                    # 尝试方法1：使用127.0.0.1
+                    app_logger.info("尝试连接方法1: 使用127.0.0.1替代localhost")
+                    alt_connection_string1 = f"{DB_DRIVERS['oracle']['connection_prefix']}://{username}:{password}@127.0.0.1:{port}/?service_name={service}"
+                    
+                    # 尝试方法2：使用DSN方式
+                    app_logger.info("尝试连接方法2: 使用DSN方式")
+                    dsn = f"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={host})(PORT={port}))(CONNECT_DATA=(SERVICE_NAME={service})))"
+                    alt_connection_string2 = f"{DB_DRIVERS['oracle']['connection_prefix']}://{username}:{password}@"
+                    
+                    # 尝试方法3：使用SID方式
+                    app_logger.info("尝试连接方法3: 使用SID方式")
+                    alt_connection_string3 = f"{DB_DRIVERS['oracle']['connection_prefix']}://{username}:{password}@{host}:{port}/{service}"
+                    
+                    # 先尝试原始方式
+                    return connection_string
+                
+                return connection_string
             
             else:
                 raise AppException(f"不支持的数据库类型: {db_type}", code=400)

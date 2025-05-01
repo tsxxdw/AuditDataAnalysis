@@ -11,16 +11,16 @@
         "sqlserver": {
             "host": "localhost",
             "instance": "",
-            "database": "test_database",
+            "database": "sa",
             "authType": "sql",
-            "username": "sa",
+            "username": "root",
             "password": "123456"
         },
         "oracle": {
-            "host": "主机地址",
+            "host": "localhost",
             "port": "1521",
-            "service": "服务名",
-            "username": "root",
+            "service": "ORCLPDB1",
+            "username": "YB_2025",
             "password": "123456"
         }
     }
