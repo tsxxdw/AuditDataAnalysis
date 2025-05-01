@@ -11,9 +11,9 @@
         "sqlserver": {
             "host": "localhost",
             "instance": "",
-            "database": "sa",
+            "database": "test_database",
             "authType": "sql",
-            "username": "root",
+            "username": "sa",
             "password": "123456"
         },
         "oracle": {
