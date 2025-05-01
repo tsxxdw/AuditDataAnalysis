@@ -5,21 +5,32 @@ import time
 import os
 from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
+from routes.index_file_upload_api import file_upload_bp, register_routes
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
+from service.database.db_pool_manager import DatabasePoolManager
 
 app = Flask(__name__)
 
 # 注册蓝图
 app.register_blueprint(settings_database_bp)
 app.register_blueprint(log_settings_bp)
+app.register_blueprint(file_upload_bp)
+
+# 注册文件上传相关路由
+register_routes(app)
 
 # 初始化中间件
 init_log_middleware(app)
 
 # 注册异常处理器
 register_error_handlers(app)
+
+# 在应用关闭时关闭所有连接池
+@app.teardown_appcontext
+def shutdown_db_pools(exception=None):
+    DatabasePoolManager.get_instance().shutdown()
 
 # 定义一个函数，在短暂延迟后打开浏览器
 def open_browser():
@@ -47,6 +58,11 @@ def index_import():
 def index_query():
     app_logger.info("访问业务查询页面")
     return render_template('index_query.html', page_title='业务查询')
+
+@app.route('/index_file_upload')
+def index_file_upload():
+    app_logger.info("访问文件上传页面")
+    return render_template('index_file_upload.html', page_title='文件上传')
 
 @app.route('/settings')
 def settings():

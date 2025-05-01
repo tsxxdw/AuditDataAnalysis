@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_file_upload.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {% include 'components/header.html' %}
+    
+    <main class="main-content">
+        <div class="upload-container">
+            <h1 class="page-title">文件上传</h1>
+            
+            <div class="section upload-section">
+                <h2>上传文件</h2>
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-content">
+                        <div class="icon">📤</div>
+                        <p>拖放文件到这里或</p>
+                        <button id="browseBtn" class="browse-btn">浏览文件</button>
+                        <input type="file" id="fileInput" multiple style="display: none;">
+                    </div>
+                </div>
+                <div class="file-info" id="fileInfo"></div>
+            </div>
+            
+            <div class="section status-section" id="uploadStatus" style="display: none;">
+                <h2>上传状态</h2>
+                <div class="spinner"></div>
+                <div class="status-text" id="statusText">正在上传...</div>
+            </div>
+            
+            <div class="section files-section">
+                <h2>已上传文件</h2>
+                <div class="files-list-container">
+                    <table class="files-table">
+                        <thead>
+                            <tr>
+                                <th>文件名</th>
+                                <th>大小</th>
+                                <th>上传日期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filesList">
+                            <tr>
+                                <td colspan="4" class="loading-text">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {% include 'components/footer.html' %}
+    
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index_file_upload.js') }}"></script>
+</body>
+</html> 

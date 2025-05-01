@@ -43,6 +43,11 @@
     content: "🔍";
 }
 
+/* 文件上传按钮图标 */
+.upload-btn:before {
+    content: "📤";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);
