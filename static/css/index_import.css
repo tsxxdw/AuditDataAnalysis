@@ -1,2 +1,295 @@
 /* 数据导入页面样式(index_import) */
-/* 此处将放置特定于数据导入页面的样式 */ 
+/* 此处将放置特定于数据导入页面的样式 */
+
+/* 页面容器 */
+.import-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* 页面标题 */
+.page-title {
+    color: #3498db;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eee;
+}
+
+/* 导入部分通用样式 */
+.import-section {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 标题样式 */
+.section-title {
+    color: #333;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* 导入类型选择器 */
+.import-type-selector {
+    display: flex;
+    margin-bottom: 1rem;
+    gap: 1.5rem;
+}
+
+.radio-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.radio-label {
+    margin-left: 0.5rem;
+}
+
+/* 文件路径选择 */
+.file-path-selector {
+    display: flex;
+    margin-bottom: 0.5rem;
+}
+
+.path-input {
+    flex: 1;
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+}
+
+.browse-button {
+    padding: 0.6rem 1rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+.browse-button:hover {
+    background-color: #2980b9;
+}
+
+.file-info {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 0.5rem;
+}
+
+/* 表单组件样式 */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    width: 100px;
+    font-weight: 500;
+}
+
+.select-input {
+    flex: 1;
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.number-input {
+    width: 80px;
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* 操作按钮 */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-button {
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.preview-btn {
+    background-color: #f1c40f;
+    color: #333;
+}
+
+.preview-btn:hover {
+    background-color: #e2b607;
+}
+
+.import-btn {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.import-btn:hover {
+    background-color: #27ae60;
+}
+
+/* 数据预览表格 */
+.preview-container {
+    overflow-x: auto;
+}
+
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.preview-table th, 
+.preview-table td {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.preview-table th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+}
+
+.no-data-message {
+    text-align: center;
+    color: #777;
+    padding: 1rem;
+}
+
+/* 进度条 */
+.progress-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 16px;
+    background-color: #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #3498db;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    margin-left: 1rem;
+    font-weight: 500;
+    width: 40px;
+}
+
+.status-text {
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* 导入结果摘要 */
+.result-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.result-item {
+    padding: 0.8rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.result-label {
+    font-weight: 500;
+    color: #666;
+    margin-right: 0.5rem;
+}
+
+.result-value {
+    font-weight: 700;
+    color: #333;
+}
+
+/* 日志区域样式 */
+.log-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.log-content {
+    height: 200px;
+    overflow-y: auto;
+    padding: 0.8rem;
+    background-color: #f5f5f5;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.log-entry {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.log-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: #eee;
+}
+
+.log-button {
+    padding: 0.4rem 0.8rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.log-button:hover {
+    background-color: #5a6268;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-group label {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .result-summary {
+        grid-template-columns: 1fr;
+    }
+} 

@@ -15,7 +15,154 @@
     {% include 'components/header.html' %}
     
     <main>
-        <!-- 数据导入内容将在这里 -->
+        <div class="import-container">
+            <h2 class="page-title">Excel数据导入</h2>
+            
+            <!-- 文件路径选择区域 -->
+            <div class="import-section">
+                <h3 class="section-title">文件选择</h3>
+                <div class="import-type-selector">
+                    <label class="radio-container">
+                        <input type="radio" name="import-type" value="single" checked>
+                        <span class="radio-label">单个Excel文件</span>
+                    </label>
+                    <label class="radio-container">
+                        <input type="radio" name="import-type" value="batch">
+                        <span class="radio-label">文件夹批量导入</span>
+                    </label>
+                </div>
+                
+                <div class="file-path-selector">
+                    <input type="text" id="file-path" class="path-input" placeholder="请输入文件或文件夹路径">
+                    <button id="browse-btn" class="browse-button">浏览...</button>
+                </div>
+                <p class="file-info">支持的格式: .xlsx, .xls</p>
+            </div>
+            
+            <!-- 数据库配置区域 -->
+            <div class="import-section">
+                <h3 class="section-title">数据库配置</h3>
+                <div class="form-group">
+                    <label for="db-select">目标数据库:</label>
+                    <select id="db-select" class="select-input">
+                        <option value="" disabled selected>请选择数据库</option>
+                        <option value="mysql">MySQL</option>
+                        <option value="sqlserver">SQL Server</option>
+                        <option value="oracle">Oracle</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="table-select">目标表:</label>
+                    <select id="table-select" class="select-input">
+                        <option value="" disabled selected>请选择表</option>
+                        <!-- 表选项将通过JS动态加载 -->
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 导入选项设置 -->
+            <div class="import-section">
+                <h3 class="section-title">导入选项</h3>
+                <div class="form-group">
+                    <label for="sheet-select">工作表:</label>
+                    <select id="sheet-select" class="select-input">
+                        <option value="" disabled selected>请选择工作表</option>
+                        <!-- 工作表选项将通过JS动态加载 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="header-row">表头行:</label>
+                    <input type="number" id="header-row" class="number-input" value="1" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="start-row">开始行:</label>
+                    <input type="number" id="start-row" class="number-input" value="2" min="2">
+                </div>
+            </div>
+            
+            <!-- 预览和执行区域 -->
+            <div class="import-section">
+                <div class="action-buttons">
+                    <button id="preview-btn" class="action-button preview-btn">预览数据</button>
+                    <button id="import-btn" class="action-button import-btn">开始导入</button>
+                </div>
+                
+                <div class="preview-container">
+                    <h3 class="section-title">数据预览</h3>
+                    <div class="data-preview">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>列1</th>
+                                    <th>列2</th>
+                                    <th>列3</th>
+                                    <th>列4</th>
+                                    <th>列5</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="no-data-message">请点击"预览数据"按钮查看数据</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 导入状态和进度 -->
+                <div class="import-status" style="display: none;">
+                    <h3 class="section-title">导入进度</h3>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <p class="status-text">准备导入...</p>
+                </div>
+                
+                <!-- 导入结果摘要 -->
+                <div class="import-result" style="display: none;">
+                    <h3 class="section-title">导入结果</h3>
+                    <div class="result-summary">
+                        <div class="result-item">
+                            <span class="result-label">导入文件:</span>
+                            <span class="result-value" id="files-count">0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">导入记录:</span>
+                            <span class="result-value" id="records-count">0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">成功记录:</span>
+                            <span class="result-value" id="success-count">0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">失败记录:</span>
+                            <span class="result-value" id="failed-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 日志查看区域 -->
+            <div class="import-section">
+                <h3 class="section-title">导入日志</h3>
+                <div class="log-container">
+                    <div class="log-content" id="import-log">
+                        <!-- 日志内容将通过JS动态添加 -->
+                        <div class="log-entry">系统准备就绪，等待导入操作...</div>
+                    </div>
+                    <div class="log-actions">
+                        <button id="clear-log-btn" class="log-button">清空日志</button>
+                        <button id="export-log-btn" class="log-button">导出日志</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     
     {# 引入底部组件 #}
