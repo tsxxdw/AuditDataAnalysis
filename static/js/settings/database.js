@@ -30,6 +30,11 @@ const DatabaseSettings = {
         $('.save-db-btn').click(function() {
             DatabaseSettings.saveSettings();
         });
+        
+        // 测试数据库连接
+        $('.test-connection-btn').click(function() {
+            DatabaseSettings.testConnection();
+        });
     },
     
     // 加载数据库设置
@@ -97,6 +102,55 @@ const DatabaseSettings = {
         } else {
             $('.sql-auth-field').show();
         }
+    },
+    
+    // 测试数据库连接
+    testConnection: function() {
+        var dbType = $('#db-type').val();
+        var connectionData = {};
+        
+        // 构建连接数据
+        connectionData = {
+            type: dbType
+        };
+        
+        // 根据数据库类型获取连接信息
+        if (dbType === 'mysql') {
+            connectionData = this.collectMySQLInfo();
+            connectionData.type = 'mysql';
+        } else if (dbType === 'sqlserver') {
+            connectionData = this.collectSQLServerInfo();
+            connectionData.type = 'sqlserver';
+        } else if (dbType === 'oracle') {
+            connectionData = this.collectOracleInfo();
+            connectionData.type = 'oracle';
+        }
+        
+        // 设置按钮状态
+        var btn = $('.test-connection-btn');
+        var originalText = btn.text();
+        btn.text('测试中...').prop('disabled', true);
+        
+        // 发送测试请求
+        $.ajax({
+            url: '/api/settings/database/test',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(connectionData),
+            success: function(response) {
+                if (response.success) {
+                    alert('连接成功: ' + response.message);
+                } else {
+                    alert('连接失败: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('请求失败: ' + error);
+            },
+            complete: function() {
+                btn.text(originalText).prop('disabled', false);
+            }
+        });
     },
     
     // 保存设置
@@ -207,4 +261,4 @@ const DatabaseSettings = {
             password: $('#oracle-password').val()
         };
     }
-}; 
+};

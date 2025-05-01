@@ -177,6 +177,31 @@
     background-color: #2980b9;
 }
 
+/* 添加测试连接按钮的样式 */
+.secondary-btn {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.secondary-btn:hover {
+    background-color: #3a7bc8;
+}
+
+.secondary-btn:disabled {
+    background-color: #a0c4f0;
+    cursor: not-allowed;
+}
+
+.mr-10 {
+    margin-right: 10px;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .settings-layout {
