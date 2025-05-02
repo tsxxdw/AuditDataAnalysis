@@ -48,12 +48,13 @@
                 <h3 class="section-title">数据库配置</h3>
                 <div class="form-group">
                     <label for="db-select">目标数据库:</label>
-                    <select id="db-select" class="select-input">
-                        <option value="" disabled selected>请选择数据库</option>
-                        <option value="mysql">MySQL</option>
-                        <option value="sqlserver">SQL Server</option>
-                        <option value="oracle">Oracle</option>
-                    </select>
+                    <div class="db-select-wrapper">
+                        <select id="db-select" class="select-input">
+                            <option value="" disabled selected>请选择数据库</option>
+                            <!-- 数据库选项将通过API动态加载 -->
+                        </select>
+                        <button id="load-tables-btn" class="load-button">加载数据</button>
+                    </div>
                 </div>
                 
                 <div class="form-group">

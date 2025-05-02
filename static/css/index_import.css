@@ -358,4 +358,34 @@
     .result-summary {
         grid-template-columns: 1fr;
     }
+}
+
+/* 数据库选择包装器 */
+.db-select-wrapper {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+}
+
+.db-select-wrapper .select-input {
+    flex: 1;
+}
+
+.load-button {
+    padding: 0.6rem 1rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.load-button:hover {
+    background-color: #2980b9;
+}
+
+.load-button:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
 } 

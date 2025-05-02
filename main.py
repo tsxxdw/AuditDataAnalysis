@@ -5,7 +5,8 @@ import time
 import os
 from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
-from routes.index_file_upload_api import file_upload_bp, register_routes
+from routes.index_file_upload_api import file_upload_bp, register_routes as register_file_upload_routes
+from routes.index_import_api import import_api_bp, register_routes as register_import_routes
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
@@ -17,9 +18,12 @@ app = Flask(__name__)
 app.register_blueprint(settings_database_bp)
 app.register_blueprint(log_settings_bp)
 app.register_blueprint(file_upload_bp)
+# app.register_blueprint(import_api_bp)  # 注释掉这一行，避免重复注册
 
 # 注册文件上传相关路由
-register_routes(app)
+register_file_upload_routes(app)
+# 注册数据导入相关路由
+register_import_routes(app)
 
 # 初始化中间件
 init_log_middleware(app)

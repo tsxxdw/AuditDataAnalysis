@@ -3,6 +3,14 @@ $(document).ready(function() {
     // 初始化文件选择器
     initializeFileSelector();
     
+    // 初始化数据库类型下拉框
+    initializeDatabaseTypes();
+    
+    // 加载数据按钮点击事件
+    $('#load-tables-btn').click(function() {
+        loadDatabaseTables();
+    });
+    
     // 初始化文件选择器
     function initializeFileSelector() {
         // 初始化Select2
@@ -11,6 +19,92 @@ $(document).ready(function() {
         // 监听选择变化事件
         $('#file-select').on('change', function() {
             updateSelectedFiles();
+        });
+    }
+    
+    // 初始化数据库类型下拉框
+    function initializeDatabaseTypes() {
+        $('#db-select').empty().append('<option value="" disabled selected>加载中...</option>');
+        
+        // 从后端API获取数据库类型
+        $.ajax({
+            url: '/api/import/db_types',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                $('#db-select').empty().append('<option value="" disabled selected>请选择数据库</option>');
+                
+                // 添加所有数据库类型选项
+                $.each(data, function(index, db) {
+                    var option = $('<option></option>')
+                        .attr('value', db.id)
+                        .text(db.name);
+                    
+                    // 如果是默认数据库类型，设置为选中
+                    if (db.isDefault) {
+                        option.attr('selected', true);
+                    }
+                    
+                    $('#db-select').append(option);
+                });
+                
+                // 触发change事件以便可以根据需要执行其他初始化
+                if (data.length > 0) {
+                    $('#db-select').trigger('change');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#db-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                addLog('错误: 加载数据库类型失败 - ' + (xhr.responseJSON?.error || error));
+            }
+        });
+    }
+    
+    // 加载数据库表
+    function loadDatabaseTables() {
+        var selectedDb = $('#db-select').val();
+        
+        if (!selectedDb) {
+            addLog('错误: 请先选择数据库');
+            return;
+        }
+        
+        // 禁用按钮，防止重复点击
+        $('#load-tables-btn').prop('disabled', true).text('加载中...');
+        
+        // 清空并重新加载表下拉框
+        $('#table-select').empty().append('<option value="" disabled selected>加载中...</option>');
+        
+        // 从后端API获取表列表
+        $.ajax({
+            url: '/api/import/tables',
+            method: 'GET',
+            data: { db_type: selectedDb },
+            dataType: 'json',
+            success: function(data) {
+                $('#table-select').empty().append('<option value="" disabled selected>请选择表</option>');
+                
+                // 添加所有表选项
+                if (data.length > 0) {
+                    $.each(data, function(index, table) {
+                        $('#table-select').append($('<option></option>')
+                            .attr('value', table.id)
+                            .text(table.name));
+                    });
+                    addLog('成功加载 ' + data.length + ' 个表');
+                } else {
+                    $('#table-select').append('<option value="" disabled>没有可用的表</option>');
+                    addLog('警告: 没有找到任何表');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#table-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                addLog('错误: 加载表列表失败 - ' + (xhr.responseJSON?.error || error));
+            },
+            complete: function() {
+                // 恢复按钮状态
+                $('#load-tables-btn').prop('disabled', false).text('加载数据');
+            }
         });
     }
     
@@ -141,34 +235,6 @@ $(document).ready(function() {
     $('#browse-btn').click(function() {
         // 这里只是界面演示，实际操作需要后端API支持
         alert('浏览文件功能已替换为下拉选择器');
-    });
-    
-    // 数据库下拉框变化事件
-    $('#db-select').change(function() {
-        var selectedDb = $(this).val();
-        
-        // 清空并重新加载表下拉框
-        $('#table-select').empty().append('<option value="" disabled selected>加载中...</option>');
-        
-        // 模拟异步加载表列表
-        setTimeout(function() {
-            $('#table-select').empty();
-            $('#table-select').append('<option value="" disabled selected>请选择表</option>');
-            
-            // 添加模拟的表选项
-            if (selectedDb === 'mysql') {
-                $('#table-select').append('<option value="table1">客户信息表</option>');
-                $('#table-select').append('<option value="table2">订单表</option>');
-                $('#table-select').append('<option value="table3">产品表</option>');
-            } else if (selectedDb === 'sqlserver') {
-                $('#table-select').append('<option value="table1">用户表</option>');
-                $('#table-select').append('<option value="table2">销售表</option>');
-            } else if (selectedDb === 'oracle') {
-                $('#table-select').append('<option value="table1">员工表</option>');
-                $('#table-select').append('<option value="table2">部门表</option>');
-                $('#table-select').append('<option value="table3">项目表</option>');
-            }
-        }, 500);
     });
     
     // 预览按钮点击事件
