@@ -15,11 +15,14 @@
     {% include 'components/header.html' %}
     
     <main>
-        <div class="buttons-container">
-            <a href="{{ url_for('index_db') }}" class="main-btn db-btn">表结构管理</a>
-            <a href="{{ url_for('index_import') }}" class="main-btn import-btn">数据导入</a>
-            <a href="{{ url_for('index_query') }}" class="main-btn query-btn">大数据分析</a>
-            <a href="{{ url_for('index_file_upload') }}" class="main-btn upload-btn">文件上传</a>
+        <div class="home-container">
+            <h1 class="main-title">数据分析系统</h1>
+            <div class="buttons-container">
+                <a href="{{ url_for('pages.index_db') }}" class="main-btn db-btn">表结构管理</a>
+                <a href="{{ url_for('pages.index_import') }}" class="main-btn import-btn">数据导入</a>
+                <a href="{{ url_for('pages.index_query') }}" class="main-btn query-btn">大数据分析</a>
+                <a href="{{ url_for('pages.index_file_upload') }}" class="main-btn upload-btn">文件上传</a>
+            </div>
         </div>
     </main>
     
