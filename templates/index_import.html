@@ -68,22 +68,29 @@
             
             <!-- 导入选项设置 -->
             <div class="import-section">
-                <h3 class="section-title">导入选项</h3>
+                <div class="section-header">
+                    <h3 class="section-title">导入选项</h3>
+                    <button id="load-excel-btn" class="load-button">加载选择的excel文件</button>
+                </div>
+                
                 <div class="form-group">
-                    <label for="sheet-select">工作表:</label>
+                    <label for="excel-file-select">要导入的EXCEL文件:</label>
+                    <select id="excel-file-select" class="select-input">
+                        <option value="" disabled selected>请先加载Excel文件</option>
+                        <!-- Excel文件选项将通过JS动态加载 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sheet-select">要选择的sheet:</label>
                     <select id="sheet-select" class="select-input">
-                        <option value="" disabled selected>请选择工作表</option>
+                        <option value="" disabled selected>请先选择Excel文件</option>
                         <!-- 工作表选项将通过JS动态加载 -->
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="header-row">表头行:</label>
-                    <input type="number" id="header-row" class="number-input" value="1" min="1">
-                </div>
-                
-                <div class="form-group">
-                    <label for="start-row">开始行:</label>
+                    <label for="start-row">开始导入的行:</label>
                     <input type="number" id="start-row" class="number-input" value="2" min="2">
                 </div>
             </div>

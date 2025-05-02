@@ -11,6 +11,16 @@ $(document).ready(function() {
         loadDatabaseTables();
     });
     
+    // 加载Excel文件按钮点击事件
+    $('#load-excel-btn').click(function() {
+        loadSelectedExcelFiles();
+    });
+    
+    // Excel文件选择事件
+    $('#excel-file-select').change(function() {
+        loadExcelFileSheets($(this).val());
+    });
+    
     // 初始化文件选择器
     function initializeFileSelector() {
         // 初始化Select2
@@ -106,6 +116,124 @@ $(document).ready(function() {
                 $('#load-tables-btn').prop('disabled', false).text('加载数据');
             }
         });
+    }
+    
+    // 加载选择的Excel文件
+    function loadSelectedExcelFiles() {
+        var selectedFiles = $('#file-select').select2('data');
+        
+        if (selectedFiles.length === 0) {
+            addLog('错误: 请先选择Excel文件');
+            return;
+        }
+        
+        // 禁用按钮，防止重复点击
+        $('#load-excel-btn').prop('disabled', true).text('加载中...');
+        
+        // 收集文件路径
+        var filePaths = selectedFiles.map(function(file) {
+            return file.id;
+        });
+        
+        // 调用API处理选择的Excel文件
+        $.ajax({
+            url: '/api/import/excel/selected-files',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ file_paths: filePaths }),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.files && response.files.length > 0) {
+                    // 清空并重新填充Excel文件下拉框
+                    $('#excel-file-select').empty().append('<option value="" disabled selected>请选择Excel文件</option>');
+                    
+                    // 存储文件和工作表信息到全局变量
+                    window.excelFiles = response.files;
+                    
+                    // 添加Excel文件选项
+                    $.each(response.files, function(index, file) {
+                        $('#excel-file-select').append(
+                            $('<option></option>')
+                                .attr('value', file.path)
+                                .text(file.name)
+                        );
+                    });
+                    
+                    addLog('成功加载 ' + response.files.length + ' 个Excel文件');
+                } else {
+                    addLog('警告: 没有找到有效的Excel文件');
+                    $('#excel-file-select').empty().append('<option value="" disabled selected>没有有效的Excel文件</option>');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#excel-file-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                addLog('错误: 加载Excel文件失败 - ' + (xhr.responseJSON?.error || error));
+            },
+            complete: function() {
+                // 恢复按钮状态
+                $('#load-excel-btn').prop('disabled', false).text('加载选择的excel文件');
+            }
+        });
+    }
+    
+    // 加载Excel文件的工作表
+    function loadExcelFileSheets(filePath) {
+        if (!filePath) {
+            $('#sheet-select').empty().append('<option value="" disabled selected>请先选择Excel文件</option>');
+            return;
+        }
+        
+        // 从缓存中查找文件信息
+        var fileInfo = null;
+        if (window.excelFiles) {
+            fileInfo = window.excelFiles.find(function(file) {
+                return file.path === filePath;
+            });
+        }
+        
+        if (fileInfo && fileInfo.sheets && fileInfo.sheets.length > 0) {
+            // 使用缓存的工作表信息
+            updateSheetSelect(fileInfo.sheets);
+        } else {
+            // 如果没有缓存，从API获取工作表信息
+            $('#sheet-select').empty().append('<option value="" disabled selected>加载中...</option>');
+            
+            $.ajax({
+                url: '/api/import/excel/sheets',
+                method: 'GET',
+                data: { file_path: filePath },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.sheets && response.sheets.length > 0) {
+                        updateSheetSelect(response.sheets);
+                    } else {
+                        $('#sheet-select').empty().append('<option value="" disabled selected>未找到工作表</option>');
+                        addLog('警告: 所选Excel文件中未找到工作表');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#sheet-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                    addLog('错误: 加载工作表失败 - ' + (xhr.responseJSON?.error || error));
+                }
+            });
+        }
+    }
+    
+    // 更新工作表下拉框
+    function updateSheetSelect(sheets) {
+        $('#sheet-select').empty().append('<option value="" disabled selected>请选择工作表</option>');
+        
+        $.each(sheets, function(index, sheet) {
+            $('#sheet-select').append(
+                $('<option></option>')
+                    .attr('value', sheet.id)
+                    .text(sheet.name)
+            );
+        });
+        
+        if (sheets.length > 0) {
+            addLog('成功加载 ' + sheets.length + ' 个工作表');
+        }
     }
     
     // Select2配置选项
@@ -242,6 +370,9 @@ $(document).ready(function() {
         var filePaths = $(this).data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
+        var selectedExcel = $('#excel-file-select').val();
+        var selectedSheet = $('#sheet-select').val();
+        var startRow = $('#start-row').val();
         
         // 验证输入
         if (!filePaths) {
@@ -256,6 +387,16 @@ $(document).ready(function() {
         
         if (!selectedTable) {
             addLog('错误: 请选择目标表');
+            return;
+        }
+        
+        if (!selectedExcel) {
+            addLog('错误: 请选择要导入的Excel文件');
+            return;
+        }
+        
+        if (!selectedSheet) {
+            addLog('错误: 请选择要导入的工作表');
             return;
         }
         
@@ -304,8 +445,8 @@ $(document).ready(function() {
         var filePaths = $(this).data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
+        var selectedExcel = $('#excel-file-select').val();
         var selectedSheet = $('#sheet-select').val();
-        var headerRow = $('#header-row').val();
         var startRow = $('#start-row').val();
         
         // 验证输入
@@ -324,8 +465,13 @@ $(document).ready(function() {
             return;
         }
         
+        if (!selectedExcel) {
+            addLog('错误: 请选择要导入的Excel文件');
+            return;
+        }
+        
         if (!selectedSheet) {
-            addLog('错误: 请选择工作表');
+            addLog('错误: 请选择要导入的工作表');
             return;
         }
         

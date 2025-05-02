@@ -6,6 +6,7 @@
 
 from flask import Blueprint, jsonify, request
 from utils.database_config_util import DatabaseConfigUtil
+from utils.excel_util import ExcelUtil
 from service.database.database_service import DatabaseService
 from service.database.db_pool_manager import DatabasePoolManager
 from service.log.logger import app_logger
@@ -168,4 +169,89 @@ def get_db_display_name(db_type):
         'sqlserver': 'SQL Server',
         'oracle': 'Oracle'
     }
-    return display_names.get(db_type, db_type) 
+    return display_names.get(db_type, db_type)
+
+@import_api_bp.route('/api/import/excel/sheets', methods=['GET'])
+def get_excel_sheets():
+    """获取Excel文件的工作表信息
+    
+    Query Parameters:
+        file_path: Excel文件路径
+        
+    Returns:
+        JSON: 包含Excel工作表列表的JSON对象
+    """
+    file_path = request.args.get('file_path')
+    if not file_path:
+        return jsonify({"error": "未指定Excel文件路径"}), 400
+    
+    try:
+        # 验证Excel文件路径
+        if not ExcelUtil.validate_excel_path(file_path):
+            return jsonify({"error": f"无效的Excel文件路径: {file_path}"}), 400
+        
+        # 获取Excel工作表信息
+        sheets = ExcelUtil.get_sheets_info(file_path)
+        
+        return jsonify({
+            "success": True,
+            "file_path": file_path,
+            "sheets": sheets
+        })
+    except Exception as e:
+        app_logger.error(f"获取Excel工作表列表失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"获取Excel工作表列表失败: {str(e)}"
+        }), 500
+
+@import_api_bp.route('/api/import/excel/selected-files', methods=['POST'])
+def process_selected_excel_files():
+    """处理用户选择的Excel文件列表
+    
+    Request Body:
+        file_paths: Excel文件路径列表
+        
+    Returns:
+        JSON: 包含所有Excel文件及其工作表信息的JSON对象
+    """
+    data = request.get_json()
+    if not data or 'file_paths' not in data:
+        return jsonify({"error": "未提供Excel文件路径列表"}), 400
+    
+    file_paths = data['file_paths']
+    if not isinstance(file_paths, list) or len(file_paths) == 0:
+        return jsonify({"error": "文件路径列表为空或格式错误"}), 400
+    
+    try:
+        result = []
+        for file_path in file_paths:
+            # 验证Excel文件路径
+            if not ExcelUtil.validate_excel_path(file_path):
+                app_logger.warning(f"跳过无效的Excel文件路径: {file_path}")
+                continue
+            
+            # 获取文件名
+            file_name = file_path.split('/')[-1].split('\\')[-1]
+            
+            # 获取Excel工作表信息
+            try:
+                sheets = ExcelUtil.get_sheets_info(file_path)
+                result.append({
+                    "path": file_path,
+                    "name": file_name,
+                    "sheets": sheets
+                })
+            except Exception as e:
+                app_logger.warning(f"处理Excel文件失败: {file_path}, 错误: {str(e)}")
+        
+        return jsonify({
+            "success": True,
+            "files": result
+        })
+    except Exception as e:
+        app_logger.error(f"处理选择的Excel文件失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"处理选择的Excel文件失败: {str(e)}"
+        }), 500 

@@ -388,4 +388,20 @@
 .load-button:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
+}
+
+/* 导入选项设置 section-header 样式 */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.section-header .section-title {
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
 } 
