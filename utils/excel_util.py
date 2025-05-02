@@ -116,8 +116,19 @@ class ExcelUtil:
             columns = [f"列{i+1}" for i in range(len(preview_data.columns))]
             rows = []
             
+            # 处理数据，确保没有NaN值
             for _, row in preview_data.iterrows():
-                rows.append(row.tolist())
+                # 将每个单元格数据转换为Python原生类型，并处理NaN值
+                processed_row = []
+                for value in row:
+                    if pd.isna(value) or pd.isnull(value):  # 检查是否为NaN或null
+                        processed_row.append(None)  # 将NaN值转换为None，这会在JSON中变为null
+                    elif isinstance(value, (pd.Timestamp, pd.Period)):
+                        # 处理日期时间类型
+                        processed_row.append(str(value))
+                    else:
+                        processed_row.append(value)
+                rows.append(processed_row)
             
             return {
                 "columns": columns,

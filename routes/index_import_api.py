@@ -254,4 +254,248 @@ def process_selected_excel_files():
         return jsonify({
             "success": False,
             "error": f"处理选择的Excel文件失败: {str(e)}"
-        }), 500 
+        }), 500
+
+@import_api_bp.route('/api/import/tables/fields', methods=['GET'])
+def get_table_fields():
+    """获取指定数据库表的字段信息
+    
+    Query Parameters:
+        db_type: 数据库类型
+        table_name: 表名
+        
+    Returns:
+        JSON: 包含表字段信息的列表
+    """
+    db_type = request.args.get('db_type')
+    table_name = request.args.get('table_name')
+    
+    if not db_type:
+        return jsonify({"error": "未指定数据库类型"}), 400
+    
+    if not table_name:
+        return jsonify({"error": "未指定表名"}), 400
+    
+    try:
+        # 获取数据库配置
+        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        if not db_config:
+            return jsonify({"error": f"找不到数据库类型 '{db_type}' 的配置"}), 404
+        
+        # 获取表字段信息
+        fields = get_table_field_info(db_type, db_config, table_name)
+        
+        return jsonify({
+            "success": True,
+            "table": table_name,
+            "fields": fields
+        })
+    except Exception as e:
+        app_logger.error(f"获取表字段信息失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"获取表字段信息失败: {str(e)}"
+        }), 500
+
+@import_api_bp.route('/api/import/excel/preview', methods=['POST'])
+def preview_excel_data():
+    """获取Excel文件的数据预览
+    
+    Request Body:
+        file_path: Excel文件路径
+        sheet_id: 工作表ID
+        start_row: 开始行
+        row_limit: 读取行数(可选)
+        
+    Returns:
+        JSON: 包含Excel预览数据的JSON对象
+    """
+    try:
+        # 记录请求参数
+        app_logger.info("接收到Excel预览请求")
+        
+        # 解析请求数据
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "未提供请求数据"}), 400
+        
+        # 记录请求内容
+        app_logger.info(f"Excel预览请求参数: {data}")
+        
+        file_path = data.get('file_path')
+        sheet_id = data.get('sheet_id')
+        start_row = data.get('start_row', 1)
+        row_limit = data.get('row_limit', 10)
+        
+        # 验证参数
+        if not file_path:
+            return jsonify({"success": False, "error": "未指定Excel文件路径"}), 400
+        
+        if not sheet_id:
+            return jsonify({"success": False, "error": "未指定工作表ID"}), 400
+        
+        # 将start_row转换为整数
+        try:
+            start_row = int(start_row) - 1  # 转换为0-based索引
+            if start_row < 0:
+                start_row = 0
+        except (ValueError, TypeError):
+            return jsonify({"success": False, "error": f"无效的行号: {data.get('start_row')}"}), 400
+        
+        # 解析sheet_id获取sheet名称和索引
+        try:
+            sheet_name, sheet_index = ExcelUtil.parse_sheet_id(sheet_id)
+        except Exception as e:
+            app_logger.error(f"解析sheet_id失败: {str(e)}")
+            return jsonify({"success": False, "error": f"无效的工作表ID: {sheet_id}"}), 400
+        
+        # 获取Excel数据预览
+        try:
+            preview_data = ExcelUtil.get_sheet_data_preview(
+                file_path=file_path,
+                sheet_name=sheet_name,
+                sheet_index=sheet_index,
+                start_row=start_row,
+                row_count=row_limit
+            )
+            
+            app_logger.info(f"成功获取Excel预览数据，行数: {len(preview_data['rows'])}")
+            
+            return jsonify({
+                "success": True,
+                "file_path": file_path,
+                "sheet_id": sheet_id,
+                "start_row": start_row + 1,  # 转换回1-based索引
+                "data": preview_data
+            })
+        except Exception as e:
+            app_logger.error(f"获取Excel数据预览失败: {str(e)}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": f"获取Excel数据预览失败: {str(e)}"
+            }), 500
+            
+    except Exception as e:
+        app_logger.error(f"Excel预览处理出现未捕获的异常: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": f"服务器内部错误: {str(e)}"
+        }), 500
+
+def get_table_field_info(db_type, db_config, table_name):
+    """获取数据库表的字段信息
+    
+    Args:
+        db_type: 数据库类型
+        db_config: 数据库配置
+        table_name: 表名
+        
+    Returns:
+        list: 字段信息列表，每个元素包含字段名、类型等信息
+    """
+    try:
+        # 获取数据库名
+        database = db_config.get('database', '')
+        
+        if not database:
+            raise AppException("数据库名称为空", 400)
+        
+        if db_type == 'mysql':
+            # 使用MySQL信息模式查询表结构
+            connection = db_service.pool_manager.get_connection(db_type, db_config)
+            try:
+                # 选择数据库
+                connection.execute(text(f"USE `{database}`"))
+                
+                # 查询表字段信息
+                result = connection.execute(text(f"""
+                    SELECT 
+                        COLUMN_NAME, 
+                        DATA_TYPE,
+                        COLUMN_COMMENT,
+                        ORDINAL_POSITION
+                    FROM 
+                        INFORMATION_SCHEMA.COLUMNS 
+                    WHERE 
+                        TABLE_SCHEMA = :database 
+                        AND TABLE_NAME = :table_name
+                    ORDER BY 
+                        ORDINAL_POSITION
+                """), {"database": database, "table_name": table_name})
+                
+                # 提取字段信息
+                fields = []
+                for row in result:
+                    fields.append({
+                        "name": row[0],
+                        "type": row[1],
+                        "comment": row[2] if row[2] else row[0],
+                        "position": row[3]
+                    })
+                
+                return fields
+            finally:
+                connection.close()
+        elif db_type == 'sqlserver':
+            # SQL Server表字段查询
+            query = """
+                SELECT 
+                    c.name AS COLUMN_NAME,
+                    t.name AS DATA_TYPE,
+                    ep.value AS COLUMN_COMMENT,
+                    c.column_id AS ORDINAL_POSITION
+                FROM 
+                    sys.columns c
+                INNER JOIN 
+                    sys.types t ON c.user_type_id = t.user_type_id
+                LEFT JOIN 
+                    sys.extended_properties ep ON ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.name = 'MS_Description'
+                WHERE 
+                    c.object_id = OBJECT_ID(:table_name)
+                ORDER BY 
+                    c.column_id
+            """
+            result = db_service.execute_query(db_type, db_config, text(query), {"table_name": table_name})
+            
+            fields = []
+            for row in result:
+                fields.append({
+                    "name": row[0],
+                    "type": row[1],
+                    "comment": row[2] if row[2] else row[0],
+                    "position": row[3]
+                })
+            
+            return fields
+        elif db_type == 'oracle':
+            # Oracle表字段查询
+            query = """
+                SELECT 
+                    COLUMN_NAME,
+                    DATA_TYPE,
+                    COLUMN_ID
+                FROM 
+                    ALL_TAB_COLUMNS
+                WHERE 
+                    OWNER = UPPER(:owner)
+                    AND TABLE_NAME = UPPER(:table_name)
+                ORDER BY 
+                    COLUMN_ID
+            """
+            result = db_service.execute_query(db_type, db_config, text(query), {"owner": database, "table_name": table_name})
+            
+            fields = []
+            for row in result:
+                fields.append({
+                    "name": row[0],
+                    "type": row[1],
+                    "comment": row[0],
+                    "position": row[2]
+                })
+            
+            return fields
+        else:
+            raise AppException(f"不支持的数据库类型: {db_type}", 400)
+    except Exception as e:
+        app_logger.error(f"获取表字段信息失败: {str(e)}")
+        raise AppException(f"获取表字段信息失败: {str(e)}", 500) 

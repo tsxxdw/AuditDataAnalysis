@@ -1,5 +1,8 @@
 // 数据导入页面JS文件(index_import)
 $(document).ready(function() {
+    // 存储表字段信息的全局变量
+    window.tableFields = null;
+    
     // 初始化文件选择器
     initializeFileSelector();
     
@@ -19,6 +22,11 @@ $(document).ready(function() {
     // Excel文件选择事件
     $('#excel-file-select').change(function() {
         loadExcelFileSheets($(this).val());
+    });
+    
+    // 预览按钮点击事件
+    $('#preview-btn').click(function() {
+        previewData();
     });
     
     // 初始化文件选择器
@@ -365,9 +373,9 @@ $(document).ready(function() {
         alert('浏览文件功能已替换为下拉选择器');
     });
     
-    // 预览按钮点击事件
-    $('#preview-btn').click(function() {
-        var filePaths = $(this).data('file-paths') || $('#file-path').val();
+    // 预览数据
+    function previewData() {
+        var filePaths = $('#file-select').data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
         var selectedExcel = $('#excel-file-select').val();
@@ -403,42 +411,150 @@ $(document).ready(function() {
         // 显示加载中
         $('.preview-table tbody').html('<tr><td colspan="5" class="no-data-message">加载数据中...</td></tr>');
         
-        // 模拟异步加载数据预览
-        addLog('正在从文件加载数据预览: ' + filePaths);
-        
-        // 模拟数据加载延迟
-        setTimeout(function() {
-            // 更新表头
-            var headerHtml = '<tr>';
-            headerHtml += '<th>客户ID</th>';
-            headerHtml += '<th>姓名</th>';
-            headerHtml += '<th>电话</th>';
-            headerHtml += '<th>邮箱</th>';
-            headerHtml += '<th>注册日期</th>';
-            headerHtml += '</tr>';
-            $('.preview-table thead').html(headerHtml);
-            
-            // 更新表格数据
-            var tableHtml = '';
-            for (var i = 1; i <= 5; i++) {
-                tableHtml += '<tr>';
-                tableHtml += '<td>CUST' + (1000 + i) + '</td>';
-                tableHtml += '<td>用户' + i + '</td>';
-                tableHtml += '<td>1381234' + (1000 + i) + '</td>';
-                tableHtml += '<td>user' + i + '@example.com</td>';
-                tableHtml += '<td>2023-0' + i + '-01</td>';
-                tableHtml += '</tr>';
+        // 首先加载表字段信息，然后加载Excel数据
+        loadTableFields(selectedDb, selectedTable, function() {
+            loadExcelPreview(selectedExcel, selectedSheet, startRow);
+        });
+    }
+    
+    // 加载表字段信息
+    function loadTableFields(dbType, tableName, callback) {
+        $.ajax({
+            url: '/api/import/tables/fields',
+            method: 'GET',
+            data: {
+                db_type: dbType,
+                table_name: tableName
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.fields && response.fields.length > 0) {
+                    // 存储表字段信息
+                    window.tableFields = response.fields;
+                    
+                    // 更新表头
+                    updateTableHeader(response.fields);
+                    
+                    addLog(`成功加载 ${response.table} 表的 ${response.fields.length} 个字段`);
+                    
+                    // 如果有回调函数，执行它
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                } else {
+                    $('.preview-table tbody').html('<tr><td colspan="5" class="no-data-message">获取表字段失败</td></tr>');
+                    addLog('警告: 未找到表字段信息');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('.preview-table tbody').html('<tr><td colspan="5" class="no-data-message">获取表字段失败</td></tr>');
+                addLog('错误: 获取表字段失败 - ' + (xhr.responseJSON?.error || error));
             }
-            $('.preview-table tbody').html(tableHtml);
+        });
+    }
+    
+    // 更新表头
+    function updateTableHeader(fields) {
+        var headerHtml = '<tr>';
+        
+        // 使用表字段作为表头
+        $.each(fields, function(index, field) {
+            headerHtml += `<th title="${field.type}">${field.comment || field.name}</th>`;
+        });
+        
+        headerHtml += '</tr>';
+        $('.preview-table thead').html(headerHtml);
+    }
+    
+    // 加载Excel预览数据
+    function loadExcelPreview(filePath, sheetId, startRow) {
+        addLog(`正在加载Excel数据预览，文件: ${filePath}, Sheet: ${sheetId}, 开始行: ${startRow}`);
+        
+        // 构建请求数据
+        var requestData = {
+            file_path: filePath,
+            sheet_id: sheetId,
+            start_row: startRow,
+            row_limit: 10 // 最多显示10行
+        };
+        
+        $.ajax({
+            url: '/api/import/excel/preview',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data) {
+                    // 更新表格数据
+                    updateTableData(response.data.rows);
+                    addLog(`成功加载Excel数据预览，从第${response.start_row}行开始，共${response.data.rows.length}条记录`);
+                } else {
+                    $('.preview-table tbody').html('<tr><td colspan="' + (window.tableFields ? window.tableFields.length : 5) + '" class="no-data-message">未找到Excel数据</td></tr>');
+                    addLog('警告: 未找到Excel数据');
+                }
+            },
+            error: function(xhr, status, error) {
+                var errorMsg = '';
+                try {
+                    // 尝试解析错误响应
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    } else if (xhr.responseText) {
+                        errorMsg = xhr.responseText;
+                    } else {
+                        errorMsg = error || 'Unknown error';
+                    }
+                } catch (e) {
+                    errorMsg = '解析错误响应失败：' + e.message;
+                }
+                
+                $('.preview-table tbody').html('<tr><td colspan="' + (window.tableFields ? window.tableFields.length : 5) + '" class="no-data-message">加载Excel数据失败</td></tr>');
+                addLog('错误: 加载Excel数据失败 - ' + errorMsg);
+                console.error('Excel预览错误:', {
+                    status: status,
+                    error: error,
+                    response: xhr.responseText,
+                    requestData: requestData
+                });
+            }
+        });
+    }
+    
+    // 更新表格数据
+    function updateTableData(rows) {
+        if (!rows || rows.length === 0) {
+            var colCount = window.tableFields ? window.tableFields.length : 5;
+            $('.preview-table tbody').html('<tr><td colspan="' + colCount + '" class="no-data-message">没有数据</td></tr>');
+            return;
+        }
+        
+        var tableHtml = '';
+        
+        // 遍历数据行
+        $.each(rows, function(rowIndex, row) {
+            tableHtml += '<tr>';
             
-            // 模拟加载工作表
-            $('#sheet-select').empty();
-            $('#sheet-select').append('<option value="sheet1" selected>Sheet1</option>');
-            $('#sheet-select').append('<option value="sheet2">Sheet2</option>');
+            // 如果有表字段信息，使用它来限制列数
+            var columnCount = window.tableFields ? window.tableFields.length : row.length;
             
-            addLog('数据预览加载完成，共加载5条记录');
-        }, 1000);
-    });
+            // 遍历列
+            for (var colIndex = 0; colIndex < columnCount; colIndex++) {
+                var cellValue = colIndex < row.length ? row[colIndex] : '';
+                
+                // 如果单元格值为null或undefined，显示空字符串
+                if (cellValue === null || cellValue === undefined) {
+                    cellValue = '';
+                }
+                
+                tableHtml += '<td>' + cellValue + '</td>';
+            }
+            
+            tableHtml += '</tr>';
+        });
+        
+        $('.preview-table tbody').html(tableHtml);
+    }
     
     // 导入按钮点击事件
     $('#import-btn').click(function() {
