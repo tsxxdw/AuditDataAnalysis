@@ -168,12 +168,4 @@ def get_db_display_name(db_type):
         'sqlserver': 'SQL Server',
         'oracle': 'Oracle'
     }
-    return display_names.get(db_type, db_type)
-
-def register_routes(app):
-    """注册路由
-    
-    Args:
-        app: Flask应用实例
-    """
-    app.register_blueprint(import_api_bp) 
+    return display_names.get(db_type, db_type) 

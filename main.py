@@ -5,8 +5,9 @@ import time
 import os
 from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
-from routes.index_file_upload_api import file_upload_bp, register_routes as register_file_upload_routes
-from routes.index_import_api import import_api_bp, register_routes as register_import_routes
+from routes.index_file_upload_api import file_upload_bp
+from routes.index_import_api import import_api_bp
+from routes.pages import pages_bp
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
@@ -18,12 +19,8 @@ app = Flask(__name__)
 app.register_blueprint(settings_database_bp)
 app.register_blueprint(log_settings_bp)
 app.register_blueprint(file_upload_bp)
-# app.register_blueprint(import_api_bp)  # 注释掉这一行，避免重复注册
-
-# 注册文件上传相关路由
-register_file_upload_routes(app)
-# 注册数据导入相关路由
-register_import_routes(app)
+app.register_blueprint(import_api_bp)
+app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 
 # 初始化中间件
 init_log_middleware(app)
@@ -42,36 +39,6 @@ def open_browser():
     time.sleep(1)
     # 打开默认浏览器并访问应用URL
     webbrowser.open('http://127.0.0.1:5000/')
-
-@app.route('/')
-def index():
-    app_logger.info("访问首页")
-    return render_template('index.html', page_title='数据分析系统')
-
-@app.route('/index_db')
-def index_db():
-    app_logger.info("访问数据库表结构管理页面")
-    return render_template('index_db.html', page_title='数据库表结构管理')
-
-@app.route('/index_import')
-def index_import():
-    app_logger.info("访问数据导入页面")
-    return render_template('index_import.html', page_title='数据导入')
-
-@app.route('/index_query')
-def index_query():
-    app_logger.info("访问业务查询页面")
-    return render_template('index_query.html', page_title='业务查询')
-
-@app.route('/index_file_upload')
-def index_file_upload():
-    app_logger.info("访问文件上传页面")
-    return render_template('index_file_upload.html', page_title='文件上传')
-
-@app.route('/settings')
-def settings():
-    app_logger.info("访问系统设置页面")
-    return render_template('settings.html', page_title='系统设置')
 
 if __name__ == '__main__':
     app_logger.info("启动应用服务器")

@@ -190,14 +190,4 @@ def delete_file():
         os.remove(file_path)
         return jsonify({'success': True, 'message': '文件已成功删除'})
     except Exception as e:
-        return jsonify({'success': False, 'message': f'删除文件失败: {str(e)}'}), 500
-
-def register_routes(app):
-    """注册路由到应用"""
-    # 蓝图已在main.py中注册，此处不再重复注册
-    # app.register_blueprint(file_upload_bp)
-    
-    # 不再需要这里定义路由，因为在main.py中已定义
-    # @app.route('/index_file_upload')
-    # def index_file_upload():
-    #     return current_app.send_static_file('templates/index_file_upload.html') 
+        return jsonify({'success': False, 'message': f'删除文件失败: {str(e)}'}), 500 
