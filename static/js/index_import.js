@@ -1,21 +1,146 @@
 // 数据导入页面JS文件(index_import)
 $(document).ready(function() {
-    // 数据导入页面特定的JS代码
+    // 初始化文件选择器
+    initializeFileSelector();
     
-    // 导入类型切换
-    $('input[name="import-type"]').change(function() {
-        var importType = $(this).val();
-        if (importType === 'single') {
-            $('#file-path').attr('placeholder', '请输入Excel文件路径');
-        } else {
-            $('#file-path').attr('placeholder', '请输入文件夹路径');
+    // 初始化文件选择器
+    function initializeFileSelector() {
+        // 初始化Select2
+        $('#file-select').select2(getSelect2Options());
+        
+        // 监听选择变化事件
+        $('#file-select').on('change', function() {
+            updateSelectedFiles();
+        });
+    }
+    
+    // Select2配置选项
+    function getSelect2Options() {
+        return {
+            placeholder: '搜索并选择Excel文件...',
+            allowClear: true,
+            ajax: {
+                url: '/api/files/list',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term // 搜索参数
+                    };
+                },
+                processResults: function(data) {
+                    // 转换API返回的数据为Select2需要的格式
+                    var results = data.map(function(file) {
+                        // 只处理Excel文件
+                        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                            return {
+                                id: file.path,
+                                text: file.name,
+                                date: file.date,
+                                url: file.url
+                            };
+                        }
+                        return null;
+                    }).filter(function(item) {
+                        return item !== null;
+                    });
+                    
+                    // 按日期倒序排序
+                    results.sort(function(a, b) {
+                        return new Date(b.date) - new Date(a.date);
+                    });
+                    
+                    return {
+                        results: results
+                    };
+                },
+                cache: true
+            },
+            templateResult: formatFileItem,
+            templateSelection: formatFileSelection
+        };
+    }
+    
+    // 格式化下拉选项，显示文件名和时间
+    function formatFileItem(file) {
+        if (!file.id) return file.text;
+        
+        var $fileElement = $(
+            '<div class="file-list-item">' +
+                '<span class="file-name">' + file.text + '</span>' +
+                '<span class="file-date">' + file.date + '</span>' +
+            '</div>'
+        );
+        
+        return $fileElement;
+    }
+    
+    // 格式化已选项
+    function formatFileSelection(file) {
+        return file.text || file.text;
+    }
+    
+    // 更新已选文件显示
+    function updateSelectedFiles() {
+        var selectedFiles = $('#file-select').select2('data');
+        var $container = $('#selected-files-container');
+        
+        $container.empty();
+        
+        if (selectedFiles.length === 0) {
+            return;
         }
-    });
+        
+        // 添加已选文件标签
+        $.each(selectedFiles, function(index, file) {
+            var $tag = $(
+                '<div class="selected-file-tag" data-id="' + file.id + '">' +
+                    file.text +
+                    '<span class="remove-file" title="移除">&times;</span>' +
+                '</div>'
+            );
+            
+            // 点击X移除文件
+            $tag.find('.remove-file').on('click', function() {
+                var values = $('#file-select').val();
+                values = values.filter(function(value) {
+                    return value !== file.id;
+                });
+                $('#file-select').val(values).trigger('change');
+            });
+            
+            $container.append($tag);
+        });
+        
+        // 更新文件路径到预览按钮和导入按钮的数据中
+        updateFilePathForButtons(selectedFiles);
+    }
+    
+    // 更新文件路径到按钮数据中
+    function updateFilePathForButtons(selectedFiles) {
+        if (selectedFiles.length === 0) {
+            return;
+        }
+        
+        var filePathsArray = selectedFiles.map(function(file) {
+            return file.id;
+        });
+        
+        var filePaths = filePathsArray.join(',');
+        
+        // 将文件路径存储在按钮的data属性中
+        $('#preview-btn').data('file-paths', filePaths);
+        $('#import-btn').data('file-paths', filePaths);
+        
+        // 兼容原有代码，更新隐藏的文件路径输入框
+        $('#file-path').val(filePaths);
+    }
     
     // 文件浏览按钮点击事件（实际功能需要后端支持）
+    // 保留但不使用，为了兼容性
     $('#browse-btn').click(function() {
         // 这里只是界面演示，实际操作需要后端API支持
-        alert('浏览文件功能需要后端支持，此处仅为界面演示');
+        alert('浏览文件功能已替换为下拉选择器');
     });
     
     // 数据库下拉框变化事件
@@ -48,13 +173,13 @@ $(document).ready(function() {
     
     // 预览按钮点击事件
     $('#preview-btn').click(function() {
-        var filePath = $('#file-path').val();
+        var filePaths = $(this).data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
         
         // 验证输入
-        if (!filePath) {
-            addLog('错误: 请输入文件路径');
+        if (!filePaths) {
+            addLog('错误: 请选择文件');
             return;
         }
         
@@ -72,7 +197,7 @@ $(document).ready(function() {
         $('.preview-table tbody').html('<tr><td colspan="5" class="no-data-message">加载数据中...</td></tr>');
         
         // 模拟异步加载数据预览
-        addLog('正在从文件加载数据预览: ' + filePath);
+        addLog('正在从文件加载数据预览: ' + filePaths);
         
         // 模拟数据加载延迟
         setTimeout(function() {
@@ -110,17 +235,16 @@ $(document).ready(function() {
     
     // 导入按钮点击事件
     $('#import-btn').click(function() {
-        var filePath = $('#file-path').val();
+        var filePaths = $(this).data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
         var selectedSheet = $('#sheet-select').val();
         var headerRow = $('#header-row').val();
         var startRow = $('#start-row').val();
-        var importType = $('input[name="import-type"]:checked').val();
         
         // 验证输入
-        if (!filePath) {
-            addLog('错误: 请输入文件路径');
+        if (!filePaths) {
+            addLog('错误: 请选择文件');
             return;
         }
         
@@ -134,7 +258,7 @@ $(document).ready(function() {
             return;
         }
         
-        if (!selectedSheet && importType === 'single') {
+        if (!selectedSheet) {
             addLog('错误: 请选择工作表');
             return;
         }
@@ -144,9 +268,9 @@ $(document).ready(function() {
         
         // 日志记录
         addLog('开始导入数据...');
-        addLog('导入模式: ' + (importType === 'single' ? '单文件' : '批量'));
         addLog('目标数据库: ' + selectedDb);
         addLog('目标表: ' + selectedTable);
+        addLog('导入文件: ' + filePaths);
         
         // 模拟导入进度
         var progress = 0;

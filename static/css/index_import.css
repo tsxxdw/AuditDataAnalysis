@@ -52,10 +52,76 @@
     margin-left: 0.5rem;
 }
 
+/* 文件选择器容器 */
+.file-selector-container {
+    margin-bottom: 15px;
+}
+
+/* Select2自定义样式 */
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    padding: 5px;
+}
+
+/* 文件项目中的日期显示 */
+.file-date {
+    color: #777;
+    margin-left: 10px;
+    font-size: 0.85em;
+}
+
+/* 已选文件容器 */
+.selected-files-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* 已选文件标签样式 */
+.selected-file-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #e1f5fe;
+    border-radius: 16px;
+    font-size: 0.9em;
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.selected-file-tag .remove-file {
+    margin-left: 5px;
+    color: #f44336;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* 文件列表项样式 */
+.file-list-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.file-name {
+    font-weight: normal;
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* 文件路径选择 */
 .file-path-selector {
-    display: flex;
-    margin-bottom: 0.5rem;
+    display: none;
 }
 
 .path-input {
