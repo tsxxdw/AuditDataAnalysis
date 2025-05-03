@@ -69,9 +69,9 @@ $(document).ready(function() {
         }
     });
     
-    // 开始行输入变化事件
+    // 起始行输入变化事件
     $('#start-row').change(function() {
-        addLog('用户设置开始导入行: ' + $(this).val());
+        addLog('用户设置预览起始行: ' + $(this).val());
     });
     
     // 预览按钮点击事件
@@ -806,7 +806,7 @@ $(document).ready(function() {
     
     // 加载Excel预览数据
     function loadExcelPreview(filePath, sheetId, startRow) {
-        addLog(`正在加载Excel数据预览，文件: ${filePath}, Sheet: ${sheetId}, 开始行: ${startRow}`);
+        addLog(`正在加载Excel数据预览，文件: ${filePath}, Sheet: ${sheetId}, 起始行: ${startRow}`);
         
         // 构建请求数据
         var requestData = {
@@ -950,7 +950,7 @@ $(document).ready(function() {
         addLog('- 目标表: ' + $('#table-select option:selected').text());
         addLog('- Excel文件: ' + $('#excel-file-select option:selected').text());
         addLog('- 工作表: ' + $('#sheet-select option:selected').text());
-        addLog('- 开始行: ' + startRow);
+        addLog('- 起始行: ' + startRow);
         
         // 记录导入条件
         if (selectedColumn && selectedCondition) {
