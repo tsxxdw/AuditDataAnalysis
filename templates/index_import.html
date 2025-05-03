@@ -100,12 +100,6 @@
             
             <!-- 预览和执行区域 -->
             <div class="import-section">
-                <div class="action-buttons">
-                    <button id="preview-btn" class="action-button preview-btn">预览数据</button>
-                    <button id="open-excel-btn" class="action-button open-excel-btn">打开EXCEL</button>
-                    <button id="import-btn" class="action-button import-btn">开始导入</button>
-                </div>
-                
                 <div class="preview-container">
                     <h3 class="section-title">数据预览</h3>
                     <div class="data-preview">
@@ -126,6 +120,47 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                
+                <!-- 操作按钮移到数据预览下方（仅保留预览数据和打开EXCEL） -->
+                <div class="action-buttons">
+                    <button id="preview-btn" class="action-button preview-btn">预览数据</button>
+                    <button id="open-excel-btn" class="action-button open-excel-btn">打开EXCEL</button>
+                </div>
+            </div>
+            
+            <!-- 新增导入数据区域 -->
+            <div class="import-section">
+                <h3 class="section-title">导入数据</h3>
+                
+                <!-- 导入条件设置 -->
+                <div class="import-conditions">
+                    <h4 class="subsection-title">导入条件</h4>
+                    <div class="condition-row">
+                        <div class="condition-item">
+                            <label for="column-select">选择列：</label>
+                            <select id="column-select" class="condition-select">
+                                <option value="" disabled selected>请选择列（如A、B、C）</option>
+                                <!-- 这里会根据预览数据动态填充列选项，显示Excel格式的列标识 -->
+                            </select>
+                        </div>
+                        <div class="condition-item">
+                            <label for="condition-select">条件：</label>
+                            <select id="condition-select" class="condition-select">
+                                <option value="" disabled selected>请选择条件</option>
+                                <option value="empty">为空</option>
+                                <option value="not_empty">不为空</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="import-description">
+                    <p>确认数据准备完毕并设置好导入条件后，点击"开始导入"按钮将Excel数据导入到数据库表中。</p>
+                </div>
+                <!-- 导入按钮区域 -->
+                <div class="import-actions">
+                    <button id="import-btn" class="action-button import-btn">开始导入</button>
                 </div>
                 
                 <!-- 导入状态和进度 -->

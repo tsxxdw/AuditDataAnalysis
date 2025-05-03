@@ -14,6 +14,9 @@ $(document).ready(function() {
     // 检查是否为本地环境
     checkLocalEnvironment();
     
+    // 初始化Excel列选择下拉框（A到CZ）
+    initializeColumnSelect();
+    
     // 记录初始化完成
     addLog('页面初始化完成，等待用户操作...');
     
@@ -117,6 +120,19 @@ $(document).ready(function() {
             
             updateSelectedFiles();
         }
+    });
+    
+    // 列选择变化事件
+    $('#column-select').change(function() {
+        var selectedColumn = $(this).find('option:selected').text();
+        addLog('用户选择导入条件列: ' + selectedColumn);
+    });
+    
+    // 条件选择变化事件
+    $('#condition-select').change(function() {
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        addLog('用户选择导入条件: ' + selectedText);
     });
     
     // 初始化文件选择器
@@ -876,6 +892,43 @@ $(document).ready(function() {
         });
         
         $('.preview-table tbody').html(tableHtml);
+        
+        // 更新列选择下拉框
+        updateColumnSelect();
+    }
+    
+    // 更新列选择下拉框（预览数据后强调当前实际使用的列）
+    function updateColumnSelect() {
+        // 获取当前表格的列数
+        var columnCount = $('.preview-table thead th').length;
+        
+        // 高亮显示当前使用的列
+        var $columnSelect = $('#column-select');
+        $columnSelect.find('option').each(function() {
+            var index = parseInt($(this).val());
+            if (!isNaN(index) && index < columnCount) {
+                $(this).css('font-weight', 'bold');
+            } else if (!isNaN(index)) {
+                $(this).css('font-weight', 'normal');
+            }
+        });
+        
+        addLog('已更新列选择下拉框，当前表格共' + columnCount + '列（A到' + getExcelColumnName(columnCount-1) + '）');
+    }
+    
+    // 获取Excel列名格式（A, B, C, ..., Z, AA, AB, ..., CZ）
+    function getExcelColumnName(index) {
+        var columnName = '';
+        var dividend = index + 1;
+        var modulo;
+        
+        while (dividend > 0) {
+            modulo = (dividend - 1) % 26;
+            columnName = String.fromCharCode(65 + modulo) + columnName;
+            dividend = Math.floor((dividend - modulo) / 26);
+        }
+        
+        return columnName;
     }
     
     // 导入功能
@@ -887,6 +940,10 @@ $(document).ready(function() {
         var selectedSheet = $('#sheet-select').val();
         var startRow = $('#start-row').val();
         
+        // 获取导入条件
+        var selectedColumn = $('#column-select').val();
+        var selectedCondition = $('#condition-select').val();
+        
         // 记录详细导入参数
         addLog('导入参数:');
         addLog('- 数据库: ' + $('#db-select option:selected').text());
@@ -894,6 +951,13 @@ $(document).ready(function() {
         addLog('- Excel文件: ' + $('#excel-file-select option:selected').text());
         addLog('- 工作表: ' + $('#sheet-select option:selected').text());
         addLog('- 开始行: ' + startRow);
+        
+        // 记录导入条件
+        if (selectedColumn && selectedCondition) {
+            var columnName = $('#column-select option:selected').text();
+            var conditionName = $('#condition-select option:selected').text();
+            addLog('- 导入条件: ' + columnName + ' ' + conditionName);
+        }
         
         // 验证输入
         if (!filePaths) {
@@ -1150,5 +1214,23 @@ $(document).ready(function() {
                 $btn.prop('disabled', false).text(originalText);
             }
         });
+    }
+
+    // 初始化Excel列选择下拉框，填充A到CZ的列选项
+    function initializeColumnSelect() {
+        var $columnSelect = $('#column-select');
+        $columnSelect.empty().append('<option value="" disabled selected>请选择列（如A、B、C）</option>');
+        
+        // 生成A到CZ的列选项
+        for (var i = 0; i < 78; i++) { // A-Z (26) + AA-AZ (26) + BA-BZ (26) = 78
+            var columnName = getExcelColumnName(i);
+            $columnSelect.append(
+                $('<option></option>')
+                    .attr('value', i)
+                    .text(columnName)
+            );
+        }
+        
+        addLog('已初始化列选择下拉框，共78列（A到CZ）');
     }
 }); 
