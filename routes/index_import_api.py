@@ -4,7 +4,7 @@
 提供数据导入相关的API，包括获取数据库类型、获取数据库表、获取表字段等
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app, send_file, send_from_directory
 from utils.database_config_util import DatabaseConfigUtil
 from utils.excel_util import ExcelUtil
 from service.database.database_service import DatabaseService
@@ -12,6 +12,11 @@ from service.database.db_pool_manager import DatabasePoolManager
 from service.log.logger import app_logger
 from service.exception import AppException
 from sqlalchemy import text
+import os
+import time
+import datetime
+from werkzeug.utils import secure_filename
+import uuid
 
 # 创建蓝图
 import_api_bp = Blueprint('import_api', __name__)
@@ -498,4 +503,350 @@ def get_table_field_info(db_type, db_config, table_name):
             raise AppException(f"不支持的数据库类型: {db_type}", 400)
     except Exception as e:
         app_logger.error(f"获取表字段信息失败: {str(e)}")
-        raise AppException(f"获取表字段信息失败: {str(e)}", 500) 
+        raise AppException(f"获取表字段信息失败: {str(e)}", 500)
+
+@import_api_bp.route('/api/import/excel/open', methods=['POST'])
+def open_excel_file():
+    """打开指定的Excel文件
+    
+    此功能仅在Windows环境和本地部署的服务器上有效
+    
+    Request Body:
+        file_path: Excel文件路径
+        sheet_id: 工作表ID
+        
+    Returns:
+        JSON: 包含操作结果的JSON对象
+    """
+    try:
+        # 检查是否为本地请求
+        is_local = _is_local_request()
+        app_logger.info(f"打开Excel请求 - 是否本地请求: {is_local}, Host: {request.host}")
+        
+        if not is_local:
+            app_logger.warning(f"非本地请求尝试打开Excel文件, Host: {request.host}")
+            return jsonify({
+                "success": False,
+                "message": "此功能仅支持本地访问",
+                "is_local": False
+            }), 403
+        
+        # 获取请求数据
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "未提供请求数据",
+                "is_local": True
+            }), 400
+        
+        # 获取文件路径和工作表ID
+        file_path = data.get('file_path')
+        sheet_id = data.get('sheet_id')
+        
+        app_logger.info(f"尝试打开Excel文件: {file_path}, sheet_id: {sheet_id}")
+        
+        if not file_path:
+            return jsonify({
+                "success": False,
+                "message": "未指定Excel文件路径",
+                "is_local": True
+            }), 400
+        
+        # 验证文件路径是否在允许范围内
+        app_logger.info(f"验证文件路径: {file_path}")
+        if not _is_safe_file_path(file_path):
+            app_logger.warning(f"文件路径安全检查失败: {file_path}")
+            return jsonify({
+                "success": False,
+                "message": "不允许访问指定的文件路径",
+                "is_local": True,
+                "details": "文件必须位于static/uploads目录或其子目录下，且必须是Excel文件(.xls或.xlsx)"
+            }), 403
+        
+        # 调用Excel工具类打开文件
+        app_logger.info(f"开始打开Excel文件: {file_path}")
+        result = ExcelUtil.open_excel_file(file_path, sheet_id)
+        app_logger.info(f"打开Excel文件结果: {result}")
+        
+        # 将is_local信息添加到结果中
+        result["is_local"] = True
+        
+        # 记录使用的是哪种Office软件
+        if result.get("success") and result.get("using_wps") is not None:
+            is_wps = result.get("using_wps")
+            app_logger.info(f"使用{'WPS' if is_wps else 'Microsoft Excel'}打开文件: {file_path}")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        app_logger.error(f"打开Excel文件失败: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "message": f"打开Excel文件失败: {str(e)}",
+            "is_local": _is_local_request()
+        }), 500
+
+def _is_local_request():
+    """检查当前请求是否来自本地
+    
+    基于请求的Host头判断是否为localhost或127.0.0.1
+    
+    Returns:
+        bool: 是否为本地请求
+    """
+    host = request.host.split(':')[0].lower()
+    return host in ('localhost', '127.0.0.1')
+
+def _is_safe_file_path(file_path):
+    """判断文件路径是否在允许的范围内
+    
+    防止任意文件访问，确保只能访问static/uploads目录及其子目录下的Excel文件
+    
+    Args:
+        file_path: 要检查的文件路径
+        
+    Returns:
+        bool: 文件路径是否安全
+    """
+    try:
+        # 规范化路径，处理路径分隔符差异
+        abs_path = os.path.abspath(file_path)
+        
+        # 尝试获取应用的根目录和uploads目录
+        root_dir = current_app.root_path
+        
+        # 处理多种可能的uploads目录结构
+        possible_upload_dirs = [
+            os.path.abspath(os.path.join(root_dir, 'static', 'uploads')),  # /app/static/uploads
+            os.path.abspath(os.path.join(root_dir, '..', 'static', 'uploads')),  # /static/uploads (相对于app)
+            os.path.abspath('./static/uploads')  # 当前工作目录下的static/uploads
+        ]
+        
+        # 检查文件是否存在
+        if not os.path.exists(abs_path):
+            app_logger.warning(f"文件不存在: {abs_path}")
+            return False
+        
+        # 检查是否为Excel文件
+        if not abs_path.lower().endswith(('.xlsx', '.xls')):
+            app_logger.warning(f"不是Excel文件: {abs_path}")
+            return False
+        
+        # 检查文件是否在允许的uploads目录下
+        is_in_uploads = False
+        for uploads_dir in possible_upload_dirs:
+            # 记录路径信息用于调试
+            app_logger.debug(f"检查路径是否在uploads目录下: {abs_path} vs {uploads_dir}")
+            
+            if os.path.exists(uploads_dir) and abs_path.startswith(uploads_dir):
+                is_in_uploads = True
+                break
+        
+        if not is_in_uploads:
+            app_logger.warning(f"文件路径不在允许的目录范围内: {abs_path}")
+            
+            # 输出所有尝试的目录路径，帮助调试
+            app_logger.warning(f"允许的目录: {possible_upload_dirs}")
+            
+            return False
+        
+        return True
+        
+    except Exception as e:
+        app_logger.error(f"文件路径安全检查失败: {str(e)}", exc_info=True)
+        return False
+
+@import_api_bp.route('/api/import/export-logs', methods=['POST'])
+def export_logs():
+    """导出日志到文件并提供下载
+    
+    Request Body:
+        logs: 日志条目列表
+        title: 日志标题(可选)
+        
+    Returns:
+        JSON: 包含下载链接的JSON对象
+    """
+    try:
+        # 获取请求数据
+        data = request.get_json()
+        if not data or 'logs' not in data:
+            return jsonify({
+                "success": False,
+                "message": "未提供日志内容"
+            }), 400
+        
+        logs = data.get('logs', [])
+        title = data.get('title', '操作日志')
+        
+        if not logs or not isinstance(logs, list):
+            return jsonify({
+                "success": False,
+                "message": "日志内容格式无效"
+            }), 400
+        
+        # 创建导出目录（如果不存在）
+        export_dir = _ensure_export_directory()
+        app_logger.info(f"导出目录路径: {os.path.abspath(export_dir)}")
+        
+        # 生成唯一文件名
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"import_log_{timestamp}_{unique_id}.txt"
+        file_path = os.path.join(export_dir, filename)
+        
+        # 写入日志内容
+        with open(file_path, 'w', encoding='utf-8') as f:
+            # 写入标题和时间
+            f.write(f"{title}\n")
+            f.write(f"导出时间: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("="*50 + "\n\n")
+            
+            # 写入日志条目
+            for log in logs:
+                f.write(f"{log}\n")
+        
+        # 计算下载URL
+        download_url = f"/export/{filename}"
+        
+        app_logger.info(f"日志已导出到文件: {os.path.abspath(file_path)}")
+        app_logger.info(f"下载URL: {download_url}")
+        
+        # 显示当前工作目录和文件是否存在的信息
+        app_logger.info(f"当前工作目录: {os.getcwd()}")
+        app_logger.info(f"文件是否存在: {os.path.exists(file_path)}")
+        
+        return jsonify({
+            "success": True,
+            "message": "日志导出成功",
+            "filename": filename,
+            "download_url": download_url,
+            "file_path": os.path.abspath(file_path)  # 在响应中包含完整路径
+        })
+        
+    except Exception as e:
+        app_logger.error(f"导出日志失败: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "message": f"导出日志失败: {str(e)}"
+        }), 500
+
+def _ensure_export_directory():
+    """确保导出目录存在
+    
+    Returns:
+        str: 导出目录路径
+    """
+    try:
+        # 获取当前文件的绝对路径
+        current_file = os.path.abspath(__file__)
+        app_logger.debug(f"当前文件路径: {current_file}")
+        
+        # 从当前文件路径获取项目根目录
+        # 当前文件在 routes/index_import_api.py
+        # 所以向上两级就是项目根目录
+        routes_dir = os.path.dirname(current_file)
+        app_dir = os.path.dirname(routes_dir)
+        project_root = os.path.dirname(app_dir)
+        
+        app_logger.info(f"计算项目路径: 当前文件={current_file}, routes目录={routes_dir}, app目录={app_dir}, 项目根目录={project_root}")
+        
+        # 确保我们确实找到了项目目录 - 检查有没有一些典型的项目文件
+        expected_files = ['main.py', 'requirements.txt', 'README.md']
+        found_files = [f for f in expected_files if os.path.exists(os.path.join(project_root, f))]
+        
+        if found_files:
+            app_logger.info(f"验证项目根目录成功，找到文件: {', '.join(found_files)}")
+        else:
+            app_logger.warning(f"无法验证项目根目录，未找到预期的项目文件")
+            # 失败时也要告诉我们在哪里查找的
+            app_logger.warning(f"在目录 {project_root} 中查找文件 {', '.join(expected_files)}")
+        
+        # 创建export目录
+        export_dir = os.path.join(project_root, 'export')
+        
+        # 确保目录存在
+        if not os.path.exists(export_dir):
+            os.makedirs(export_dir)
+            app_logger.info(f"创建导出目录: {export_dir}")
+        else:
+            app_logger.info(f"导出目录已存在: {export_dir}")
+        
+        return export_dir
+    except Exception as e:
+        app_logger.error(f"创建导出目录失败: {str(e)}", exc_info=True)
+        
+        # 使用一个确定可写入的目录作为备用
+        # 使用相对路径 ./export (相对于当前工作目录)
+        fallback_dir = os.path.join(os.getcwd(), 'export')
+        app_logger.warning(f"使用备用目录: {fallback_dir}")
+        os.makedirs(fallback_dir, exist_ok=True)
+        return fallback_dir
+
+@import_api_bp.route('/export/<path:filename>')
+def download_export_file(filename):
+    """提供导出文件下载的路由
+    
+    Args:
+        filename: 文件名
+        
+    Returns:
+        文件下载响应
+    """
+    try:
+        # 获取项目根目录
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        export_dir = os.path.join(root_dir, 'export')
+        
+        # 记录尝试的路径
+        paths_to_try = [
+            export_dir,  # 主要的导出目录
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'export'),  # 备用目录
+            os.path.join(os.getcwd(), 'export'),  # 当前工作目录下的export
+            os.path.abspath('./export')  # 相对于当前目录的export
+        ]
+        
+        # 日志记录所有尝试的路径
+        app_logger.info(f"下载文件 '{filename}' - 将尝试以下路径:")
+        for i, path in enumerate(paths_to_try):
+            exists = os.path.exists(path)
+            app_logger.info(f"  路径 {i+1}: {path} ({'存在' if exists else '不存在'})")
+        
+        # 如果主目录不存在，尝试备用目录
+        if not os.path.exists(export_dir):
+            app_logger.warning(f"主导出目录不存在: {export_dir}")
+            for backup_dir in paths_to_try[1:]:
+                if os.path.exists(backup_dir):
+                    export_dir = backup_dir
+                    app_logger.info(f"使用备用导出目录: {export_dir}")
+                    break
+        
+        # 检查文件是否存在
+        file_path = os.path.join(export_dir, filename)
+        if not os.path.exists(file_path):
+            app_logger.error(f"要下载的文件不存在: {file_path}")
+            
+            # 尝试在其他目录中查找文件
+            for backup_dir in paths_to_try[1:]:
+                backup_path = os.path.join(backup_dir, filename)
+                if os.path.exists(backup_path):
+                    app_logger.info(f"在备用目录中找到文件: {backup_path}")
+                    return send_from_directory(backup_dir, filename, as_attachment=True)
+            
+            # 如果所有路径都不存在文件，返回404
+            return jsonify({
+                "success": False,
+                "message": f"文件不存在: {filename}"
+            }), 404
+        
+        app_logger.info(f"下载导出文件: {filename}, 目录: {export_dir}")
+        
+        # 返回文件
+        return send_from_directory(export_dir, filename, as_attachment=True)
+    except Exception as e:
+        app_logger.error(f"下载文件失败: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "message": f"下载文件失败: {str(e)}"
+        }), 500 

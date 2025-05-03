@@ -2,12 +2,17 @@
 $(document).ready(function() {
     // 存储表字段信息的全局变量
     window.tableFields = null;
+    // 是否为本地环境的标志
+    window.isLocalEnvironment = null;
     
     // 初始化文件选择器
     initializeFileSelector();
     
     // 初始化数据库类型下拉框
     initializeDatabaseTypes();
+    
+    // 检查是否为本地环境
+    checkLocalEnvironment();
     
     // 加载数据按钮点击事件
     $('#load-tables-btn').click(function() {
@@ -27,6 +32,11 @@ $(document).ready(function() {
     // 预览按钮点击事件
     $('#preview-btn').click(function() {
         previewData();
+    });
+    
+    // 打开Excel按钮点击事件
+    $('#open-excel-btn').click(function() {
+        openExcelFile();
     });
     
     // 初始化文件选择器
@@ -77,6 +87,142 @@ $(document).ready(function() {
             }
         });
     }
+    
+    // 检查是否为本地环境（localhost或127.0.0.1）
+    function checkLocalEnvironment() {
+        // 获取当前主机名
+        var host = window.location.hostname.toLowerCase();
+        window.isLocalEnvironment = (host === 'localhost' || host === '127.0.0.1');
+        
+        // 设置按钮初始状态
+        updateOpenExcelButtonState();
+        
+        // 添加提示信息
+        if (!window.isLocalEnvironment) {
+            $('#open-excel-btn').attr('title', '此功能仅在本地环境下可用');
+        } else {
+            $('#open-excel-btn').attr('title', '在Windows中打开所选的Excel文件');
+        }
+    }
+    
+    // 更新打开Excel按钮的状态
+    function updateOpenExcelButtonState() {
+        var $btn = $('#open-excel-btn');
+        var selectedExcel = $('#excel-file-select').val();
+        var selectedSheet = $('#sheet-select').val();
+        
+        // 禁用条件：非本地环境或未选择Excel文件或工作表
+        var shouldDisable = !window.isLocalEnvironment || !selectedExcel || !selectedSheet;
+        
+        $btn.prop('disabled', shouldDisable);
+    }
+    
+    // 打开Excel文件
+    function openExcelFile() {
+        var selectedExcel = $('#excel-file-select').val();
+        var selectedSheet = $('#sheet-select').val();
+        
+        if (!selectedExcel) {
+            addLog('错误: 请选择要打开的Excel文件');
+            return;
+        }
+        
+        // 禁用按钮，防止重复点击
+        $('#open-excel-btn').prop('disabled', true).text('打开中...');
+        
+        // 添加一条日志
+        addLog(`尝试打开Excel文件: ${selectedExcel}`);
+        
+        // 调用API打开Excel文件
+        $.ajax({
+            url: '/api/import/excel/open',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                file_path: selectedExcel,
+                sheet_id: selectedSheet
+            }),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // 基本成功消息
+                    addLog('成功: ' + response.message);
+                    
+                    // 如果有WPS信息，显示使用的是哪种程序
+                    if (response.hasOwnProperty('using_wps')) {
+                        if (response.using_wps) {
+                            addLog('📊 使用WPS打开Excel文件', true);
+                        } else {
+                            addLog('📊 使用Microsoft Excel打开文件', true);
+                        }
+                    }
+                } else {
+                    if (!response.is_local) {
+                        addLog('错误: 此功能仅支持本地环境');
+                    } else if (!response.is_windows) {
+                        addLog('错误: 此功能仅支持Windows系统');
+                    } else {
+                        addLog('错误: ' + response.message);
+                        
+                        // 如果有详细错误信息，显示它
+                        if (response.details) {
+                            addLog('详情: ' + response.details);
+                        }
+                        
+                        // 记录当前文件路径，帮助排查问题
+                        console.log('文件路径:', selectedExcel);
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                var errorMsg = '';
+                var detailMsg = '';
+                
+                try {
+                    // 尝试解析错误响应
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        if (xhr.responseJSON.details) {
+                            detailMsg = xhr.responseJSON.details;
+                        }
+                    } else if (xhr.status === 403) {
+                        errorMsg = '访问被拒绝，可能是文件路径不在允许的范围内';
+                    } else {
+                        errorMsg = error || '未知错误';
+                    }
+                } catch (e) {
+                    errorMsg = '无法解析错误信息: ' + e.message;
+                }
+                
+                addLog('错误: 打开Excel文件失败 - ' + errorMsg);
+                if (detailMsg) {
+                    addLog('详情: ' + detailMsg);
+                }
+                
+                // 记录到控制台，便于调试
+                console.error('Excel文件打开错误:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    error: error,
+                    response: xhr.responseText,
+                    filePath: selectedExcel,
+                    sheetId: selectedSheet
+                });
+            },
+            complete: function() {
+                // 恢复按钮状态
+                $('#open-excel-btn').prop('disabled', !window.isLocalEnvironment).text('打开EXCEL');
+                updateOpenExcelButtonState();
+            }
+        });
+    }
+    
+    // 监听Excel文件和工作表选择变化，更新打开Excel按钮状态
+    $('#excel-file-select, #sheet-select').change(function() {
+        updateOpenExcelButtonState();
+    });
     
     // 加载数据库表
     function loadDatabaseTables() {
@@ -656,17 +802,94 @@ $(document).ready(function() {
     
     // 导出日志按钮
     $('#export-log-btn').click(function() {
-        alert('导出日志功能需要后端支持，此处仅为界面演示');
+        exportLogs();
     });
     
+    // 导出日志功能
+    function exportLogs() {
+        // 获取所有日志内容
+        var logEntries = [];
+        $('#import-log .log-entry').each(function() {
+            logEntries.push($(this).text());
+        });
+        
+        if (logEntries.length === 0) {
+            alert('没有可导出的日志内容');
+            return;
+        }
+        
+        // 显示导出中状态
+        var $btn = $('#export-log-btn');
+        var originalText = $btn.text();
+        $btn.prop('disabled', true).text('导出中...');
+        
+        // 发送日志内容到后端
+        $.ajax({
+            url: '/api/import/export-logs',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                logs: logEntries,
+                title: '数据导入操作日志'
+            }),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // 触发下载
+                    if (response.download_url) {
+                        addLog('成功: 日志已导出，正在下载文件...');
+                        
+                        // 如果服务器返回了文件路径，显示它
+                        if (response.file_path) {
+                            addLog('服务器文件位置: ' + response.file_path, true);
+                        }
+                        
+                        // 创建隐藏的下载链接并点击
+                        var $downloadLink = $('<a></a>')
+                            .attr('href', response.download_url)
+                            .attr('download', response.filename || 'import_logs.txt')
+                            .css('display', 'none');
+                        
+                        $('body').append($downloadLink);
+                        $downloadLink[0].click();
+                        $downloadLink.remove();
+                    } else {
+                        addLog('成功: 日志已导出，但无法自动下载');
+                    }
+                } else {
+                    addLog('错误: 导出日志失败 - ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                var errorMsg = '';
+                try {
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else {
+                        errorMsg = error || '未知错误';
+                    }
+                } catch (e) {
+                    errorMsg = '无法解析错误信息';
+                }
+                
+                addLog('错误: 导出日志失败 - ' + errorMsg);
+            },
+            complete: function() {
+                // 恢复按钮状态
+                $btn.prop('disabled', false).text(originalText);
+            }
+        });
+    }
+    
     // 添加日志函数
-    function addLog(message) {
+    function addLog(message, highlight = false) {
         var now = new Date();
         var timeString = now.getHours().toString().padStart(2, '0') + ':' + 
                          now.getMinutes().toString().padStart(2, '0') + ':' + 
                          now.getSeconds().toString().padStart(2, '0');
         
-        var logEntry = '<div class="log-entry">[' + timeString + '] ' + message + '</div>';
+        var cssClass = highlight ? 'log-entry log-entry-highlight' : 'log-entry';
+        var logEntry = '<div class="' + cssClass + '">[' + timeString + '] ' + message + '</div>';
         $('#import-log').append(logEntry);
         
         // 自动滚动到底部
