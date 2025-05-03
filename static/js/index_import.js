@@ -14,29 +14,103 @@ $(document).ready(function() {
     // 检查是否为本地环境
     checkLocalEnvironment();
     
+    // 记录初始化完成
+    addLog('页面初始化完成，等待用户操作...');
+    
     // 加载数据按钮点击事件
     $('#load-tables-btn').click(function() {
+        addLog('用户点击: 加载数据');
         loadDatabaseTables();
     });
     
     // 加载Excel文件按钮点击事件
     $('#load-excel-btn').click(function() {
+        addLog('用户点击: 加载选择的excel文件');
         loadSelectedExcelFiles();
     });
     
     // Excel文件选择事件
     $('#excel-file-select').change(function() {
-        loadExcelFileSheets($(this).val());
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        addLog('用户选择Excel文件: ' + selectedText);
+        loadExcelFileSheets(selectedValue);
+    });
+    
+    // sheet选择事件
+    $('#sheet-select').change(function() {
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        addLog('用户选择工作表: ' + selectedText);
+    });
+    
+    // 数据库选择事件
+    $('#db-select').change(function() {
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        addLog('用户选择数据库: ' + selectedText);
+    });
+    
+    // 表选择事件
+    $('#table-select').change(function() {
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        if (selectedValue) {
+            addLog('用户选择目标表: ' + selectedText);
+        }
+    });
+    
+    // 开始行输入变化事件
+    $('#start-row').change(function() {
+        addLog('用户设置开始导入行: ' + $(this).val());
     });
     
     // 预览按钮点击事件
     $('#preview-btn').click(function() {
+        addLog('用户点击: 预览数据');
         previewData();
     });
     
     // 打开Excel按钮点击事件
     $('#open-excel-btn').click(function() {
+        addLog('用户点击: 打开EXCEL');
         openExcelFile();
+    });
+    
+    // 导入按钮点击事件
+    $('#import-btn').click(function() {
+        addLog('用户点击: 开始导入');
+        startImport();
+    });
+    
+    // 清空日志按钮点击事件
+    $('#clear-log-btn').click(function() {
+        addLog('用户点击: 清空日志');
+        $('#import-log').html('<div class="log-entry">日志已清空</div>');
+    });
+    
+    // 导出日志按钮点击事件
+    $('#export-log-btn').click(function() {
+        addLog('用户点击: 导出日志');
+        exportLogs();
+    });
+    
+    // 监听文件选择变化
+    $('#file-select').on('change', function() {
+        var selectedData = $(this).select2('data');
+        if (selectedData && selectedData.length > 0) {
+            var fileNames = selectedData.map(function(file) {
+                return file.text;
+            }).join(', ');
+            
+            if (selectedData.length === 1) {
+                addLog('用户选择文件: ' + fileNames);
+            } else {
+                addLog('用户选择多个文件: ' + selectedData.length + '个文件 (' + fileNames + ')');
+            }
+            
+            updateSelectedFiles();
+        }
     });
     
     // 初始化文件选择器
@@ -239,6 +313,8 @@ $(document).ready(function() {
         // 清空并重新加载表下拉框
         $('#table-select').empty().append('<option value="" disabled selected>加载中...</option>');
         
+        addLog('正在加载数据库表列表...');
+        
         // 从后端API获取表列表
         $.ajax({
             url: '/api/import/tables',
@@ -288,6 +364,8 @@ $(document).ready(function() {
         var filePaths = selectedFiles.map(function(file) {
             return file.id;
         });
+        
+        addLog('正在加载Excel文件内容，共' + filePaths.length + '个文件...');
         
         // 调用API处理选择的Excel文件
         $.ajax({
@@ -702,14 +780,22 @@ $(document).ready(function() {
         $('.preview-table tbody').html(tableHtml);
     }
     
-    // 导入按钮点击事件
-    $('#import-btn').click(function() {
-        var filePaths = $(this).data('file-paths') || $('#file-path').val();
+    // 导入功能
+    function startImport() {
+        var filePaths = $('#file-select').data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
         var selectedExcel = $('#excel-file-select').val();
         var selectedSheet = $('#sheet-select').val();
         var startRow = $('#start-row').val();
+        
+        // 记录详细导入参数
+        addLog('导入参数:');
+        addLog('- 数据库: ' + $('#db-select option:selected').text());
+        addLog('- 目标表: ' + $('#table-select option:selected').text());
+        addLog('- Excel文件: ' + $('#excel-file-select option:selected').text());
+        addLog('- 工作表: ' + $('#sheet-select option:selected').text());
+        addLog('- 开始行: ' + startRow);
         
         // 验证输入
         if (!filePaths) {
@@ -742,9 +828,6 @@ $(document).ready(function() {
         
         // 日志记录
         addLog('开始导入数据...');
-        addLog('目标数据库: ' + selectedDb);
-        addLog('目标表: ' + selectedTable);
-        addLog('导入文件: ' + filePaths);
         
         // 模拟导入进度
         var progress = 0;
@@ -776,7 +859,7 @@ $(document).ready(function() {
                 addLog('导入进度: ' + progress + '%');
             }
         }, 200);
-    });
+    }
     
     // 模拟导入完成
     function completeImport() {
@@ -794,16 +877,6 @@ $(document).ready(function() {
         addLog('失败记录: 第123行 - 数据格式错误');
         addLog('失败记录: 第187行 - 数据类型不匹配');
     }
-    
-    // 清空日志按钮
-    $('#clear-log-btn').click(function() {
-        $('#import-log').html('<div class="log-entry">日志已清空</div>');
-    });
-    
-    // 导出日志按钮
-    $('#export-log-btn').click(function() {
-        exportLogs();
-    });
     
     // 导出日志功能
     function exportLogs() {
