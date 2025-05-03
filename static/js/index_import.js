@@ -135,6 +135,12 @@ $(document).ready(function() {
         addLog('用户选择导入条件: ' + selectedText);
     });
     
+    // 开始导入行选择变化事件
+    $('#import-start-row').change(function() {
+        var selectedRow = $(this).val();
+        addLog('用户设置开始导入行: ' + selectedRow);
+    });
+    
     // 初始化文件选择器
     function initializeFileSelector() {
         // 初始化Select2
@@ -939,6 +945,7 @@ $(document).ready(function() {
         var selectedExcel = $('#excel-file-select').val();
         var selectedSheet = $('#sheet-select').val();
         var startRow = $('#start-row').val();
+        var importStartRow = $('#import-start-row').val();
         
         // 获取导入条件
         var selectedColumn = $('#column-select').val();
@@ -951,6 +958,7 @@ $(document).ready(function() {
         addLog('- Excel文件: ' + $('#excel-file-select option:selected').text());
         addLog('- 工作表: ' + $('#sheet-select option:selected').text());
         addLog('- 起始行: ' + startRow);
+        addLog('- 开始导入行: ' + importStartRow);
         
         // 记录导入条件
         if (selectedColumn && selectedCondition) {

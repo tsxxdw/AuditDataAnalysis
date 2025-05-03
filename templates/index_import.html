@@ -138,7 +138,7 @@
                     <h4 class="subsection-title">导入条件</h4>
                     <div class="condition-row">
                         <div class="condition-item">
-                            <label for="column-select">选择列：</label>
+                            <label for="column-select">要判断条件的列：</label>
                             <select id="column-select" class="condition-select">
                                 <option value="" disabled selected>请选择列（如A、B、C）</option>
                                 <!-- 这里会根据预览数据动态填充列选项，显示Excel格式的列标识 -->
@@ -150,6 +150,23 @@
                                 <option value="" disabled selected>请选择条件</option>
                                 <option value="empty">为空</option>
                                 <option value="not_empty">不为空</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="condition-row">
+                        <div class="condition-item">
+                            <label for="import-start-row">开始导入的行：</label>
+                            <select id="import-start-row" class="condition-select">
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
                             </select>
                         </div>
                     </div>
