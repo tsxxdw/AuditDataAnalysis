@@ -12,6 +12,14 @@ import pandas as pd
 from openpyxl import load_workbook
 from service.log.logger import app_logger
 
+# 尝试导入xlrd库，用于处理.xls文件
+try:
+    import xlrd
+    HAS_XLRD = True
+except ImportError:
+    HAS_XLRD = False
+    app_logger.warning("未安装xlrd库，可能无法正确处理.xls格式的Excel文件")
+
 class ExcelUtil:
     """Excel工具类，提供Excel文件操作的静态方法"""
     
@@ -28,16 +36,24 @@ class ExcelUtil:
         """
         # 检查文件是否存在
         if not os.path.exists(file_path):
+            app_logger.warning(f"文件不存在: {file_path}")
             return False
         
         # 检查是否是文件
         if not os.path.isfile(file_path):
+            app_logger.warning(f"路径不是文件: {file_path}")
             return False
         
         # 检查扩展名
         ext = os.path.splitext(file_path)[1].lower()
         if ext not in ['.xlsx', '.xls']:
+            app_logger.warning(f"文件格式不是Excel: {file_path}, 扩展名: {ext}")
             return False
+            
+        # 如果是.xls文件，检查是否有xlrd库
+        if ext == '.xls' and not HAS_XLRD:
+            app_logger.warning(f"检测到.xls文件但未安装xlrd库，文件处理可能会受影响: {file_path}")
+            # 仍然返回True，我们会在后续方法中再次检查
             
         return True
     
@@ -64,21 +80,40 @@ class ExcelUtil:
             ext = os.path.splitext(file_path)[1].lower()
             sheets = []
             
+            app_logger.info(f"尝试读取Excel文件: {file_path}, 格式: {ext}")
+            
             if ext == '.xlsx':
                 # 使用openpyxl读取xlsx文件
+                app_logger.info(f"使用openpyxl读取.xlsx文件: {file_path}")
                 wb = load_workbook(file_path, read_only=True)
                 sheets = [{'name': name, 'index': i, 'id': f"{name}_{i}"} for i, name in enumerate(wb.sheetnames)]
                 wb.close()
             elif ext == '.xls':
-                # 使用pandas读取xls文件
-                excel = pd.ExcelFile(file_path)
-                sheets = [{'name': name, 'index': i, 'id': f"{name}_{i}"} for i, name in enumerate(excel.sheet_names)]
-                excel.close()
+                try:
+                    # 优先使用xlrd读取xls文件
+                    if HAS_XLRD:
+                        app_logger.info(f"使用xlrd读取.xls文件: {file_path}")
+                        workbook = xlrd.open_workbook(file_path)
+                        sheets = [{'name': name, 'index': i, 'id': f"{name}_{i}"} for i, name in enumerate(workbook.sheet_names())]
+                    else:
+                        # 回退到pandas
+                        app_logger.info(f"使用pandas读取.xls文件: {file_path}")
+                        # engine参数对于读取.xls文件很重要
+                        excel = pd.ExcelFile(file_path, engine='xlrd')
+                        sheets = [{'name': name, 'index': i, 'id': f"{name}_{i}"} for i, name in enumerate(excel.sheet_names)]
+                        excel.close()
+                except Exception as e:
+                    app_logger.error(f"读取.xls文件失败，尝试第二种方法: {str(e)}")
+                    # 尝试使用另一种方法
+                    excel = pd.ExcelFile(file_path, engine='xlrd')
+                    sheets = [{'name': name, 'index': i, 'id': f"{name}_{i}"} for i, name in enumerate(excel.sheet_names)]
+                    excel.close()
             
+            app_logger.info(f"成功读取工作表信息，共{len(sheets)}个工作表")
             return sheets
             
         except Exception as e:
-            app_logger.error(f"读取Excel文件工作表失败: {str(e)}")
+            app_logger.error(f"读取Excel文件工作表失败: {str(e)}", exc_info=True)
             raise Exception(f"无法读取Excel文件工作表: {str(e)}")
     
     @staticmethod
@@ -104,13 +139,28 @@ class ExcelUtil:
             if not ExcelUtil.validate_excel_path(file_path):
                 raise ValueError(f"无效的Excel文件路径: {file_path}")
             
+            # 检查文件类型
+            ext = os.path.splitext(file_path)[1].lower()
+            app_logger.info(f"尝试预览Excel数据: {file_path}, 格式: {ext}")
+            
+            # 使用适当的引擎读取Excel数据
+            engine = 'openpyxl' if ext == '.xlsx' else 'xlrd'
+            
             # 读取Excel数据
-            if sheet_name:
-                # 如果提供了sheet_name，则使用sheet_name
-                df = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
-            else:
-                # 否则使用sheet_index
-                df = pd.read_excel(file_path, sheet_name=sheet_index, header=None)
+            try:
+                if sheet_name:
+                    # 如果提供了sheet_name，则使用sheet_name
+                    df = pd.read_excel(file_path, sheet_name=sheet_name, header=None, engine=engine)
+                else:
+                    # 否则使用sheet_index
+                    df = pd.read_excel(file_path, sheet_name=sheet_index, header=None, engine=engine)
+            except Exception as e:
+                app_logger.error(f"使用{engine}引擎读取失败，尝试其他引擎: {str(e)}")
+                # 尝试不指定引擎
+                if sheet_name:
+                    df = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
+                else:
+                    df = pd.read_excel(file_path, sheet_name=sheet_index, header=None)
             
             # 获取预览数据
             preview_data = df.iloc[start_row:start_row+row_count]
@@ -133,13 +183,14 @@ class ExcelUtil:
                         processed_row.append(value)
                 rows.append(processed_row)
             
+            app_logger.info(f"成功获取数据预览，行数: {len(rows)}")
             return {
                 "columns": columns,
                 "rows": rows
             }
             
         except Exception as e:
-            app_logger.error(f"获取Excel数据预览失败: {str(e)}")
+            app_logger.error(f"获取Excel数据预览失败: {str(e)}", exc_info=True)
             raise Exception(f"无法获取Excel数据预览: {str(e)}")
     
     @staticmethod

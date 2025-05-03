@@ -231,14 +231,24 @@ def process_selected_excel_files():
     
     try:
         result = []
+        skipped_files = []
+        error_files = []
+        
+        app_logger.info(f"处理选择的Excel文件，共{len(file_paths)}个文件")
+        
         for file_path in file_paths:
             # 验证Excel文件路径
             if not ExcelUtil.validate_excel_path(file_path):
                 app_logger.warning(f"跳过无效的Excel文件路径: {file_path}")
+                skipped_files.append({
+                    "path": file_path,
+                    "reason": "文件路径无效"
+                })
                 continue
             
-            # 获取文件名
+            # 获取文件名和扩展名
             file_name = file_path.split('/')[-1].split('\\')[-1]
+            ext = os.path.splitext(file_path)[1].lower()
             
             # 获取Excel工作表信息
             try:
@@ -246,17 +256,26 @@ def process_selected_excel_files():
                 result.append({
                     "path": file_path,
                     "name": file_name,
+                    "extension": ext,
                     "sheets": sheets
                 })
+                app_logger.info(f"成功处理Excel文件: {file_name}, 格式: {ext}, 工作表数量: {len(sheets)}")
             except Exception as e:
                 app_logger.warning(f"处理Excel文件失败: {file_path}, 错误: {str(e)}")
+                error_files.append({
+                    "path": file_path,
+                    "name": file_name,
+                    "error": str(e)
+                })
         
         return jsonify({
             "success": True,
-            "files": result
+            "files": result,
+            "skipped_files": skipped_files,
+            "error_files": error_files
         })
     except Exception as e:
-        app_logger.error(f"处理选择的Excel文件失败: {str(e)}")
+        app_logger.error(f"处理选择的Excel文件失败: {str(e)}", exc_info=True)
         return jsonify({
             "success": False,
             "error": f"处理选择的Excel文件失败: {str(e)}"

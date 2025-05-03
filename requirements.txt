@@ -18,6 +18,8 @@ requests==2.31.0
 marshmallow==3.20.1
 pandas==2.1.0
 numpy==1.25.2
+xlrd==2.0.1           # 支持.xls文件读取
+openpyxl==3.1.2       # 支持.xlsx文件读取
 
 # 日志
 loguru==0.7.0

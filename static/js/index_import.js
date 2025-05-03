@@ -17,6 +17,12 @@ $(document).ready(function() {
     // 记录初始化完成
     addLog('页面初始化完成，等待用户操作...');
     
+    // 全选按钮点击事件
+    $('#select-all-btn').click(function() {
+        addLog('用户点击: 全选文件');
+        selectAllFiles();
+    });
+    
     // 加载数据按钮点击事件
     $('#load-tables-btn').click(function() {
         addLog('用户点击: 加载数据');
@@ -118,8 +124,12 @@ $(document).ready(function() {
         // 初始化Select2
         $('#file-select').select2(getSelect2Options());
         
+        // 记录Select2初始化完成
+        console.log("Select2初始化完成");
+        
         // 监听选择变化事件
         $('#file-select').on('change', function() {
+            console.log("Select2选择变化事件触发");
             updateSelectedFiles();
         });
     }
@@ -382,24 +392,79 @@ $(document).ready(function() {
                     // 存储文件和工作表信息到全局变量
                     window.excelFiles = response.files;
                     
-                    // 添加Excel文件选项
+                    // 添加Excel文件选项，并标记文件类型
                     $.each(response.files, function(index, file) {
+                        var fileLabel = file.name;
+                        // 如果有扩展名属性，显示格式类型
+                        if (file.extension) {
+                            var ext = file.extension.toLowerCase();
+                            var formatBadge = ext === '.xlsx' ? '[xlsx]' : '[xls]';
+                            fileLabel = fileLabel + ' ' + formatBadge;
+                        }
+                        
                         $('#excel-file-select').append(
                             $('<option></option>')
                                 .attr('value', file.path)
-                                .text(file.name)
+                                .text(fileLabel)
                         );
                     });
                     
                     addLog('成功加载 ' + response.files.length + ' 个Excel文件');
+                    
+                    // 如果有跳过的文件，显示警告
+                    if (response.skipped_files && response.skipped_files.length > 0) {
+                        addLog('警告: ' + response.skipped_files.length + ' 个文件被跳过');
+                        $.each(response.skipped_files, function(index, file) {
+                            var fileName = file.path.split('/').pop().split('\\').pop();
+                            addLog('- 跳过文件: ' + fileName + ' (' + file.reason + ')');
+                        });
+                    }
+                    
+                    // 如果有错误的文件，显示错误
+                    if (response.error_files && response.error_files.length > 0) {
+                        addLog('错误: ' + response.error_files.length + ' 个文件无法处理');
+                        $.each(response.error_files, function(index, file) {
+                            addLog('- 处理失败: ' + file.name + ' (' + file.error + ')');
+                        });
+                    }
                 } else {
                     addLog('警告: 没有找到有效的Excel文件');
                     $('#excel-file-select').empty().append('<option value="" disabled selected>没有有效的Excel文件</option>');
+                    
+                    // 如果有详细错误消息，显示它们
+                    if (response.skipped_files && response.skipped_files.length > 0) {
+                        addLog('以下文件被跳过:');
+                        $.each(response.skipped_files, function(index, file) {
+                            var fileName = file.path.split('/').pop().split('\\').pop();
+                            addLog('- ' + fileName + ' (' + file.reason + ')');
+                        });
+                    }
+                    
+                    if (response.error_files && response.error_files.length > 0) {
+                        addLog('以下文件处理失败:');
+                        $.each(response.error_files, function(index, file) {
+                            addLog('- ' + file.name + ' (' + file.error + ')');
+                        });
+                    }
                 }
             },
             error: function(xhr, status, error) {
                 $('#excel-file-select').empty().append('<option value="" disabled selected>加载失败</option>');
-                addLog('错误: 加载Excel文件失败 - ' + (xhr.responseJSON?.error || error));
+                
+                var errorMessage = '加载Excel文件失败';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage += ' - ' + xhr.responseJSON.error;
+                } else if (error) {
+                    errorMessage += ' - ' + error;
+                }
+                
+                addLog('错误: ' + errorMessage);
+                console.error('加载Excel文件失败:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    response: xhr.responseText,
+                    error: error
+                });
             },
             complete: function() {
                 // 恢复按钮状态
@@ -483,6 +548,8 @@ $(document).ready(function() {
                     };
                 },
                 processResults: function(data) {
+                    console.log("Select2处理API结果, 获取到文件数量:", data.length);
+                    
                     // 转换API返回的数据为Select2需要的格式
                     var results = data.map(function(file) {
                         // 只处理Excel文件
@@ -503,6 +570,8 @@ $(document).ready(function() {
                     results.sort(function(a, b) {
                         return new Date(b.date) - new Date(a.date);
                     });
+                    
+                    console.log("处理后的Excel文件数量:", results.length);
                     
                     return {
                         results: results
@@ -539,14 +608,21 @@ $(document).ready(function() {
         var selectedFiles = $('#file-select').select2('data');
         var $container = $('#selected-files-container');
         
+        console.log("更新已选文件:", selectedFiles.length, "个文件");
+        
         $container.empty();
         
         if (selectedFiles.length === 0) {
             return;
         }
         
+        // 如果选择的文件太多，只显示一部分
+        var maxDisplay = 20; // 最多显示20个文件标签
+        var displayCount = Math.min(selectedFiles.length, maxDisplay);
+        
         // 添加已选文件标签
-        $.each(selectedFiles, function(index, file) {
+        for (var i = 0; i < displayCount; i++) {
+            var file = selectedFiles[i];
             var $tag = $(
                 '<div class="selected-file-tag" data-id="' + file.id + '">' +
                     file.text +
@@ -556,17 +632,39 @@ $(document).ready(function() {
             
             // 点击X移除文件
             $tag.find('.remove-file').on('click', function() {
+                var fileId = $(this).parent().data('id');
                 var values = $('#file-select').val();
                 values = values.filter(function(value) {
-                    return value !== file.id;
+                    return value !== fileId;
                 });
                 $('#file-select').val(values).trigger('change');
             });
             
             $container.append($tag);
-        });
+        }
         
-        // 更新文件路径到预览按钮和导入按钮的数据中
+        // 如果有更多文件，显示计数
+        if (selectedFiles.length > maxDisplay) {
+            var moreCount = selectedFiles.length - maxDisplay;
+            var $moreTag = $(
+                '<div class="selected-file-tag more-files">' +
+                    '还有' + moreCount + '个文件...' +
+                '</div>'
+            );
+            $container.append($moreTag);
+        }
+        
+        // 显示已选文件数量
+        if (selectedFiles.length > 0) {
+            var $countTag = $(
+                '<div class="selected-file-count">' +
+                    '共选择了 ' + selectedFiles.length + ' 个文件' +
+                '</div>'
+            );
+            $container.append($countTag);
+        }
+        
+        // 更新文件路径到按钮数据中
         updateFilePathForButtons(selectedFiles);
     }
     
@@ -968,5 +1066,89 @@ $(document).ready(function() {
         // 自动滚动到底部
         var logContainer = document.getElementById('import-log');
         logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // 全选所有Excel文件
+    function selectAllFiles() {
+        // 显示加载中状态
+        var $btn = $('#select-all-btn');
+        var originalText = $btn.text();
+        $btn.prop('disabled', true).text('加载中...');
+        
+        // 记录调试信息
+        console.log("开始获取所有Excel文件...");
+        addLog('正在获取所有Excel文件...');
+        
+        // 调用API获取所有Excel文件
+        $.ajax({
+            url: '/api/files/list',
+            method: 'GET',
+            dataType: 'json',
+            // 移除可能不支持的参数
+            // data: { fileType: 'excel' },
+            success: function(data) {
+                console.log("获取文件列表成功，文件数量:", data.length);
+                
+                // 过滤Excel文件
+                var excelFiles = data.filter(function(file) {
+                    return file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+                });
+                
+                console.log("过滤得到Excel文件数量:", excelFiles.length);
+                
+                if (excelFiles.length === 0) {
+                    addLog('提示: 未找到Excel文件');
+                    return;
+                }
+                
+                // 提取文件ID数组
+                var fileIds = excelFiles.map(function(file) {
+                    return file.path;
+                });
+                
+                console.log("要选择的文件IDs:", fileIds);
+                
+                try {
+                    // 清空当前选择
+                    $('#file-select').val(null).trigger('change');
+                    
+                    // 创建Select2可用的选项对象
+                    var newOptions = [];
+                    excelFiles.forEach(function(file) {
+                        // 检查选项是否已存在
+                        if (!$('#file-select').find("option[value='" + file.path + "']").length) {
+                            // 创建新选项
+                            var newOption = new Option(file.name, file.path, true, true);
+                            newOptions.push(newOption);
+                        } else {
+                            // 如果选项已存在，只需选中它
+                            $('#file-select').find("option[value='" + file.path + "']").prop('selected', true);
+                        }
+                    });
+                    
+                    // 添加新选项（如果有）
+                    if (newOptions.length > 0) {
+                        $('#file-select').append(newOptions);
+                    }
+                    
+                    // 触发Select2更新
+                    $('#file-select').trigger('change');
+                    
+                    addLog(`已全选 ${excelFiles.length} 个Excel文件`);
+                    console.log("全选完成");
+                } catch (e) {
+                    console.error("选择文件时出错:", e);
+                    addLog('错误: 选择文件失败 - ' + e.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("获取文件列表失败:", error);
+                addLog('错误: 获取文件列表失败 - ' + (xhr.responseJSON?.error || error));
+            },
+            complete: function() {
+                // 恢复按钮状态
+                $btn.prop('disabled', false).text(originalText);
+            }
+        });
     }
 }); 
