@@ -12,6 +12,11 @@ from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
 from service.database.db_pool_manager import DatabasePoolManager
+from config.global_config import init_project_root
+
+# 初始化项目根路径（全局配置）
+project_root = init_project_root()
+app_logger.info(f"项目根路径: {project_root}")
 
 app = Flask(__name__)
 

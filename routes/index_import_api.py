@@ -7,6 +7,7 @@
 from flask import Blueprint, jsonify, request, current_app, send_file, send_from_directory
 from utils.database_config_util import DatabaseConfigUtil
 from utils.excel_util import ExcelUtil
+from config.global_config import get_project_root, get_export_dir
 from service.database.database_service import DatabaseService
 from service.database.db_pool_manager import DatabasePoolManager
 from service.log.logger import app_logger
@@ -686,9 +687,9 @@ def export_logs():
                 "message": "日志内容格式无效"
             }), 400
         
-        # 创建导出目录（如果不存在）
-        export_dir = _ensure_export_directory()
-        app_logger.info(f"导出目录路径: {os.path.abspath(export_dir)}")
+        # 使用全局配置的导出目录
+        export_dir = get_export_dir()
+        app_logger.info(f"使用全局配置的导出目录: {export_dir}")
         
         # 生成唯一文件名
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -701,6 +702,7 @@ def export_logs():
             # 写入标题和时间
             f.write(f"{title}\n")
             f.write(f"导出时间: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"项目路径: {get_project_root()}\n")
             f.write("="*50 + "\n\n")
             
             # 写入日志条目
@@ -712,10 +714,6 @@ def export_logs():
         
         app_logger.info(f"日志已导出到文件: {os.path.abspath(file_path)}")
         app_logger.info(f"下载URL: {download_url}")
-        
-        # 显示当前工作目录和文件是否存在的信息
-        app_logger.info(f"当前工作目录: {os.getcwd()}")
-        app_logger.info(f"文件是否存在: {os.path.exists(file_path)}")
         
         return jsonify({
             "success": True,
@@ -735,50 +733,20 @@ def export_logs():
 def _ensure_export_directory():
     """确保导出目录存在
     
+    使用全局配置的项目路径获取导出目录
+    
     Returns:
         str: 导出目录路径
     """
     try:
-        # 获取当前文件的绝对路径
-        current_file = os.path.abspath(__file__)
-        app_logger.debug(f"当前文件路径: {current_file}")
-        
-        # 从当前文件路径获取项目根目录
-        # 当前文件在 routes/index_import_api.py
-        # 所以向上两级就是项目根目录
-        routes_dir = os.path.dirname(current_file)
-        app_dir = os.path.dirname(routes_dir)
-        project_root = os.path.dirname(app_dir)
-        
-        app_logger.info(f"计算项目路径: 当前文件={current_file}, routes目录={routes_dir}, app目录={app_dir}, 项目根目录={project_root}")
-        
-        # 确保我们确实找到了项目目录 - 检查有没有一些典型的项目文件
-        expected_files = ['main.py', 'requirements.txt', 'README.md']
-        found_files = [f for f in expected_files if os.path.exists(os.path.join(project_root, f))]
-        
-        if found_files:
-            app_logger.info(f"验证项目根目录成功，找到文件: {', '.join(found_files)}")
-        else:
-            app_logger.warning(f"无法验证项目根目录，未找到预期的项目文件")
-            # 失败时也要告诉我们在哪里查找的
-            app_logger.warning(f"在目录 {project_root} 中查找文件 {', '.join(expected_files)}")
-        
-        # 创建export目录
-        export_dir = os.path.join(project_root, 'export')
-        
-        # 确保目录存在
-        if not os.path.exists(export_dir):
-            os.makedirs(export_dir)
-            app_logger.info(f"创建导出目录: {export_dir}")
-        else:
-            app_logger.info(f"导出目录已存在: {export_dir}")
-        
+        # 使用全局配置的导出目录
+        export_dir = get_export_dir()
+        app_logger.info(f"使用全局配置获取导出目录: {export_dir}")
         return export_dir
     except Exception as e:
-        app_logger.error(f"创建导出目录失败: {str(e)}", exc_info=True)
+        app_logger.error(f"获取导出目录失败: {str(e)}", exc_info=True)
         
         # 使用一个确定可写入的目录作为备用
-        # 使用相对路径 ./export (相对于当前工作目录)
         fallback_dir = os.path.join(os.getcwd(), 'export')
         app_logger.warning(f"使用备用目录: {fallback_dir}")
         os.makedirs(fallback_dir, exist_ok=True)
@@ -795,46 +763,16 @@ def download_export_file(filename):
         文件下载响应
     """
     try:
-        # 获取项目根目录
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        export_dir = os.path.join(root_dir, 'export')
+        # 使用全局配置的导出目录
+        export_dir = get_export_dir()
         
         # 记录尝试的路径
-        paths_to_try = [
-            export_dir,  # 主要的导出目录
-            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'export'),  # 备用目录
-            os.path.join(os.getcwd(), 'export'),  # 当前工作目录下的export
-            os.path.abspath('./export')  # 相对于当前目录的export
-        ]
-        
-        # 日志记录所有尝试的路径
-        app_logger.info(f"下载文件 '{filename}' - 将尝试以下路径:")
-        for i, path in enumerate(paths_to_try):
-            exists = os.path.exists(path)
-            app_logger.info(f"  路径 {i+1}: {path} ({'存在' if exists else '不存在'})")
-        
-        # 如果主目录不存在，尝试备用目录
-        if not os.path.exists(export_dir):
-            app_logger.warning(f"主导出目录不存在: {export_dir}")
-            for backup_dir in paths_to_try[1:]:
-                if os.path.exists(backup_dir):
-                    export_dir = backup_dir
-                    app_logger.info(f"使用备用导出目录: {export_dir}")
-                    break
+        app_logger.info(f"尝试从导出目录下载文件: {export_dir}")
         
         # 检查文件是否存在
         file_path = os.path.join(export_dir, filename)
         if not os.path.exists(file_path):
             app_logger.error(f"要下载的文件不存在: {file_path}")
-            
-            # 尝试在其他目录中查找文件
-            for backup_dir in paths_to_try[1:]:
-                backup_path = os.path.join(backup_dir, filename)
-                if os.path.exists(backup_path):
-                    app_logger.info(f"在备用目录中找到文件: {backup_path}")
-                    return send_from_directory(backup_dir, filename, as_attachment=True)
-            
-            # 如果所有路径都不存在文件，返回404
             return jsonify({
                 "success": False,
                 "message": f"文件不存在: {filename}"
