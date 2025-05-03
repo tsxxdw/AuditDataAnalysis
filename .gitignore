@@ -59,3 +59,4 @@ coverage.xml
 
 #日志文件
 *.log
+*.txt
