@@ -40,6 +40,12 @@ def index_file_upload():
     app_logger.info("访问文件上传页面")
     return render_template('index_file_upload.html', page_title='文件上传')
 
+@pages_bp.route('/index_sql')
+def index_sql():
+    """常用SQL页面"""
+    app_logger.info("访问常用SQL页面")
+    return render_template('index_sql.html', page_title='常用SQL')
+
 @pages_bp.route('/settings')
 def settings():
     """系统设置页面"""

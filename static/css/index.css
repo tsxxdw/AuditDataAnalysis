@@ -48,6 +48,11 @@
     content: "📁";
 }
 
+/* 常用SQL按钮图标 */
+.sql-btn:before {
+    content: "📝";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);

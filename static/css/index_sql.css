@@ -1,0 +1,55 @@
+/* 常用SQL页面样式 */
+.sql-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.page-title {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin-bottom: 1.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #eee;
+    font-weight: 600;
+}
+
+.sql-section {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.8rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.sql-section:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.section-title {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+}
+
+.temp-message {
+    text-align: center;
+    padding: 2rem;
+    color: #777;
+    font-style: italic;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .sql-container {
+        padding: 1rem;
+    }
+} 
