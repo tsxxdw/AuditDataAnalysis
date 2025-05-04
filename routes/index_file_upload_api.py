@@ -190,4 +190,44 @@ def delete_file():
         os.remove(file_path)
         return jsonify({'success': True, 'message': '文件已成功删除'})
     except Exception as e:
-        return jsonify({'success': False, 'message': f'删除文件失败: {str(e)}'}), 500 
+        return jsonify({'success': False, 'message': f'删除文件失败: {str(e)}'}), 500
+
+@file_upload_bp.route('/api/files/delete-all', methods=['POST'])
+def delete_all_files():
+    """删除全部文件"""
+    try:
+        # 确保上传目录存在
+        ensure_dir_exists(UPLOAD_FOLDER)
+        
+        # 删除计数器
+        deleted_count = 0
+        
+        # 遍历上传目录下的所有日期目录
+        for date_dir in os.listdir(UPLOAD_FOLDER):
+            date_path = os.path.join(UPLOAD_FOLDER, date_dir)
+            
+            # 跳过非目录
+            if not os.path.isdir(date_path):
+                continue
+            
+            # 遍历日期目录下的所有文件
+            for filename in os.listdir(date_path):
+                file_path = os.path.join(date_path, filename)
+                
+                # 跳过目录
+                if not os.path.isfile(file_path):
+                    continue
+                
+                # 删除文件
+                os.remove(file_path)
+                deleted_count += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f'已成功删除全部文件，共{deleted_count}个'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'删除全部文件失败: {str(e)}'
+        }), 500 

@@ -6,6 +6,8 @@ $(document).ready(function() {
     const browseBtn = $('#browseBtn');
     const uploadStatus = $('#uploadStatus');
     const filesList = $('#filesList');
+    const fileCount = $('#fileCount');
+    const deleteAllBtn = $('#deleteAllBtn');
     
     // 初始化
     loadFileList();
@@ -49,6 +51,11 @@ $(document).ready(function() {
             // 确保拖放区域可以再次接收文件
             fileInput.val('');
         }
+    });
+    
+    // 全部删除按钮点击事件
+    deleteAllBtn.click(function() {
+        deleteAllFiles();
     });
     
     // 文件上传函数
@@ -105,8 +112,13 @@ $(document).ready(function() {
                 // 如果没有文件
                 if (!response || response.length === 0) {
                     filesList.html('<tr><td colspan="4" class="loading-text">暂无上传文件</td></tr>');
+                    // 更新文件数量
+                    updateFileCount(0);
                     return;
                 }
+                
+                // 更新文件数量
+                updateFileCount(response.length);
                 
                 // 添加文件到列表
                 $.each(response, function(index, file) {
@@ -147,8 +159,64 @@ $(document).ready(function() {
             error: function(jqXHR, textStatus, errorThrown) {
                 console.error('获取文件列表失败:', errorThrown);
                 filesList.html('<tr><td colspan="4" class="loading-text">获取文件列表失败</td></tr>');
+                // 发生错误时更新文件数量为0
+                updateFileCount(0);
             }
         });
+    }
+    
+    // 更新文件数量显示
+    function updateFileCount(count) {
+        fileCount.html('文件数量：<span class="file-count-number">' + count + '</span>');
+        // 根据文件数量决定全部删除按钮是否可用
+        if (count === 0) {
+            deleteAllBtn.prop('disabled', true).css('opacity', '0.5');
+        } else {
+            deleteAllBtn.prop('disabled', false).css('opacity', '1');
+        }
+    }
+    
+    // 删除所有文件
+    function deleteAllFiles() {
+        if (confirm('确定要删除所有文件吗？此操作不可恢复！')) {
+            // 显示加载状态
+            $('#statusText').text('正在删除所有文件...');
+            uploadStatus.show();
+            
+            $.ajax({
+                url: '/api/files/delete-all',
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    // 显示成功信息
+                    $('#statusText').text(response.message || '所有文件已删除');
+                    
+                    // 短暂延迟后隐藏状态并刷新列表
+                    setTimeout(function() {
+                        uploadStatus.hide();
+                        loadFileList(); // 刷新文件列表
+                    }, 1500);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('删除所有文件失败:', errorThrown);
+                    let errorMsg = '删除所有文件失败';
+                    
+                    if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                        errorMsg = jqXHR.responseJSON.message;
+                    } else if (errorThrown) {
+                        errorMsg += ': ' + errorThrown;
+                    }
+                    
+                    // 显示错误信息
+                    $('#statusText').text(errorMsg);
+                    
+                    // 延迟后隐藏状态
+                    setTimeout(function() {
+                        uploadStatus.hide();
+                    }, 3000);
+                }
+            });
+        }
     }
     
     // 删除文件

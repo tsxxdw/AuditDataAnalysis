@@ -145,6 +145,54 @@
     font-weight: bold;
 }
 
+/* 文件列表头部样式 */
+.files-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.files-header h2 {
+    margin: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.files-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.file-count {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.file-count-number {
+    color: #1abc9c;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.delete-all-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s;
+}
+
+.delete-all-btn:hover {
+    background-color: #c0392b;
+}
+
 /* 文件列表表格 */
 .files-list-container {
     overflow-x: auto;
