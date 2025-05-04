@@ -150,7 +150,7 @@ $(document).ready(function() {
     // 补充值输入变化事件
     $('#supplement-value-1').change(function() {
         var value = $(this).val();
-        addLog('用户设置补充行1: ' + value);
+        addLog('用户设置补充值1: ' + value);
     });
     
     // 补充列2选择变化事件
@@ -162,7 +162,7 @@ $(document).ready(function() {
     // 补充值2输入变化事件
     $('#supplement-value-2').change(function() {
         var value = $(this).val();
-        addLog('用户设置补充行2: ' + value);
+        addLog('用户设置补充值2: ' + value);
     });
     
     // 补充列3选择变化事件
@@ -174,7 +174,7 @@ $(document).ready(function() {
     // 补充值3输入变化事件
     $('#supplement-value-3').change(function() {
         var value = $(this).val();
-        addLog('用户设置补充行3: ' + value);
+        addLog('用户设置补充值3: ' + value);
     });
     
     // 补充字段启用复选框事件
@@ -1382,4 +1382,7 @@ $(document).ready(function() {
         
         addLog('已初始化列选择下拉框，共78列（A到CZ）');
     }
+
+    // 初始化打开Excel按钮状态
+    updateOpenExcelButtonState();
 }); 

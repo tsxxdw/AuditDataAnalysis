@@ -521,6 +521,15 @@
     margin-bottom: 1.2rem;
     padding-bottom: 0.6rem;
     border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+}
+
+.section-header .load-button {
+    margin-left: auto;
+}
+
+.section-header .open-excel-btn {
+    margin-left: 10px;
 }
 
 .section-header .section-title {
