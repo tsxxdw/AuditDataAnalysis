@@ -141,6 +141,58 @@ $(document).ready(function() {
         addLog('用户设置开始导入行: ' + selectedRow);
     });
     
+    // 补充列选择变化事件
+    $('#supplement-column-select-1').change(function() {
+        var selectedColumn = $(this).find('option:selected').text();
+        addLog('用户选择补充列1: ' + selectedColumn);
+    });
+    
+    // 补充值输入变化事件
+    $('#supplement-value-1').change(function() {
+        var value = $(this).val();
+        addLog('用户设置补充行1: ' + value);
+    });
+    
+    // 补充列2选择变化事件
+    $('#supplement-column-select-2').change(function() {
+        var selectedColumn = $(this).find('option:selected').text();
+        addLog('用户选择补充列2: ' + selectedColumn);
+    });
+    
+    // 补充值2输入变化事件
+    $('#supplement-value-2').change(function() {
+        var value = $(this).val();
+        addLog('用户设置补充行2: ' + value);
+    });
+    
+    // 补充列3选择变化事件
+    $('#supplement-column-select-3').change(function() {
+        var selectedColumn = $(this).find('option:selected').text();
+        addLog('用户选择补充列3: ' + selectedColumn);
+    });
+    
+    // 补充值3输入变化事件
+    $('#supplement-value-3').change(function() {
+        var value = $(this).val();
+        addLog('用户设置补充行3: ' + value);
+    });
+    
+    // 补充字段启用复选框事件
+    $('#supplement-enable-1').change(function() {
+        var isChecked = $(this).is(':checked');
+        addLog('用户' + (isChecked ? '启用' : '禁用') + '补充字段1');
+    });
+    
+    $('#supplement-enable-2').change(function() {
+        var isChecked = $(this).is(':checked');
+        addLog('用户' + (isChecked ? '启用' : '禁用') + '补充字段2');
+    });
+    
+    $('#supplement-enable-3').change(function() {
+        var isChecked = $(this).is(':checked');
+        addLog('用户' + (isChecked ? '启用' : '禁用') + '补充字段3');
+    });
+    
     // 初始化文件选择器
     function initializeFileSelector() {
         // 初始化Select2
@@ -919,7 +971,25 @@ $(document).ready(function() {
             }
         });
         
+        // 同样更新补充列下拉框1-3
+        updateSupplementColumnSelect('#supplement-column-select-1', columnCount);
+        updateSupplementColumnSelect('#supplement-column-select-2', columnCount);
+        updateSupplementColumnSelect('#supplement-column-select-3', columnCount);
+        
         addLog('已更新列选择下拉框，当前表格共' + columnCount + '列（A到' + getExcelColumnName(columnCount-1) + '）');
+    }
+    
+    // 更新补充列下拉框辅助函数
+    function updateSupplementColumnSelect(selectId, columnCount) {
+        var $select = $(selectId);
+        $select.find('option').each(function() {
+            var index = parseInt($(this).val());
+            if (!isNaN(index) && index < columnCount) {
+                $(this).css('font-weight', 'bold');
+            } else if (!isNaN(index)) {
+                $(this).css('font-weight', 'normal');
+            }
+        });
     }
     
     // 获取Excel列名格式（A, B, C, ..., Z, AA, AB, ..., CZ）
@@ -951,6 +1021,19 @@ $(document).ready(function() {
         var selectedColumn = $('#column-select').val();
         var selectedCondition = $('#condition-select').val();
         
+        // 获取补充字段
+        var supplementColumn1 = $('#supplement-column-select-1').val();
+        var supplementValue1 = $('#supplement-value-1').val();
+        var supplementEnabled1 = $('#supplement-enable-1').is(':checked');
+        
+        var supplementColumn2 = $('#supplement-column-select-2').val();
+        var supplementValue2 = $('#supplement-value-2').val();
+        var supplementEnabled2 = $('#supplement-enable-2').is(':checked');
+        
+        var supplementColumn3 = $('#supplement-column-select-3').val();
+        var supplementValue3 = $('#supplement-value-3').val();
+        var supplementEnabled3 = $('#supplement-enable-3').is(':checked');
+        
         // 记录详细导入参数
         addLog('导入参数:');
         addLog('- 数据库: ' + $('#db-select option:selected').text());
@@ -965,6 +1048,31 @@ $(document).ready(function() {
             var columnName = $('#column-select option:selected').text();
             var conditionName = $('#condition-select option:selected').text();
             addLog('- 导入条件: ' + columnName + ' ' + conditionName);
+        }
+        
+        // 记录补充字段
+        if (supplementEnabled1 && supplementColumn1 && supplementValue1) {
+            var columnName = $('#supplement-column-select-1 option:selected').text();
+            addLog('- 补充字段1: ' + columnName + ' = ' + supplementValue1 + ' (已启用)');
+        } else if (supplementColumn1 && supplementValue1) {
+            var columnName = $('#supplement-column-select-1 option:selected').text();
+            addLog('- 补充字段1: ' + columnName + ' = ' + supplementValue1 + ' (未启用)');
+        }
+        
+        if (supplementEnabled2 && supplementColumn2 && supplementValue2) {
+            var columnName = $('#supplement-column-select-2 option:selected').text();
+            addLog('- 补充字段2: ' + columnName + ' = ' + supplementValue2 + ' (已启用)');
+        } else if (supplementColumn2 && supplementValue2) {
+            var columnName = $('#supplement-column-select-2 option:selected').text();
+            addLog('- 补充字段2: ' + columnName + ' = ' + supplementValue2 + ' (未启用)');
+        }
+        
+        if (supplementEnabled3 && supplementColumn3 && supplementValue3) {
+            var columnName = $('#supplement-column-select-3 option:selected').text();
+            addLog('- 补充字段3: ' + columnName + ' = ' + supplementValue3 + ' (已启用)');
+        } else if (supplementColumn3 && supplementValue3) {
+            var columnName = $('#supplement-column-select-3 option:selected').text();
+            addLog('- 补充字段3: ' + columnName + ' = ' + supplementValue3 + ' (未启用)');
         }
         
         // 验证输入
@@ -1226,13 +1334,46 @@ $(document).ready(function() {
 
     // 初始化Excel列选择下拉框，填充A到CZ的列选项
     function initializeColumnSelect() {
+        // 初始化条件列下拉框
         var $columnSelect = $('#column-select');
         $columnSelect.empty().append('<option value="" disabled selected>请选择列（如A、B、C）</option>');
+        
+        // 初始化补充列下拉框（1-3）
+        var $supplementColumnSelect1 = $('#supplement-column-select-1');
+        var $supplementColumnSelect2 = $('#supplement-column-select-2');
+        var $supplementColumnSelect3 = $('#supplement-column-select-3');
+        
+        $supplementColumnSelect1.empty().append('<option value="" disabled selected>请选择列（如A、B、C）</option>');
+        $supplementColumnSelect2.empty().append('<option value="" disabled selected>请选择列（如A、B、C）</option>');
+        $supplementColumnSelect3.empty().append('<option value="" disabled selected>请选择列（如A、B、C）</option>');
         
         // 生成A到CZ的列选项
         for (var i = 0; i < 78; i++) { // A-Z (26) + AA-AZ (26) + BA-BZ (26) = 78
             var columnName = getExcelColumnName(i);
+            
+            // 添加到条件列下拉框
             $columnSelect.append(
+                $('<option></option>')
+                    .attr('value', i)
+                    .text(columnName)
+            );
+            
+            // 添加到补充列下拉框1
+            $supplementColumnSelect1.append(
+                $('<option></option>')
+                    .attr('value', i)
+                    .text(columnName)
+            );
+            
+            // 添加到补充列下拉框2
+            $supplementColumnSelect2.append(
+                $('<option></option>')
+                    .attr('value', i)
+                    .text(columnName)
+            );
+            
+            // 添加到补充列下拉框3
+            $supplementColumnSelect3.append(
                 $('<option></option>')
                     .attr('value', i)
                     .text(columnName)

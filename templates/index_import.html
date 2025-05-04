@@ -155,7 +155,7 @@
                     </div>
                     <div class="condition-row">
                         <div class="condition-item">
-                            <label for="import-start-row">开始导入的行：</label>
+                            <label for="import-start-row">从这一行开始导入：</label>
                             <select id="import-start-row" class="condition-select">
                                 <option value="1">1</option>
                                 <option value="2" selected>2</option>
@@ -168,6 +168,62 @@
                                 <option value="9">9</option>
                                 <option value="10">10</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 补充字段设置 -->
+                <div class="import-conditions">
+                    <h4 class="subsection-title">补充字段</h4>
+                    <div class="condition-row condition-row-left">
+                        <div class="condition-item supplement-item">
+                            <label for="supplement-column-select-1">补充列1：</label>
+                            <select id="supplement-column-select-1" class="condition-select">
+                                <option value="" disabled selected>请选择列（如A、B、C）</option>
+                                <!-- 这里会根据预览数据动态填充列选项，显示Excel格式的列标识 -->
+                            </select>
+                        </div>
+                        <div class="condition-item supplement-item supplement-value-item">
+                            <label for="supplement-value-1">补充行1：</label>
+                            <input type="text" id="supplement-value-1" class="condition-select" placeholder="请输入补充值">
+                        </div>
+                        <div class="condition-item supplement-enable-container">
+                            <label for="supplement-enable-1" class="checkbox-label">启用：</label>
+                            <input type="checkbox" id="supplement-enable-1" class="supplement-enable">
+                        </div>
+                    </div>
+                    <div class="condition-row condition-row-left">
+                        <div class="condition-item supplement-item">
+                            <label for="supplement-column-select-2">补充列2：</label>
+                            <select id="supplement-column-select-2" class="condition-select">
+                                <option value="" disabled selected>请选择列（如A、B、C）</option>
+                                <!-- 这里会根据预览数据动态填充列选项，显示Excel格式的列标识 -->
+                            </select>
+                        </div>
+                        <div class="condition-item supplement-item supplement-value-item">
+                            <label for="supplement-value-2">补充行2：</label>
+                            <input type="text" id="supplement-value-2" class="condition-select" placeholder="请输入补充值">
+                        </div>
+                        <div class="condition-item supplement-enable-container">
+                            <label for="supplement-enable-2" class="checkbox-label">启用：</label>
+                            <input type="checkbox" id="supplement-enable-2" class="supplement-enable">
+                        </div>
+                    </div>
+                    <div class="condition-row condition-row-left">
+                        <div class="condition-item supplement-item">
+                            <label for="supplement-column-select-3">补充列3：</label>
+                            <select id="supplement-column-select-3" class="condition-select">
+                                <option value="" disabled selected>请选择列（如A、B、C）</option>
+                                <!-- 这里会根据预览数据动态填充列选项，显示Excel格式的列标识 -->
+                            </select>
+                        </div>
+                        <div class="condition-item supplement-item supplement-value-item">
+                            <label for="supplement-value-3">补充行3：</label>
+                            <input type="text" id="supplement-value-3" class="condition-select" placeholder="请输入补充值">
+                        </div>
+                        <div class="condition-item supplement-enable-container">
+                            <label for="supplement-enable-3" class="checkbox-label">启用：</label>
+                            <input type="checkbox" id="supplement-enable-3" class="supplement-enable">
                         </div>
                     </div>
                 </div>

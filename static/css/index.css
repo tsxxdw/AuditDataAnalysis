@@ -45,7 +45,7 @@
 
 /* 文件上传按钮图标 */
 .upload-btn:before {
-    content: "📤";
+    content: "📁";
 }
 
 .main-btn:hover {

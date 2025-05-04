@@ -6,33 +6,42 @@
     max-width: 1000px;
     margin: 0 auto;
     padding: 1.5rem;
+    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* 页面标题 */
 .page-title {
-    color: #3498db;
+    color: #2c3e50;
     font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: 1.8rem;
+    padding-bottom: 0.8rem;
     border-bottom: 2px solid #eee;
+    font-weight: 600;
 }
 
 /* 导入部分通用样式 */
 .import-section {
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 1.2rem;
-    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.8rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.import-section:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
 /* 标题样式 */
 .section-title {
-    color: #333;
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1px solid #eee;
+    font-weight: 600;
 }
 
 /* 导入类型选择器 */
@@ -60,12 +69,12 @@
 /* Select2自定义样式 */
 .select2-container--default .select2-selection--multiple {
     border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 5px;
+    border-radius: 6px;
+    padding: 6px;
 }
 
 .select2-container--default .select2-search--inline .select2-search__field {
-    padding: 5px;
+    padding: 6px;
 }
 
 /* 文件项目中的日期显示 */
@@ -87,14 +96,19 @@
 .selected-file-tag {
     display: inline-flex;
     align-items: center;
-    padding: 5px 10px;
+    padding: 6px 12px;
     background-color: #e1f5fe;
-    border-radius: 16px;
+    border-radius: 20px;
     font-size: 0.9em;
     max-width: 250px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    transition: background-color 0.2s;
+}
+
+.selected-file-tag:hover {
+    background-color: #b3e5fc;
 }
 
 .selected-file-tag.more-files {
@@ -104,7 +118,7 @@
 
 .selected-file-count {
     display: block;
-    margin-top: 8px;
+    margin-top: 10px;
     color: #555;
     font-size: 0.9em;
     font-weight: 500;
@@ -112,10 +126,15 @@
 }
 
 .selected-file-tag .remove-file {
-    margin-left: 5px;
+    margin-left: 8px;
     color: #f44336;
     cursor: pointer;
     font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.selected-file-tag .remove-file:hover {
+    transform: scale(1.2);
 }
 
 /* 文件列表项样式 */
@@ -140,18 +159,25 @@
 
 .path-input {
     flex: 1;
-    padding: 0.6rem;
+    padding: 0.8rem;
     border: 1px solid #ddd;
-    border-radius: 4px 0 0 4px;
+    border-radius: 6px 0 0 6px;
+    transition: border-color 0.3s;
+}
+
+.path-input:focus {
+    border-color: #3498db;
+    outline: none;
 }
 
 .browse-button {
-    padding: 0.6rem 1rem;
+    padding: 0.8rem 1.2rem;
     background-color: #3498db;
     color: white;
     border: none;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 6px 6px 0;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 .browse-button:hover {
@@ -159,7 +185,7 @@
 }
 
 .file-info {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: #777;
     margin-top: 0.5rem;
 }
@@ -168,27 +194,42 @@
 .form-group {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
 }
 
 .form-group label {
-    width: 100px;
+    width: 120px;
     font-weight: 500;
+    color: #555;
 }
 
 .select-input {
     flex: 1;
-    padding: 0.6rem;
+    padding: 0.7rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: white;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.select-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    outline: none;
 }
 
 .number-input {
     width: 80px;
-    padding: 0.6rem;
+    padding: 0.7rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.number-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    outline: none;
 }
 
 /* 操作按钮 */
@@ -203,11 +244,23 @@
 .action-button {
     padding: 0.7rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
     min-width: 120px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.action-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .preview-btn {
@@ -231,36 +284,54 @@
 /* 数据预览表格 */
 .preview-container {
     overflow-x: auto;
+    margin-bottom: 1.2rem;
 }
 
 .preview-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .preview-table th, 
 .preview-table td {
-    padding: 0.5rem;
+    padding: 0.7rem;
     border: 1px solid #ddd;
     text-align: left;
 }
 
 .preview-table th {
-    background-color: #f5f5f5;
-    font-weight: 500;
+    background-color: #f5f9fc;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #ddd;
+    position: sticky;
+    top: 0;
+}
+
+.preview-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.preview-table tr:hover {
+    background-color: #f0f7fc;
 }
 
 .no-data-message {
     text-align: center;
     color: #777;
-    padding: 1rem;
+    padding: 1.5rem;
+    font-style: italic;
 }
 
 /* 进度条 */
 .progress-container {
     display: flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
 }
 
 .progress-bar {
@@ -269,37 +340,48 @@
     background-color: #eee;
     border-radius: 8px;
     overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .progress-fill {
     height: 100%;
-    background-color: #3498db;
+    background: linear-gradient(to right, #3498db, #2ecc71);
     width: 0%;
     transition: width 0.3s;
+    border-radius: 8px;
 }
 
 .progress-text {
     margin-left: 1rem;
-    font-weight: 500;
-    width: 40px;
+    font-weight: 600;
+    color: #2c3e50;
+    width: 45px;
 }
 
 .status-text {
     color: #666;
     margin-top: 0.5rem;
+    font-style: italic;
 }
 
 /* 导入结果摘要 */
 .result-summary {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 1.2rem;
 }
 
 .result-item {
-    padding: 0.8rem;
-    background-color: #f9f9f9;
-    border-radius: 4px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.result-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
 .result-label {
@@ -310,50 +392,63 @@
 
 .result-value {
     font-weight: 700;
-    color: #333;
+    color: #2c3e50;
 }
 
 /* 日志区域样式 */
 .log-container {
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
     overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .log-content {
-    height: 200px;
+    height: 250px;
     overflow-y: auto;
-    padding: 0.8rem;
-    background-color: #f5f5f5;
-    font-family: monospace;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    font-family: "Consolas", "Monaco", monospace;
     font-size: 0.9rem;
+    line-height: 1.6;
 }
 
 .log-entry {
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px dashed #eee;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
 }
 
 .log-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background-color: #eee;
+    gap: 0.8rem;
+    padding: 0.8rem;
+    background-color: #f0f0f0;
 }
 
 .log-button {
-    padding: 0.4rem 0.8rem;
+    padding: 0.5rem 1rem;
     background-color: #6c757d;
     color: white;
     border: none;
-    border-radius: 3px;
-    font-size: 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
     cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
 }
 
 .log-button:hover {
     background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+.log-button:active {
+    transform: translateY(0);
 }
 
 /* 响应式设计 */
@@ -389,22 +484,33 @@
 }
 
 .load-button {
-    padding: 0.6rem 1rem;
+    padding: 0.7rem 1.2rem;
     background-color: #3498db;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     white-space: nowrap;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .load-button:hover {
     background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.load-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .load-button:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* 导入选项设置 section-header 样式 */
@@ -412,8 +518,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1px solid #eee;
 }
 
@@ -435,6 +541,8 @@
 .open-excel-btn:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .log-entry-highlight {
@@ -444,7 +552,7 @@
 
 /* 文件选择区域按钮样式 */
 .file-select-actions {
-    margin-top: 10px;
+    margin-top: 12px;
     text-align: right;
 }
 
@@ -455,29 +563,38 @@
     color: #333;
     cursor: pointer;
     font-size: 14px;
-    padding: 6px 12px;
+    padding: 8px 14px;
     transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .select-button:hover {
     background-color: #e9e9e9;
     border-color: #adadad;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .select-button:active {
     background-color: #ddd;
     border-color: #adadad;
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* 导入描述文本 */
 .import-description {
     margin-bottom: 1.5rem;
     color: #555;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
 }
 
 .import-description p {
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 /* 导入操作按钮区域 */
@@ -491,30 +608,44 @@
 .import-btn {
     background-color: #2ecc71;
     color: white;
-    padding: 0.8rem 2rem;
+    padding: 0.9rem 2.2rem;
     font-size: 1.05rem;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
 .import-btn:hover {
     background-color: #27ae60;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+}
+
+.import-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 /* 导入条件区域 */
 .import-conditions {
     margin-bottom: 1.5rem;
-    padding: 1rem;
+    padding: 1.2rem;
     background-color: #f8f9fa;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #eaeaea;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.import-conditions:hover {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
 .subsection-title {
-    font-size: 1rem;
-    color: #444;
+    font-size: 1.05rem;
+    color: #2c3e50;
     margin-top: 0;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1px solid #eee;
+    font-weight: 600;
 }
 
 .condition-row {
@@ -522,6 +653,18 @@
     flex-wrap: wrap;
     gap: 0.3rem;
     align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.condition-row:last-child {
+    margin-bottom: 0;
+}
+
+/* 添加专门的左对齐样式类 */
+.condition-row-left {
+    justify-content: flex-start !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
 }
 
 .condition-item {
@@ -540,11 +683,54 @@
     white-space: nowrap;
 }
 
+/* 补充字段标签左对齐 */
+.supplement-item label {
+    text-align: left !important;
+    width: auto !important;
+    min-width: 70px;
+}
+
+/* 为补充值添加左侧间距 */
+.supplement-value-item {
+    margin-left: 30px !important;
+}
+
+/* 为"启用"复选框添加左侧间距 */
+.supplement-enable-container {
+    margin-left: 30px !important;
+    width: 100px; /* 固定宽度 */
+    display: flex;
+    align-items: center;
+}
+
+/* 复选框标签样式统一 */
+.checkbox-label {
+    min-width: 50px !important;
+    width: 50px;
+    margin-right: 5px;
+    text-align: right;
+}
+
+/* 彩色复选框样式 */
+.supplement-enable {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3498db; /* 设置勾选颜色为蓝色 */
+}
+
 .condition-select {
-    padding: 0.5rem;
+    padding: 0.65rem;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: white;
     width: 180px;
     box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.condition-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    outline: none;
 } 
