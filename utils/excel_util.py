@@ -117,19 +117,20 @@ class ExcelUtil:
             raise Exception(f"无法读取Excel文件工作表: {str(e)}")
     
     @staticmethod
-    def get_sheet_data_preview(file_path, sheet_name=None, sheet_index=0, start_row=0, row_count=10):
+    def read_excel_data(file_path, sheet_name=None, sheet_index=0, start_row=0, row_limit=None, ignore_empty_rows=False):
         """
-        获取Excel工作表数据预览
+        读取Excel文件数据，返回列表格式的数据
         
         Args:
             file_path (str): Excel文件路径
             sheet_name (str, optional): 工作表名称，如果提供则优先使用
             sheet_index (int, optional): 工作表索引，当sheet_name未提供时使用
             start_row (int, optional): 开始行，默认为0(第一行)
-            row_count (int, optional): 预览行数，默认为10
+            row_limit (int, optional): 读取行数限制，默认为None表示读取所有行
+            ignore_empty_rows (bool, optional): 是否忽略全空行，默认为False
             
         Returns:
-            dict: 包含列名和数据的字典
+            list: 包含所有行数据的列表，每行是一个列表
             
         Raises:
             Exception: 当文件无法打开或解析时抛出异常
@@ -141,7 +142,7 @@ class ExcelUtil:
             
             # 检查文件类型
             ext = os.path.splitext(file_path)[1].lower()
-            app_logger.info(f"尝试预览Excel数据: {file_path}, 格式: {ext}")
+            app_logger.info(f"尝试读取Excel数据: {file_path}, 格式: {ext}, 开始行: {start_row}, 忽略空行: {ignore_empty_rows}")
             
             # 使用适当的引擎读取Excel数据
             engine = 'openpyxl' if ext == '.xlsx' else 'xlrd'
@@ -162,32 +163,84 @@ class ExcelUtil:
                 else:
                     df = pd.read_excel(file_path, sheet_name=sheet_index, header=None)
             
-            # 获取预览数据
-            preview_data = df.iloc[start_row:start_row+row_count]
+            # 获取数据，从指定行开始
+            data = df.iloc[start_row:]
             
-            # 将DataFrame转换为字典
-            columns = [f"列{i+1}" for i in range(len(preview_data.columns))]
+            # 如果指定了行数限制，只取指定的行数
+            if row_limit:
+                data = data.iloc[:row_limit]
+            
+            # 将DataFrame转换为列表
             rows = []
             
             # 处理数据，确保没有NaN值
-            for _, row in preview_data.iterrows():
+            for _, row in data.iterrows():
                 # 将每个单元格数据转换为Python原生类型，并处理NaN值
                 processed_row = []
                 for value in row:
-                    if pd.isna(value) or pd.isnull(value):  # 检查是否为NaN或null
-                        processed_row.append(None)  # 将NaN值转换为None，这会在JSON中变为null
+                    if pd.isna(value) or pd.isnull(value):
+                        processed_row.append(None)  # 将NaN值转换为None
                     elif isinstance(value, (pd.Timestamp, pd.Period)):
                         # 处理日期时间类型
                         processed_row.append(str(value))
                     else:
                         processed_row.append(value)
-                rows.append(processed_row)
+                
+                # 如果需要忽略空行，检查行是否为空
+                if ignore_empty_rows:
+                    # 行为空的条件：所有值都是None或空字符串
+                    is_empty = all((val is None or (isinstance(val, str) and val.strip() == '')) for val in processed_row)
+                    if not is_empty:
+                        rows.append(processed_row)
+                else:
+                    # 不忽略空行，添加所有行
+                    rows.append(processed_row)
             
-            app_logger.info(f"成功获取数据预览，行数: {len(rows)}")
-            return {
-                "columns": columns,
-                "rows": rows
-            }
+            log_msg = f"成功读取Excel数据，原始行数: {len(data)}, 处理后行数: {len(rows)}"
+            if ignore_empty_rows:
+                log_msg += f"（已忽略空行）"
+            if row_limit:
+                log_msg += f"（限制为{row_limit}行）"
+            app_logger.info(log_msg)
+            
+            return rows
+            
+        except Exception as e:
+            app_logger.error(f"读取Excel数据失败: {str(e)}", exc_info=True)
+            raise Exception(f"无法读取Excel数据: {str(e)}")
+    
+    @staticmethod
+    def get_sheet_data_preview(file_path, sheet_name=None, sheet_index=0, start_row=0, row_count=10):
+        """
+        获取Excel工作表数据预览
+        
+        Args:
+            file_path (str): Excel文件路径
+            sheet_name (str, optional): 工作表名称，如果提供则优先使用
+            sheet_index (int, optional): 工作表索引，当sheet_name未提供时使用
+            start_row (int, optional): 开始行，默认为0(第一行)
+            row_count (int, optional): 预览行数，默认为10
+            
+        Returns:
+            dict: 包含数据的字典
+            
+        Raises:
+            Exception: 当文件无法打开或解析时抛出异常
+        """
+        try:
+            # 调用统一的read_excel_data方法获取数据
+            # 预览数据时不忽略空行，以便用户看到实际情况
+            rows = ExcelUtil.read_excel_data(
+                file_path=file_path,
+                sheet_name=sheet_name,
+                sheet_index=sheet_index,
+                start_row=start_row,
+                row_limit=row_count,
+                ignore_empty_rows=False  # 预览时不忽略空行
+            )
+            
+            # 构建返回结果
+            return rows, rows
             
         except Exception as e:
             app_logger.error(f"获取Excel数据预览失败: {str(e)}", exc_info=True)
@@ -323,4 +376,102 @@ class ExcelUtil:
             return 'wps' in prog_id.lower()
         except Exception as e:
             app_logger.debug(f"检测默认程序失败: {str(e)}")
-            return False 
+            return False
+    
+    @staticmethod
+    def get_sheet_total_rows(file_path, sheet_name=None, sheet_index=0, ignore_empty_rows=True):
+        """
+        获取Excel工作表的有效总行数，即使中间有空行区域也能正确计算最后一行有效数据
+        
+        Args:
+            file_path (str): Excel文件路径
+            sheet_name (str, optional): 工作表名称，如果提供则优先使用
+            sheet_index (int, optional): 工作表索引，当sheet_name未提供时使用
+            ignore_empty_rows (bool, optional): 是否忽略尾部全空行，默认为True
+            
+        Returns:
+            int: 工作表的有效总行数
+            
+        Raises:
+            Exception: 当文件无法打开或解析时抛出异常
+        """
+        try:
+            # 首先验证文件路径
+            if not ExcelUtil.validate_excel_path(file_path):
+                raise ValueError(f"无效的Excel文件路径: {file_path}")
+            
+            # 检查文件类型
+            ext = os.path.splitext(file_path)[1].lower()
+            app_logger.info(f"获取工作表有效总行数: {file_path}, 格式: {ext}, 忽略空行: {ignore_empty_rows}")
+            
+            # 如果不需要忽略空行，使用原来的方法快速计算
+            if not ignore_empty_rows:
+                if ext == '.xlsx':
+                    wb = load_workbook(file_path, read_only=True)
+                    if sheet_name and sheet_name in wb.sheetnames:
+                        ws = wb[sheet_name]
+                    else:
+                        ws = wb.worksheets[min(sheet_index, len(wb.worksheets)-1)]
+                    max_row = ws.max_row
+                    wb.close()
+                    return max_row
+                else:
+                    if sheet_name:
+                        df = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
+                    else:
+                        df = pd.read_excel(file_path, sheet_name=sheet_index, header=None)
+                    return len(df)
+            
+            # 需要忽略空行，使用pandas高效处理
+            try:
+                if sheet_name:
+                    df = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
+                else:
+                    df = pd.read_excel(file_path, sheet_name=sheet_index, header=None)
+                
+                # 创建一个布尔掩码，标记非空行
+                # 行为非空的条件：至少有一个单元格非空且非空字符串
+                non_empty_mask = df.apply(
+                    lambda row: row.notna().any() and not all(
+                        (pd.isna(val) or (isinstance(val, str) and val.strip() == ''))
+                        for val in row
+                    ),
+                    axis=1
+                )
+                
+                if not non_empty_mask.any():
+                    # 所有行都是空的
+                    return 0
+                
+                # 找到最后一个非空行的索引
+                last_non_empty_rows = non_empty_mask[non_empty_mask].index
+                if len(last_non_empty_rows) == 0:
+                    return 0
+                    
+                # 返回最后一个非空行的索引 + 1（因为索引从0开始）
+                return last_non_empty_rows[-1] + 1
+                
+            except Exception as e:
+                app_logger.error(f"使用pandas获取行数失败，尝试备用方法: {str(e)}")
+                
+                # 备用方法：读取所有数据并检查
+                all_data = ExcelUtil.read_excel_data(file_path, sheet_name, sheet_index)
+                
+                # 如果没有数据，直接返回0
+                if not all_data:
+                    return 0
+                
+                # 从后向前查找最后一个非空行
+                for i in range(len(all_data) - 1, -1, -1):
+                    row = all_data[i]
+                    # 检查行是否为空（所有单元格都是None或空字符串）
+                    if any(cell is not None and (not isinstance(cell, str) or cell.strip() != '') for cell in row):
+                        # 找到第一个非空行，返回其索引+1作为总行数
+                        return i + 1
+                
+                # 如果所有行都是空的，返回0
+                return 0
+            
+        except Exception as e:
+            app_logger.error(f"获取工作表有效总行数失败: {str(e)}", exc_info=True)
+            raise Exception(f"无法获取工作表有效总行数: {str(e)}") 

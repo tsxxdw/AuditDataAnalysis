@@ -92,17 +92,27 @@
                         <!-- 工作表选项将通过JS动态加载 -->
                     </select>
                 </div>
-                
-                <div class="form-group">
-                    <label for="start-row">预览起始行:</label>
-                    <input type="number" id="start-row" class="number-input" value="2" min="2">
-                </div>
             </div>
             
             <!-- 预览和执行区域 -->
             <div class="import-section">
                 <div class="preview-container">
-                    <h3 class="section-title">数据预览</h3>
+                    <div class="preview-header">
+                        <h3 class="section-title">数据预览</h3>
+                        <div class="preview-actions">
+                            <button id="cancel-preview-btn" class="action-button cancel-preview-btn" style="display: none;">取消预览</button>
+                            <button id="preview-btn" class="action-button preview-btn">预览数据</button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-settings">
+                        <div class="form-group preview-row-form">
+                            <label for="start-row">预览起始行:</label>
+                            <input type="number" id="start-row" class="number-input" value="2" min="2">
+                            <span class="total-rows-container">EXCEL实际总行数: <span id="excel-total-rows">-</span></span>
+                        </div>
+                    </div>
+                    
                     <div class="data-preview">
                         <table class="preview-table">
                             <thead>
@@ -123,10 +133,7 @@
                     </div>
                 </div>
                 
-                <!-- 操作按钮移到数据预览下方（仅保留预览数据和打开EXCEL） -->
-                <div class="action-buttons">
-                    <button id="preview-btn" class="action-button preview-btn">预览数据</button>
-                </div>
+                <!-- 操作按钮已移至数据预览标题处 -->
             </div>
             
             <!-- 新增导入数据区域 -->
@@ -294,5 +301,51 @@
 
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_import.js') }}"></script>
+    
+    <!-- 导入确认对话框 -->
+    <div id="import-confirm-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>导入确认</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>请确认以下导入信息:</p>
+                <div class="confirm-info-container">
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">数据库:</span>
+                        <span id="confirm-db" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">目标表:</span>
+                        <span id="confirm-table" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">Excel文件:</span>
+                        <span id="confirm-excel" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">工作表:</span>
+                        <span id="confirm-sheet" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">开始导入行:</span>
+                        <span id="confirm-start-row" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item" id="confirm-condition-container" style="display: none;">
+                        <span class="confirm-label">导入条件:</span>
+                        <span id="confirm-condition" class="confirm-value"></span>
+                    </div>
+                    <div id="confirm-supplements">
+                        <!-- 补充字段信息将通过JS动态添加 -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-import-btn" class="action-button import-btn">确认导入</button>
+                <button id="cancel-import-btn" class="action-button cancel-btn">取消</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

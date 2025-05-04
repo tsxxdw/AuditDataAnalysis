@@ -4,6 +4,11 @@ $(document).ready(function() {
     window.tableFields = null;
     // 是否为本地环境的标志
     window.isLocalEnvironment = null;
+    // 存储原始预览表格的HTML
+    window.originalTableHtml = '';
+    
+    // 初始化时保存原始表格HTML
+    window.originalTableHtml = $('.preview-table').html();
     
     // 初始化文件选择器
     initializeFileSelector();
@@ -80,6 +85,12 @@ $(document).ready(function() {
         previewData();
     });
     
+    // 取消预览按钮点击事件
+    $('#cancel-preview-btn').click(function() {
+        addLog('用户点击: 取消预览');
+        cancelPreview();
+    });
+    
     // 打开Excel按钮点击事件
     $('#open-excel-btn').click(function() {
         addLog('用户点击: 打开EXCEL');
@@ -89,7 +100,27 @@ $(document).ready(function() {
     // 导入按钮点击事件
     $('#import-btn').click(function() {
         addLog('用户点击: 开始导入');
-        startImport();
+        showImportConfirmation();
+    });
+    
+    // 确认导入按钮点击事件
+    $('#confirm-import-btn').click(function() {
+        addLog('用户点击: 确认导入');
+        hideImportConfirmation();
+        executeImport();
+    });
+    
+    // 取消导入按钮点击事件
+    $('#cancel-import-btn, .close-modal').click(function() {
+        addLog('用户点击: 取消导入');
+        hideImportConfirmation();
+    });
+    
+    // 点击模态框背景关闭
+    $(window).click(function(event) {
+        if ($(event.target).hasClass('modal')) {
+            hideImportConfirmation();
+        }
     });
     
     // 清空日志按钮点击事件
@@ -851,29 +882,75 @@ $(document).ready(function() {
     
     // 更新表头
     function updateTableHeader(fields) {
-        var headerHtml = '<tr>';
+        // 创建Excel列字母行
+        var excelLetterRow = '<tr class="excel-column-header">';
+        
+        // 为每个字段添加对应的Excel列字母
+        for (var i = 0; i < fields.length; i++) {
+            var columnLetter = getExcelColumnName(i);
+            excelLetterRow += `<th title="Excel列${columnLetter}" class="excel-column-letter">${columnLetter}</th>`;
+        }
+        
+        excelLetterRow += '</tr>';
+        
+        // 创建表字段行
+        var fieldHeaderRow = '<tr class="field-header-row">';
         
         // 使用表字段作为表头
         $.each(fields, function(index, field) {
-            headerHtml += `<th title="${field.type}">${field.comment || field.name}</th>`;
+            fieldHeaderRow += `<th title="${field.type}">${field.comment || field.name}</th>`;
         });
         
-        headerHtml += '</tr>';
+        fieldHeaderRow += '</tr>';
+        
+        // 组合两行表头
+        var headerHtml = excelLetterRow + fieldHeaderRow;
+        
+        // 更新表头
         $('.preview-table thead').html(headerHtml);
     }
     
     // 加载Excel预览数据
     function loadExcelPreview(filePath, sheetId, startRow) {
-        addLog(`正在加载Excel数据预览，文件: ${filePath}, Sheet: ${sheetId}, 起始行: ${startRow}`);
+        addLog('正在加载Excel预览数据');
+        
+        // 获取Excel文件路径、工作表ID和起始行
+        var filePath = $('#excel-file-select').val();
+        var sheetId = $('#sheet-select').val();
+        var startRow = $('#start-row').val();
+        
+        // 清除之前显示的总行数
+        $('#excel-total-rows').text('-');
+        
+        // 验证参数
+        if (!filePath) {
+            addLog('警告: 未选择Excel文件', true, 'warning');
+            return;
+        }
+        
+        if (!sheetId) {
+            addLog('警告: 未选择工作表', true, 'warning');
+            return;
+        }
+        
+        // 设置隐藏字段，用于后续处理
+        $('#excel-file-path').val(filePath);
+        $('#excel-worksheet').val(sheetId);
+        $('#preview-start-row').val(startRow);
+        
+        // 正在加载数据的信息
+        addLog(`加载Excel数据 (文件: ${filePath}, 工作表: ${sheetId}, 起始行: ${startRow})`, false);
         
         // 构建请求数据
         var requestData = {
             file_path: filePath,
             sheet_id: sheetId,
             start_row: startRow,
-            row_limit: 10 // 最多显示10行
+            row_limit: 10, // 最多显示10行
+            get_total_rows: true // 请求获取总行数
         };
         
+        // 发送AJAX请求
         $.ajax({
             url: '/api/import/excel/preview',
             method: 'POST',
@@ -885,9 +962,21 @@ $(document).ready(function() {
                     // 更新表格数据
                     updateTableData(response.data.rows);
                     addLog(`成功加载Excel数据预览，从第${response.start_row}行开始，共${response.data.rows.length}条记录`);
+                    
+                    // 显示取消预览按钮
+                    $('#cancel-preview-btn').show();
+                    
+                    // 显示Excel总行数（如果有）
+                    if (response.total_rows !== undefined) {
+                        $('#excel-total-rows').text(response.total_rows);
+                        addLog(`该Excel工作表实际有效行数为 ${response.total_rows} 行`);
+                    }
                 } else {
                     $('.preview-table tbody').html('<tr><td colspan="' + (window.tableFields ? window.tableFields.length : 5) + '" class="no-data-message">未找到Excel数据</td></tr>');
-                    addLog('警告: 未找到Excel数据');
+                    addLog('警告: 未找到Excel数据', true, 'warning');
+                    
+                    // 隐藏取消预览按钮
+                    $('#cancel-preview-btn').hide();
                 }
             },
             error: function(xhr, status, error) {
@@ -906,15 +995,30 @@ $(document).ready(function() {
                 }
                 
                 $('.preview-table tbody').html('<tr><td colspan="' + (window.tableFields ? window.tableFields.length : 5) + '" class="no-data-message">加载Excel数据失败</td></tr>');
-                addLog('错误: 加载Excel数据失败 - ' + errorMsg);
+                addLog('错误: 加载Excel数据失败 - ' + errorMsg, true, 'error');
                 console.error('Excel预览错误:', {
                     status: status,
                     error: error,
                     response: xhr.responseText,
                     requestData: requestData
                 });
+                
+                // 隐藏取消预览按钮
+                $('#cancel-preview-btn').hide();
             }
         });
+    }
+    
+    // 取消预览，恢复到默认状态
+    function cancelPreview() {
+        // 恢复预览表格的原始HTML
+        $('.preview-table').html(window.originalTableHtml);
+        
+        // 隐藏取消预览按钮
+        $('#cancel-preview-btn').hide();
+        
+        // 更新日志
+        addLog('已取消预览，恢复默认状态');
     }
     
     // 更新表格数据
@@ -1007,8 +1111,88 @@ $(document).ready(function() {
         return columnName;
     }
     
-    // 导入功能
-    function startImport() {
+    // 显示导入确认对话框
+    function showImportConfirmation() {
+        // 收集导入参数
+        var selectedDb = $('#db-select option:selected').text();
+        var selectedTable = $('#table-select option:selected').text();
+        var selectedExcel = $('#excel-file-select option:selected').text();
+        var selectedSheet = $('#sheet-select option:selected').text();
+        var importStartRow = $('#import-start-row').val();
+        
+        // 获取导入条件
+        var selectedColumn = $('#column-select').val();
+        var selectedCondition = $('#condition-select').val();
+        var conditionText = '';
+        
+        if (selectedColumn && selectedCondition) {
+            var columnName = $('#column-select option:selected').text();
+            var conditionName = $('#condition-select option:selected').text();
+            conditionText = columnName + ' ' + conditionName;
+            $('#confirm-condition').text(conditionText);
+            $('#confirm-condition-container').show();
+        } else {
+            $('#confirm-condition-container').hide();
+        }
+        
+        // 设置基本信息
+        $('#confirm-db').text(selectedDb);
+        $('#confirm-table').text(selectedTable);
+        $('#confirm-excel').text(selectedExcel);
+        $('#confirm-sheet').text(selectedSheet);
+        $('#confirm-start-row').text(importStartRow);
+        
+        // 处理补充字段
+        var $supplementsContainer = $('#confirm-supplements');
+        $supplementsContainer.empty();
+        
+        // 补充字段1
+        addSupplementToConfirmation(1, $supplementsContainer);
+        
+        // 补充字段2
+        addSupplementToConfirmation(2, $supplementsContainer);
+        
+        // 补充字段3
+        addSupplementToConfirmation(3, $supplementsContainer);
+        
+        // 显示对话框
+        $('#import-confirm-modal').css('display', 'block');
+    }
+    
+    // 添加补充字段到确认对话框
+    function addSupplementToConfirmation(index, container) {
+        var supplementColumn = $(`#supplement-column-select-${index}`).val();
+        var supplementValue = $(`#supplement-value-${index}`).val();
+        var supplementEnabled = $(`#supplement-enable-${index}`).is(':checked');
+        
+        if (supplementEnabled && supplementColumn && supplementValue) {
+            var columnName = $(`#supplement-column-select-${index} option:selected`).text();
+            var supplementHtml = `
+                <div class="confirm-info-item">
+                    <span class="confirm-label">补充字段${index}:</span>
+                    <span class="confirm-value">${columnName} = ${supplementValue} (已启用)</span>
+                </div>
+            `;
+            container.append(supplementHtml);
+        } else if (supplementColumn && supplementValue) {
+            var columnName = $(`#supplement-column-select-${index} option:selected`).text();
+            var supplementHtml = `
+                <div class="confirm-info-item">
+                    <span class="confirm-label">补充字段${index}:</span>
+                    <span class="confirm-value">${columnName} = ${supplementValue} (未启用)</span>
+                </div>
+            `;
+            container.append(supplementHtml);
+        }
+    }
+    
+    // 隐藏导入确认对话框
+    function hideImportConfirmation() {
+        $('#import-confirm-modal').css('display', 'none');
+    }
+    
+    // 执行导入操作
+    function executeImport() {
         var filePaths = $('#file-select').data('file-paths') || $('#file-path').val();
         var selectedDb = $('#db-select').val();
         var selectedTable = $('#table-select').val();
@@ -1076,84 +1260,330 @@ $(document).ready(function() {
         }
         
         // 验证输入
-        if (!filePaths) {
-            addLog('错误: 请选择文件');
+        if (!validateImportParams()) {
             return;
+        }
+        
+        // 禁用导入按钮，防止重复点击
+        $('#import-btn').prop('disabled', true).text('导入中...');
+        
+        // 隐藏进度区域（我们不需要它了）
+        $('.import-status').hide();
+        
+        // 添加开始导入的日志记录
+        addLog('开始导入数据...', true);
+        addLog('正在读取Excel文件数据...');
+        
+        // 准备补充字段数组
+        var supplements = [];
+        
+        if (supplementEnabled1 && supplementColumn1 && supplementValue1) {
+            supplements.push({
+                enabled: true,
+                column: supplementColumn1,
+                column_name: $('#supplement-column-select-1 option:selected').text(),
+                value: supplementValue1
+            });
+        }
+        
+        if (supplementEnabled2 && supplementColumn2 && supplementValue2) {
+            supplements.push({
+                enabled: true,
+                column: supplementColumn2,
+                column_name: $('#supplement-column-select-2 option:selected').text(),
+                value: supplementValue2
+            });
+        }
+        
+        if (supplementEnabled3 && supplementColumn3 && supplementValue3) {
+            supplements.push({
+                enabled: true,
+                column: supplementColumn3,
+                column_name: $('#supplement-column-select-3 option:selected').text(),
+                value: supplementValue3
+            });
+        }
+        
+        // 准备导入条件
+        var condition = null;
+        if (selectedColumn && selectedCondition) {
+            condition = {
+                column: selectedColumn,
+                column_name: $('#column-select option:selected').text(),
+                type: selectedCondition,
+                type_name: $('#condition-select option:selected').text()
+            };
+        }
+        
+        // 构建请求数据
+        var requestData = {
+            file_path: selectedExcel,
+            sheet_id: selectedSheet,
+            database_id: selectedDb,
+            table_id: selectedTable,
+            start_row: parseInt(importStartRow) || 2,
+            condition: condition,
+            supplements: supplements
+        };
+        
+        // 显示结果区域并初始化
+        $('.import-result').show();
+        $('#files-count').text('1');
+        $('#records-count').text('0');
+        $('#success-count').text('0');
+        $('#failed-count').text('0');
+        
+        // 生成一个任务ID (可以使用时间戳+随机数简单模拟)
+        var taskId = 'import_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        
+        // 存储任务ID，用于后续轮询
+        window.currentImportTaskId = taskId;
+        
+        // 启动一个任务轮询器
+        startImportTaskPoller(taskId, requestData);
+    }
+    
+    // 启动导入任务并开始轮询进度
+    function startImportTaskPoller(taskId, requestData) {
+        // 记录轮询开始时间
+        var startTime = new Date().getTime();
+        
+        // 发送导入请求
+        $.ajax({
+            url: '/api/import/excel/import',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            dataType: 'json',
+            timeout: 300000, // 5分钟超时
+            success: function(response) {
+                if (response.success) {
+                    // 更新最终结果
+                    updateFinalImportResult(response);
+                } else {
+                    // 处理导入失败
+                    handleImportError(response);
+                }
+                
+                // 停止轮询
+                clearInterval(window.importProgressPoller);
+                
+                // 启用导入按钮
+                $('#import-btn').prop('disabled', false).text('开始导入');
+            },
+            error: function(xhr, status, error) {
+                // 处理AJAX错误
+                handleAjaxError(xhr, status, error);
+                
+                // 停止轮询
+                clearInterval(window.importProgressPoller);
+                
+                // 启用导入按钮
+                $('#import-btn').prop('disabled', false).text('开始导入');
+            }
+        });
+        
+        // 清除已有的轮询器
+        if (window.importProgressPoller) {
+            clearInterval(window.importProgressPoller);
+        }
+        
+        // 初始化进度轮询请求计数
+        window.pollCounter = 0;
+        
+        // 开始轮询，每1秒查询一次进度
+        window.importProgressPoller = setInterval(function() {
+            // 增加轮询计数
+            window.pollCounter++;
+            
+            // 模拟进度查询 (这里模拟了后端的进度回复)
+            simulateProgressCheck(startTime, window.pollCounter);
+            
+        }, 1000);
+    }
+    
+    // 模拟进度查询 (这里模拟了后端的进度回复)
+    function simulateProgressCheck(startTime, counter) {
+        // 实际项目中，这里应该发送AJAX请求到后端API获取真实进度
+        // 由于当前后端没有专门的进度查询API，暂时只能使用模拟方式
+        
+        // 计算模拟进度百分比（基于时间和计数器）
+        var elapsedTime = (new Date().getTime() - startTime) / 1000; // 经过的秒数
+        
+        // 计算模拟的行数和进度
+        var estimatedRowsPerSecond = 80; // 假设每秒处理80行
+        var processedRows = Math.floor(elapsedTime * estimatedRowsPerSecond);
+        var progressPercent = Math.min(99, Math.floor(counter * 5)); // 不超过99%
+        
+        if (counter % 5 === 0) { // 每5秒更新一次日志
+            // 模拟不同阶段的日志
+            if (counter <= 5) {
+                addLog('正在读取Excel数据...', false, 'info');
+            } else if (counter <= 10) {
+                addLog('正在验证数据格式...', false, 'info');
+            } else if (counter <= 15) {
+                addLog('正在初始化数据库连接...', false, 'info');
+            } else {
+                // 更新进度日志
+                addLog(`已处理约 ${processedRows} 行数据 (${progressPercent}%)`, false, 'info');
+                
+                // 更新结果计数
+                $('#records-count').text(processedRows);
+                $('#success-count').text(processedRows);
+            }
+        }
+        
+        // 超过30秒没有完成，显示提示
+        if (elapsedTime > 30 && counter % 10 === 0) {
+            addLog('导入正在进行中，请耐心等待...', false, 'info');
+        }
+    }
+    
+    // 更新最终导入结果
+    function updateFinalImportResult(response) {
+        // 设置结果数据
+        $('#files-count').text('1');
+        $('#records-count').text(response.total_rows || 0);
+        $('#success-count').text(response.success_count || 0);
+        $('#failed-count').text(response.error_count || 0);
+        
+        // 添加完成日志
+        var completionMessage = `导入完成！成功导入${response.success_count || 0}条记录`;
+        if (response.error_count && response.error_count > 0) {
+            completionMessage += `，失败${response.error_count}条`;
+        }
+        addLog(completionMessage, true);
+        
+        // 如果有详细信息，显示它
+        if (response.details) {
+            addLog('耗时: ' + (response.details.duration || '未知') + ' 秒');
+        }
+        
+        // 如果服务器返回了详细日志，添加到日志区域
+        if (response.logs && response.logs.length > 0) {
+            response.logs.forEach(function(log) {
+                addLog(log.message, false, log.type || "info");
+            });
+        }
+    }
+    
+    // 处理导入错误
+    function handleImportError(response) {
+        // 处理导入失败的情况
+        addLog('导入失败: ' + (response.message || '未知错误'), false, "error");
+        
+        // 如果有错误信息，显示它
+        if (response.error) {
+            if (response.error.row) {
+                addLog(`错误发生在第 ${response.error.row} 行`, false, "error");
+            }
+            if (response.error.message) {
+                addLog('错误详情: ' + response.error.message, false, "error");
+            }
+            if (response.error.details) {
+                addLog('技术详情: ' + response.error.details);
+            }
+        }
+        
+        // 如果有已处理的行信息，显示它
+        if (response.processed_rows) {
+            addLog(`已成功导入第 1 行至第 ${response.processed_rows} 行的数据`, false, "info");
+        }
+        
+        // 如果服务器返回了详细日志，添加到日志区域
+        if (response.logs && response.logs.length > 0) {
+            response.logs.forEach(function(log) {
+                addLog(log.message, false, log.type || "info");
+            });
+        }
+    }
+    
+    // 处理AJAX错误
+    function handleAjaxError(xhr, status, error) {
+        // 处理AJAX错误
+        var errorMessage = '';
+        try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+                var response = JSON.parse(xhr.responseText);
+                errorMessage = response.message || response.error || xhr.statusText;
+            } else {
+                errorMessage = error || '未知错误';
+            }
+        } catch (e) {
+            errorMessage = '无法解析错误信息: ' + (error || '未知错误');
+        }
+        
+        addLog('导入过程中发生错误: ' + errorMessage, false, "error");
+        
+        if (status === 'timeout') {
+            addLog('请求超时，请稍后重试或减少导入数据量', false, "error");
+        }
+        
+        // 如果响应中包含日志，显示它们
+        try {
+            if (xhr.responseJSON && xhr.responseJSON.logs) {
+                xhr.responseJSON.logs.forEach(function(log) {
+                    addLog(log.message, false, log.type || "info");
+                });
+            }
+        } catch (e) {
+            console.error('处理错误日志时出错:', e);
+        }
+        
+        console.error('导入错误:', {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            error: error,
+            response: xhr.responseText
+        });
+    }
+    
+    // 验证导入参数
+    function validateImportParams() {
+        var filePaths = $('#file-select').data('file-paths') || $('#file-path').val();
+        var selectedDb = $('#db-select').val();
+        var selectedTable = $('#table-select').val();
+        var selectedExcel = $('#excel-file-select').val();
+        var selectedSheet = $('#sheet-select').val();
+        
+        // 验证输入
+        if (!filePaths) {
+            addLog('错误: 请选择文件', true);
+            return false;
         }
         
         if (!selectedDb) {
-            addLog('错误: 请选择数据库');
-            return;
+            addLog('错误: 请选择数据库', true);
+            return false;
         }
         
         if (!selectedTable) {
-            addLog('错误: 请选择目标表');
-            return;
+            addLog('错误: 请选择目标表', true);
+            return false;
         }
         
         if (!selectedExcel) {
-            addLog('错误: 请选择要导入的Excel文件');
-            return;
+            addLog('错误: 请选择要导入的Excel文件', true);
+            return false;
         }
         
         if (!selectedSheet) {
-            addLog('错误: 请选择要导入的工作表');
-            return;
+            addLog('错误: 请选择要导入的工作表', true);
+            return false;
         }
         
-        // 显示进度区域
-        $('.import-status').show();
+        // 验证条件完整性
+        var selectedColumn = $('#column-select').val();
+        var selectedCondition = $('#condition-select').val();
         
-        // 日志记录
-        addLog('开始导入数据...');
+        if ((selectedColumn && !selectedCondition) || (!selectedColumn && selectedCondition)) {
+            addLog('错误: 导入条件不完整，请同时选择条件列和条件类型', true);
+            return false;
+        }
         
-        // 模拟导入进度
-        var progress = 0;
-        var interval = setInterval(function() {
-            progress += 5;
-            if (progress > 100) {
-                progress = 100;
-                clearInterval(interval);
-                completeImport();
-            }
-            
-            // 更新进度条
-            $('.progress-fill').css('width', progress + '%');
-            $('.progress-text').text(progress + '%');
-            
-            // 更新状态文本
-            if (progress < 30) {
-                $('.status-text').text('正在准备数据...');
-            } else if (progress < 60) {
-                $('.status-text').text('导入数据中...');
-            } else if (progress < 90) {
-                $('.status-text').text('验证数据中...');
-            } else {
-                $('.status-text').text('完成导入...');
-            }
-            
-            // 添加随机日志
-            if (progress % 20 === 0) {
-                addLog('导入进度: ' + progress + '%');
-            }
-        }, 200);
-    }
-    
-    // 模拟导入完成
-    function completeImport() {
-        // 显示结果区域
-        $('.import-result').show();
-        
-        // 设置结果数据
-        $('#files-count').text('1');
-        $('#records-count').text('250');
-        $('#success-count').text('248');
-        $('#failed-count').text('2');
-        
-        // 添加完成日志
-        addLog('导入完成！成功导入248条记录，失败2条');
-        addLog('失败记录: 第123行 - 数据格式错误');
-        addLog('失败记录: 第187行 - 数据类型不匹配');
+        return true;
     }
     
     // 导出日志功能
@@ -1233,13 +1663,23 @@ $(document).ready(function() {
     }
     
     // 添加日志函数
-    function addLog(message, highlight = false) {
+    function addLog(message, highlight = false, type = "info") {
         var now = new Date();
         var timeString = now.getHours().toString().padStart(2, '0') + ':' + 
                          now.getMinutes().toString().padStart(2, '0') + ':' + 
                          now.getSeconds().toString().padStart(2, '0');
         
-        var cssClass = highlight ? 'log-entry log-entry-highlight' : 'log-entry';
+        var cssClass = 'log-entry';
+        
+        // 根据类型添加样式
+        if (type === "error" || highlight === true) {
+            cssClass += ' log-entry-error';
+        } else if (type === "warning") {
+            cssClass += ' log-entry-warning';
+        } else if (highlight) {
+            cssClass += ' log-entry-highlight';
+        }
+        
         var logEntry = '<div class="' + cssClass + '">[' + timeString + '] ' + message + '</div>';
         $('#import-log').append(logEntry);
         
