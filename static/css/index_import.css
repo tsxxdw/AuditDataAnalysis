@@ -996,4 +996,16 @@
 
 .field-header-row th:hover {
     background-color: #e2e6ea;
+}
+
+/* 添加红色标签的样式 */
+.form-group label[for="excel-file-select"],
+.form-group label[for="sheet-select"],
+.supplement-item label[for="supplement-column-select-1"],
+.supplement-item label[for="supplement-column-select-2"],
+.supplement-item label[for="supplement-column-select-3"],
+.supplement-value-item label[for="supplement-value-1"],
+.supplement-value-item label[for="supplement-value-2"],
+.supplement-value-item label[for="supplement-value-3"] {
+    color: #ff0000;
 } 
