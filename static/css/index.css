@@ -53,6 +53,11 @@
     content: "📝";
 }
 
+/* 一对一导入按钮图标 */
+.one-to-one-btn:before {
+    content: "🔄";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);
