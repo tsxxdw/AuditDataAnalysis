@@ -38,6 +38,11 @@
     content: "📥";
 }
 
+/* 数据校验按钮图标 */
+.validation-btn:before {
+    content: "✓";
+}
+
 /* 大数据分析按钮图标 */
 .query-btn:before {
     content: "🔍";
