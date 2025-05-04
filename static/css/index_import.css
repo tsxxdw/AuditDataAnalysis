@@ -970,62 +970,30 @@
 
 .excel-column-letter {
     font-weight: bold;
-    color: white;
+    color: #0066cc !important;  /* 明亮的蓝色 */
     border-bottom: 1px solid #ddd !important;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(45deg, #4a6fc9, #63a4ff) !important;
-}
-
-/* 给每个Excel列添加不同的颜色 */
-.excel-column-letter:nth-child(6n+1) {
-    background: linear-gradient(45deg, #f06, #f90) !important;
-}
-
-.excel-column-letter:nth-child(6n+2) {
-    background: linear-gradient(45deg, #f90, #fc0) !important;
-}
-
-.excel-column-letter:nth-child(6n+3) {
-    background: linear-gradient(45deg, #fc0, #6c0) !important;
-}
-
-.excel-column-letter:nth-child(6n+4) {
-    background: linear-gradient(45deg, #6c0, #09f) !important;
-}
-
-.excel-column-letter:nth-child(6n+5) {
-    background: linear-gradient(45deg, #09f, #63c) !important;
-}
-
-.excel-column-letter:nth-child(6n+6) {
-    background: linear-gradient(45deg, #63c, #f06) !important;
+    background-color: #f8f9fa !important;  /* 淡灰色背景 */
 }
 
 /* 表字段行样式调整 */
 .field-header-row {
-    background: linear-gradient(to right, #e9ecef, #f8f9fa);
+    background-color: #f2f2f2;  /* 淡灰色背景 */
 }
 
 .field-header-row th {
     border-top: none !important;
-    color: #495057;
+    color: #0066cc !important;  /* 明亮的蓝色 */
     padding-top: 10px !important;
     padding-bottom: 10px !important;
-    font-weight: 600;
-    position: relative;
-    text-shadow: 0 1px 1px rgba(255,255,255,0.7);
+    font-weight: 700;  /* 更粗的字体 */
 }
 
-/* 鼠标悬停效果 */
+/* 移除不必要的悬停效果 */
 .excel-column-letter:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: all 0.2s ease;
+    background-color: #e6f2ff !important;  /* 悬停时使用淡蓝色背景 */
 }
 
 .field-header-row th:hover {
     background-color: #e2e6ea;
-    transition: background-color 0.2s ease;
 } 

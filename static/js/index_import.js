@@ -968,6 +968,7 @@ $(document).ready(function() {
                     
                     // 显示Excel总行数（如果有）
                     if (response.total_rows !== undefined) {
+                        $('.total-rows-container').show(); // 显示总行数容器
                         $('#excel-total-rows').text(response.total_rows);
                         addLog(`该Excel工作表实际有效行数为 ${response.total_rows} 行`);
                     }
@@ -1014,8 +1015,9 @@ $(document).ready(function() {
         // 恢复预览表格的原始HTML
         $('.preview-table').html(window.originalTableHtml);
         
-        // 隐藏取消预览按钮
+        // 隐藏取消预览按钮和总行数显示
         $('#cancel-preview-btn').hide();
+        $('.total-rows-container').hide();
         
         // 更新日志
         addLog('已取消预览，恢复默认状态');
