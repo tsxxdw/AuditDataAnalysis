@@ -46,6 +46,12 @@ def index_repair():
     app_logger.info("访问数据修复页面")
     return render_template('index_repair.html', page_title='数据修复')
 
+@pages_bp.route('/index_validation')
+def index_validation():
+    """数据校验页面"""
+    app_logger.info("访问数据校验页面")
+    return render_template('index_validation.html', page_title='数据校验')
+
 @pages_bp.route('/index_sql')
 def index_sql():
     """常用SQL页面"""
