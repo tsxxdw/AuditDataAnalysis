@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据修复 - 数据分析系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_repair.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
+    
+    <main>
+        <div class="container">
+            <h1 class="page-title">数据修复</h1>
+            
+            <!-- 问题字段区域 -->
+            <section class="card problem-field-section">
+                <h2 class="section-title">问题字段区域</h2>
+                <div class="form-group">
+                    <label for="tableName">表名：</label>
+                    <select id="tableName" class="form-control">
+                        <option value="">请选择表</option>
+                        <option value="table1">表1</option>
+                        <option value="table2">表2</option>
+                        <option value="table3">表3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="originalField">原字段：</label>
+                    <select id="originalField" class="form-control">
+                        <option value="">请选择原字段</option>
+                        <option value="field1">字段1</option>
+                        <option value="field2">字段2</option>
+                        <option value="field3">字段3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="newField">新字段：</label>
+                    <select id="newField" class="form-control">
+                        <option value="">请选择新字段</option>
+                        <option value="newField1">新字段1</option>
+                        <option value="newField2">新字段2</option>
+                        <option value="newField3">新字段3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fieldType">字段类型：</label>
+                    <select id="fieldType" class="form-control">
+                        <option value="">请选择字段类型</option>
+                        <option value="idCard">身份证类型</option>
+                        <option value="date">日期类型</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="operationType">操作类型：</label>
+                    <select id="operationType" class="form-control">
+                        <option value="">请选择操作类型</option>
+                        <option value="rename">修改新字段名字</option>
+                        <option value="repair_date">字段修复（日期）</option>
+                        <option value="repair_idcard">字段修复（身份证）</option>
+                    </select>
+                </div>
+            </section>
+            
+            <!-- SQL执行区域 -->
+            <section class="card sql-execute-section">
+                <h2 class="section-title">SQL执行区域</h2>
+                <div class="form-group">
+                    <label for="sqlContent">要执行的SQL：</label>
+                    <textarea id="sqlContent" class="form-control sql-textarea" placeholder="此处将显示生成的SQL语句"></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="generateSql" class="btn btn-primary">生成SQL</button>
+                    <button id="executeSql" class="btn btn-success">执行SQL</button>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index_repair.js') }}"></script>
+</body>
+</html> 

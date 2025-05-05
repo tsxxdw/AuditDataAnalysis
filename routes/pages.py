@@ -40,6 +40,12 @@ def index_file_upload():
     app_logger.info("访问文件上传页面")
     return render_template('index_file_upload.html', page_title='文件上传')
 
+@pages_bp.route('/index_repair')
+def index_repair():
+    """数据修复页面"""
+    app_logger.info("访问数据修复页面")
+    return render_template('index_repair.html', page_title='数据修复')
+
 @pages_bp.route('/index_sql')
 def index_sql():
     """常用SQL页面"""
