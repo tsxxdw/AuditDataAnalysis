@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>业务查询 - 数据分析系统</title>
+    <title>数据分析 - 数据分析系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
@@ -15,7 +15,47 @@
     {% include 'components/header.html' %}
     
     <main>
-        <!-- 业务查询内容将在这里 -->
+        <div class="container">
+            <h1 class="page-title">数据分析</h1>
+            
+            <div class="query-options">
+                <div class="option-group">
+                    <label for="dbType">选择数据库：</label>
+                    <select id="dbType" class="form-control">
+                        <option value="mysql">MySQL</option>
+                        <option value="sqlserver">SQL Server</option>
+                        <option value="oracle">Oracle</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label for="sqlTemplate">SQL模板：</label>
+                    <select id="sqlTemplate" class="form-control">
+                        <option value="">请选择SQL模板</option>
+                        <option value="template1">模板一：基础查询</option>
+                        <option value="template2">模板二：聚合统计</option>
+                        <option value="template3">模板三：关联查询</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button id="addTemplate" class="btn btn-secondary">新增SQL模板</button>
+                    <button id="generateSQL" class="btn btn-primary">生成执行SQL</button>
+                </div>
+            </div>
+            
+            <div class="sql-display-container">
+                <h2>SQL查询语句</h2>
+                <div id="sqlDisplay" class="sql-display">
+                    -- 生成的SQL将显示在这里
+                    SELECT * FROM table_name WHERE condition;
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="executeSQL" class="btn btn-success">执行SQL</button>
+            </div>
+        </div>
     </main>
     
     {# 引入底部组件 #}

@@ -16,11 +16,11 @@ def index():
     app_logger.info("访问首页")
     return render_template('index.html', page_title='数据分析系统')
 
-@pages_bp.route('/index_db')
-def index_db():
+@pages_bp.route('/index_table_structure')
+def index_table_structure():
     """数据库表结构管理页面"""
     app_logger.info("访问数据库表结构管理页面")
-    return render_template('index_db.html', page_title='数据库表结构管理')
+    return render_template('index_table_structure.html', page_title='数据库表结构管理')
 
 @pages_bp.route('/index_import')
 def index_import():
@@ -32,7 +32,7 @@ def index_import():
 def index_query():
     """业务查询页面"""
     app_logger.info("访问业务查询页面")
-    return render_template('index_query.html', page_title='业务查询')
+    return render_template('index_query.html', page_title='数据分析')
 
 @pages_bp.route('/index_file_upload')
 def index_file_upload():

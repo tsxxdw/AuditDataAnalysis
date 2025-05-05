@@ -1,2 +1,137 @@
-/* 业务查询页面样式(index_query) */
-/* 此处将放置特定于业务查询页面的样式 */ 
+/* 数据分析页面样式(index_query) */
+/* 此处将放置特定于业务查询页面的样式 */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.query-options {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.option-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.option-group label {
+    width: 120px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.form-control {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.sql-display-container {
+    margin-bottom: 20px;
+}
+
+.sql-display-container h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #444;
+}
+
+.sql-display {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #333;
+    white-space: pre-wrap;
+    height: 200px;
+    overflow-y: auto;
+    line-height: 1.5;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .option-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .option-group label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+} 
