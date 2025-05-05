@@ -15,7 +15,85 @@
     {% include 'components/header.html' %}
     
     <main>
-        <!-- 数据库表结构管理内容将在这里 -->
+        <div class="container">
+            <h1 class="page-title">数据库表结构管理</h1>
+            
+            <!-- 表创建区域 -->
+            <section class="card table-create-section">
+                <h2 class="section-title">表创建区域</h2>
+                <div class="form-group">
+                    <label for="tableName">表名：</label>
+                    <input type="text" id="tableName" class="form-control" value="t_n_xxx" placeholder="请输入表名">
+                </div>
+                <div class="form-group">
+                    <label for="tableComment">表备注：</label>
+                    <input type="text" id="tableComment" class="form-control" value="某某表" placeholder="请输入表备注">
+                </div>
+                <div class="form-group">
+                    <label for="dataSource">字段备注EXCEL源：</label>
+                    <select id="dataSource" class="form-control">
+                        <option value="">请选择EXCEL源</option>
+                        <option value="mysql">MySQL</option>
+                        <option value="sqlserver">SQL Server</option>
+                        <option value="oracle">Oracle</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="commentRow">字段备注所在行：</label>
+                    <select id="commentRow" class="form-control">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            </section>
+            
+            <!-- 索引管理区域 -->
+            <section class="card index-manage-section">
+                <h2 class="section-title">索引管理区域</h2>
+                <div class="form-group">
+                    <label for="indexTableName">表名：</label>
+                    <select id="indexTableName" class="form-control">
+                        <option value="">请选择表</option>
+                        <option value="table1">表1</option>
+                        <option value="table2">表2</option>
+                        <option value="table3">表3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fieldName">字段名：</label>
+                    <select id="fieldName" class="form-control">
+                        <option value="">请选择字段</option>
+                        <option value="field1">字段1</option>
+                        <option value="field2">字段2</option>
+                        <option value="field3">字段3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="indexOperationType">索引操作类型：</label>
+                    <select id="indexOperationType" class="form-control">
+                        <option value="create">生成索引</option>
+                        <option value="delete">删除索引</option>
+                    </select>
+                </div>
+            </section>
+            
+            <!-- SQL执行区域 -->
+            <section class="card sql-execute-section">
+                <h2 class="section-title">SQL执行区域</h2>
+                <div class="form-group">
+                    <label for="sqlContent">要执行的SQL：</label>
+                    <textarea id="sqlContent" class="form-control sql-textarea" placeholder="请输入SQL语句"></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="generateTableSql" class="btn btn-primary">生成表创建SQL</button>
+                    <button id="generateIndexSql" class="btn btn-info">生成索引SQL</button>
+                    <button id="executeSql" class="btn btn-success">执行SQL</button>
+                </div>
+            </section>
+        </div>
     </main>
     
     {# 引入底部组件 #}
