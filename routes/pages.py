@@ -58,6 +58,12 @@ def index_sql():
     app_logger.info("访问常用SQL页面")
     return render_template('index_sql.html', page_title='常用SQL')
 
+@pages_bp.route('/index_one_to_one_import')
+def index_one_to_one_import():
+    """一对一导入页面"""
+    app_logger.info("访问一对一导入页面")
+    return render_template('index_one_to_one_import.html', page_title='一对一导入')
+
 @pages_bp.route('/settings')
 def settings():
     """系统设置页面"""

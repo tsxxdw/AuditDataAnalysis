@@ -20,7 +20,7 @@
                 <a href="{{ url_for('pages.index_table_structure') }}" class="main-btn db-btn">表结构管理</a>
                 <a href="{{ url_for('pages.index_file_upload') }}" class="main-btn upload-btn">文件上传</a>
                 <a href="{{ url_for('pages.index_import') }}" class="main-btn import-btn">数据导入</a>
-                <a href="#" onclick="alert('一对一导入功能正在开发中，敬请期待！'); return false;" class="main-btn one-to-one-btn">一对一导入</a>
+                <a href="{{ url_for('pages.index_one_to_one_import') }}" class="main-btn one-to-one-btn">一对一导入</a>
                 <a href="{{ url_for('pages.index_repair') }}" class="main-btn repair-btn">数据修复</a>
                 <a href="{{ url_for('pages.index_validation') }}" class="main-btn validation-btn">数据校验</a>
                 <a href="{{ url_for('pages.index_query') }}" class="main-btn query-btn">数据分析</a>

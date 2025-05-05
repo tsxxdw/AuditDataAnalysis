@@ -7,6 +7,7 @@ from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
 from routes.index_file_upload_api import file_upload_bp
 from routes.index_import_api import import_api_bp
+from routes.index_one_to_one_import_api import index_one_to_one_import_bp
 from routes.pages import pages_bp
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
@@ -25,6 +26,7 @@ app.register_blueprint(settings_database_bp)
 app.register_blueprint(log_settings_bp)
 app.register_blueprint(file_upload_bp)
 app.register_blueprint(import_api_bp)
+app.register_blueprint(index_one_to_one_import_bp)
 app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 
 # 初始化中间件
