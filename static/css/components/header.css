@@ -1,13 +1,14 @@
 /* 头部组件样式 */
 .site-header {
-    background: #2c3e50;
-    color: white;
+    background: #ffffff;
+    color: #333333;
     padding: 0.6rem 0;
     width: 100%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .header-container {
@@ -38,8 +39,8 @@
 .logo-container h1 {
     font-size: 1.2rem;
     margin: 0;
-    font-weight: 500;
-    color: #ecf0f1;
+    font-weight: 600;
+    color: #333;
     text-align: center;
 }
 
@@ -52,45 +53,54 @@
 
 /* 按钮样式 */
 .back-btn, .settings-btn {
-    color: #ecf0f1;
     text-decoration: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 3px;
-    transition: all 0.2s ease;
-    font-size: 0.85rem;
-    font-weight: 400;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    background: transparent;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .back-btn {
-    background-color: rgba(52, 152, 219, 0.7);
+    background: #4f46e5;
+    border: none;
+    color: white;
 }
 
 .settings-btn {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #f5f5f5;
+    color: #444;
+    border: 1px solid #e0e0e0;
 }
 
 .back-btn:hover {
-    background-color: rgba(52, 152, 219, 0.9);
+    background: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .settings-btn:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: #eeeeee;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* 添加按钮图标 */
 .back-btn:before {
     content: "←";
-    margin-right: 5px;
-    font-size: 0.9em;
+    margin-right: 6px;
+    font-size: 1em;
+    font-weight: bold;
 }
 
 .settings-btn:before {
     content: "⚙";
     margin-right: 5px;
     font-size: 0.9em;
+    color: #555;
 }
 
 /* 移动端菜单按钮 */
