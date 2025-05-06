@@ -314,4 +314,126 @@ class DatabaseService:
                 return "TNS连接错误，请检查主机名和端口"
                 
         # 默认错误
-        return f"连接失败: {str(exception)}" 
+        return f"连接失败: {str(exception)}"
+
+    @safe_db_operation
+    def get_table_field_info(self, db_type, db_config, table_name):
+        """获取数据库表的字段信息
+        
+        Args:
+            db_type: 数据库类型
+            db_config: 数据库配置
+            table_name: 表名
+            
+        Returns:
+            list: 字段信息列表，每个元素包含字段名、类型等信息
+            
+        Raises:
+            AppException: 获取失败时抛出
+        """
+        try:
+            # 获取数据库名
+            database = db_config.get('database', '')
+            
+            if not database:
+                raise AppException("数据库名称为空", 400)
+            
+            if db_type == 'mysql':
+                # 使用MySQL信息模式查询表结构
+                connection = self.pool_manager.get_connection(db_type, db_config)
+                try:
+                    # 选择数据库
+                    connection.execute(text(f"USE `{database}`"))
+                    
+                    # 查询表字段信息
+                    result = connection.execute(text(f"""
+                        SELECT 
+                            COLUMN_NAME, 
+                            DATA_TYPE,
+                            COLUMN_COMMENT,
+                            ORDINAL_POSITION
+                        FROM 
+                            INFORMATION_SCHEMA.COLUMNS 
+                        WHERE 
+                            TABLE_SCHEMA = :database 
+                            AND TABLE_NAME = :table_name
+                        ORDER BY 
+                            ORDINAL_POSITION
+                    """), {"database": database, "table_name": table_name})
+                    
+                    # 提取字段信息
+                    fields = []
+                    for row in result:
+                        fields.append({
+                            "name": row[0],
+                            "type": row[1],
+                            "comment": row[2] if row[2] else '',
+                            "position": row[3]
+                        })
+                    
+                    return fields
+                finally:
+                    connection.close()
+            elif db_type == 'sqlserver':
+                # SQL Server表字段查询
+                query = """
+                    SELECT 
+                        c.name AS COLUMN_NAME,
+                        t.name AS DATA_TYPE,
+                        ep.value AS COLUMN_COMMENT,
+                        c.column_id AS ORDINAL_POSITION
+                    FROM 
+                        sys.columns c
+                    INNER JOIN 
+                        sys.types t ON c.user_type_id = t.user_type_id
+                    LEFT JOIN 
+                        sys.extended_properties ep ON ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.name = 'MS_Description'
+                    WHERE 
+                        c.object_id = OBJECT_ID(:table_name)
+                    ORDER BY 
+                        c.column_id
+                """
+                result = self.execute_query(db_type, db_config, text(query), {"table_name": table_name})
+                
+                fields = []
+                for row in result:
+                    fields.append({
+                        "name": row[0],
+                        "type": row[1],
+                        "comment": row[2] if row[2] else '',
+                        "position": row[3]
+                    })
+                
+                return fields
+            elif db_type == 'oracle':
+                # Oracle表字段查询
+                query = """
+                    SELECT 
+                        COLUMN_NAME,
+                        DATA_TYPE,
+                        COLUMN_ID
+                    FROM 
+                        ALL_TAB_COLUMNS
+                    WHERE 
+                        OWNER = UPPER(:owner)
+                        AND TABLE_NAME = UPPER(:table_name)
+                    ORDER BY 
+                        COLUMN_ID
+                """
+                result = self.execute_query(db_type, db_config, text(query), {"owner": database, "table_name": table_name})
+                
+                fields = []
+                for row in result:
+                    fields.append({
+                        "name": row[0],
+                        "type": row[1],
+                        "comment": '',
+                        "position": row[2]
+                    })
+                
+                return fields
+            else:
+                raise AppException(f"不支持的数据库类型: {db_type}", 400)
+        except Exception as e:
+            app_logger.error(f"获取表字段信息失败: {str(e)}")
+            raise AppException(f"获取表字段信息失败: {str(e)}", 500) 
