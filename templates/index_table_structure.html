@@ -35,10 +35,19 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="file-select">Excel文件：</label>
-                    <select id="file-select" class="form-control" style="width: 100%;">
-                        <!-- 选项将通过AJAX从后端加载 -->
-                    </select>
+                    <label for="fileSearch">Excel文件：</label>
+                    <div class="file-search-container">
+                        <!-- 直接输入搜索的输入框 -->
+                        <input type="text" id="fileSearch" class="form-control" placeholder="输入关键词搜索Excel文件..." autocomplete="off">
+                        
+                        <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+                        <select id="file-select" style="display: none;">
+                            <option value="">请选择Excel文件</option>
+                        </select>
+                        
+                        <!-- 显示搜索结果的下拉区域 -->
+                        <div id="fileSearchResults" class="file-search-results" style="display: none;"></div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -88,6 +97,61 @@
                     <button type="button" class="btn btn-primary" id="generateIndexSql">生成索引SQL</button>
                 </div>
             </section>
+            
+            <!-- 模板提示词区域 -->
+            <section class="card prompt-templates-section">
+                <h2 class="section-title">模板提示词</h2>
+                <div class="form-group">
+                    <label for="templateSearch">模板名称：</label>
+                    <div class="template-search-container">
+                        <!-- 直接输入搜索的输入框 -->
+                        <input type="text" id="templateSearch" class="form-control" placeholder="输入关键词搜索模板..." autocomplete="off">
+                        
+                        <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+                        <select id="promptTemplate" style="display: none;">
+                            <option value="">请选择提示词模板</option>
+                        </select>
+                        
+                        <!-- 显示搜索结果的下拉区域 -->
+                        <div id="templateSearchResults" class="template-search-results" style="display: none;"></div>
+                    </div>
+                    <button type="button" class="btn btn-info" id="viewTemplateDetails" disabled>查看详情</button>
+                </div>
+            </section>
+            
+            <!-- 模板详情模态对话框 -->
+            <div id="templateDetailsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3 class="modal-title">模板详情</h3>
+                    
+                    <div class="template-details">
+                        <!-- 模板名称 -->
+                        <div class="template-name-container">
+                            <h4>模板名称</h4>
+                            <div class="template-name-text"></div>
+                        </div>
+                        
+                        <!-- 模板描述 -->
+                        <div class="template-description-container">
+                            <h4>模板描述</h4>
+                            <div class="template-description-text"></div>
+                        </div>
+                        
+                        <!-- 系统提示词 -->
+                        <div class="system-prompt-container">
+                            <h4>系统提示词</h4>
+                            <div class="system-prompt-text"></div>
+                        </div>
+                        
+                        <!-- 用户提示词 -->
+                        <div class="user-prompt-container">
+                            <h4>用户提示词</h4>
+                            <div class="user-prompt-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- SQL执行区域 -->
             <section class="card sql-execute-section">

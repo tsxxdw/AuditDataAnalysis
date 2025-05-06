@@ -6,6 +6,21 @@ $(document).ready(function() {
     // 加载表列表
     loadTableList();
     
+    // 加载提示词模板列表
+    loadPromptTemplates();
+    
+    // 模态对话框关闭按钮事件
+    $('.close-modal').on('click', function() {
+        $('#templateDetailsModal').hide();
+    });
+    
+    // 点击模态对话框外部关闭
+    $(window).on('click', function(event) {
+        if ($(event.target).is('#templateDetailsModal')) {
+            $('#templateDetailsModal').hide();
+        }
+    });
+    
     // 生成表创建SQL按钮点击事件
     $('#generateTableSql').on('click', function() {
         const tableName = $('#tableName').val();
@@ -35,6 +50,71 @@ $(document).ready(function() {
             error: function(xhr) {
                 console.error('生成SQL请求失败:', xhr);
                 alert('生成SQL请求失败，请查看控制台日志');
+            }
+        });
+    });
+    
+    // 查看模板详情按钮点击事件
+    $('#viewTemplateDetails').on('click', function() {
+        const templateId = $('#promptTemplate').val();
+        
+        if (!templateId) {
+            return;
+        }
+        
+        // 获取模板详情
+        $.ajax({
+            url: `/api/prompt_templates/${templateId}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const template = response.template;
+                    let templateContent;
+                    
+                    try {
+                        templateContent = JSON.parse(template.content);
+                    } catch (e) {
+                        console.error('解析模板内容失败:', e);
+                        alert('模板内容格式错误');
+                        return;
+                    }
+                    
+                    // 清空旧内容
+                    $('.template-name-text, .template-description-text, .system-prompt-text, .user-prompt-text').text('');
+                    
+                    // 显示模板名称
+                    $('.template-name-text').text(template.name);
+                    
+                    // 显示模板描述
+                    if (template.description) {
+                        $('.template-description-text').text(template.description);
+                    } else {
+                        $('.template-description-text').text('无描述');
+                    }
+                    
+                    // 显示系统提示词
+                    if (templateContent.system) {
+                        $('.system-prompt-text').text(templateContent.system);
+                    } else {
+                        $('.system-prompt-text').text('无系统提示词');
+                    }
+                    
+                    // 显示用户提示词
+                    if (templateContent.user) {
+                        $('.user-prompt-text').text(templateContent.user);
+                    } else {
+                        $('.user-prompt-text').text('无用户提示词');
+                    }
+                    
+                    // 显示模态对话框
+                    $('#templateDetailsModal').show();
+                } else {
+                    alert(response.message || '获取模板详情失败');
+                }
+            },
+            error: function(xhr) {
+                console.error('获取模板详情失败:', xhr);
+                alert('获取模板详情失败，请查看控制台日志');
             }
         });
     });
@@ -272,79 +352,111 @@ $(document).ready(function() {
         }
     });
     
-    // 监听Excel文件选择变化，加载工作表
-    $('#file-select').on('change', function() {
-        loadExcelFileSheets($(this).val());
-    });
-    
     // 初始化文件选择器
     function initializeFileSelector() {
-        $('#file-select').select2({
-            placeholder: '搜索并选择Excel文件...',
-            allowClear: true,
-            ajax: {
-                url: '/api/files/list',
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        search: params.term // 搜索参数
-                    };
-                },
-                processResults: function(data) {
-                    console.log("Select2处理API结果, 获取到文件数量:", data.length);
-                    
-                    // 转换API返回的数据为Select2需要的格式
-                    var results = data.map(function(file) {
-                        // 只处理Excel文件
-                        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-                            return {
-                                id: file.path,
-                                text: file.name,
-                                date: file.date,
-                                url: file.url
-                            };
-                        }
-                        return null;
-                    }).filter(function(item) {
-                        return item !== null;
-                    });
-                    
-                    // 按日期倒序排序
-                    results.sort(function(a, b) {
-                        return new Date(b.date) - new Date(a.date);
-                    });
-                    
-                    console.log("处理后的Excel文件数量:", results.length);
-                    
-                    return {
-                        results: results
-                    };
-                },
-                cache: true
+        // 获取Excel文件列表
+        $.ajax({
+            url: '/api/files/list',
+            type: 'GET',
+            success: function(data) {
+                // 过滤Excel文件
+                const excelFiles = data.filter(file => 
+                    file.name.endsWith('.xlsx') || file.name.endsWith('.xls')
+                ).sort((a, b) => new Date(b.date) - new Date(a.date)); // 按日期降序排序
+                
+                // 保存文件列表供全局访问
+                window.allExcelFiles = excelFiles;
+                
+                // 初始化自定义搜索控件
+                initializeFileSearch(excelFiles);
             },
-            templateResult: formatFileItem,
-            templateSelection: formatFileSelection
+            error: function(xhr) {
+                console.error('获取文件列表失败:', xhr);
+            }
         });
     }
     
-    // 格式化下拉选项，显示文件名和时间
-    function formatFileItem(file) {
-        if (!file.id) return file.text;
+    // 初始化自定义文件搜索控件
+    function initializeFileSearch(files) {
+        const $searchInput = $('#fileSearch');
+        const $searchResults = $('#fileSearchResults');
+        const $hiddenSelect = $('#file-select');
         
-        var $fileElement = $(
-            '<div class="file-list-item">' +
-                '<span class="file-name">' + file.text + '</span>' +
-                '<span class="file-date">' + file.date + '</span>' +
-            '</div>'
-        );
+        // 输入框输入事件
+        $searchInput.on('input', function() {
+            const searchTerm = $(this).val().toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                $searchResults.hide();
+                return;
+            }
+            
+            // 过滤匹配的文件
+            const matchedFiles = files.filter(file => {
+                const fileName = file.name.toLowerCase();
+                return fileName.includes(searchTerm);
+            });
+            
+            // 显示搜索结果
+            renderFileSearchResults(matchedFiles);
+        });
         
-        return $fileElement;
-    }
-    
-    // 格式化已选项
-    function formatFileSelection(file) {
-        return file.text || file.text;
+        // 输入框获得焦点时显示全部
+        $searchInput.on('focus', function() {
+            if (files.length > 0) {
+                renderFileSearchResults(files);
+            }
+        });
+        
+        // 处理点击其他区域隐藏搜索结果
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.file-search-container').length) {
+                $searchResults.hide();
+            }
+        });
+        
+        // 渲染搜索结果函数
+        function renderFileSearchResults(results) {
+            $searchResults.empty();
+            
+            if (results.length === 0) {
+                $searchResults.append('<div class="file-search-item">没有找到匹配的Excel文件</div>');
+            } else {
+                results.forEach(file => {
+                    const $item = $(`
+                        <div class="file-search-item" data-path="${file.path}">
+                            <span class="file-search-item-name">${file.name}</span>
+                            <span class="file-search-item-date">${file.date}</span>
+                        </div>
+                    `);
+                    
+                    // 点击项目选择文件
+                    $item.on('click', function() {
+                        const filePath = $(this).data('path');
+                        selectFile(filePath, file.name);
+                    });
+                    
+                    $searchResults.append($item);
+                });
+            }
+            
+            $searchResults.show();
+        }
+        
+        // 选择文件函数
+        function selectFile(filePath, fileName) {
+            // 设置隐藏下拉框的值
+            $hiddenSelect.val(filePath);
+            
+            // 设置输入框的值
+            $searchInput.val(fileName);
+            
+            // 隐藏搜索结果
+            $searchResults.hide();
+            
+            // 加载工作表
+            loadExcelFileSheets(filePath);
+        }
     }
     
     // 加载Excel文件的工作表
@@ -524,5 +636,112 @@ $(document).ready(function() {
             }
         `;
         document.head.appendChild(style);
+    }
+    
+    // 加载提示词模板列表
+    function loadPromptTemplates() {
+        // 获取所有模板数据
+        $.ajax({
+            url: '/api/prompt_templates/list',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    // 初始化自定义搜索控件
+                    initializeTemplateSearch(response.templates);
+                } else {
+                    console.error('加载提示词模板失败:', response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('请求提示词模板列表失败:', xhr);
+            }
+        });
+    }
+    
+    // 初始化自定义模板搜索控件
+    function initializeTemplateSearch(templates) {
+        // 存储模板数据供全局访问
+        window.allTemplates = templates;
+        
+        const $searchInput = $('#templateSearch');
+        const $searchResults = $('#templateSearchResults');
+        const $hiddenSelect = $('#promptTemplate');
+        
+        // 输入框输入事件
+        $searchInput.on('input', function() {
+            const searchTerm = $(this).val().toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                $searchResults.hide();
+                return;
+            }
+            
+            // 过滤匹配的模板
+            const matchedTemplates = templates.filter(template => {
+                const name = template.name.toLowerCase();
+                const description = template.description ? template.description.toLowerCase() : '';
+                return name.includes(searchTerm) || description.includes(searchTerm);
+            });
+            
+            // 显示搜索结果
+            renderSearchResults(matchedTemplates);
+        });
+        
+        // 输入框获得焦点时显示全部
+        $searchInput.on('focus', function() {
+            if (templates.length > 0) {
+                renderSearchResults(templates);
+            }
+        });
+        
+        // 处理点击其他区域隐藏搜索结果
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.template-search-container').length) {
+                $searchResults.hide();
+            }
+        });
+        
+        // 渲染搜索结果函数
+        function renderSearchResults(results) {
+            $searchResults.empty();
+            
+            if (results.length === 0) {
+                $searchResults.append('<div class="template-search-item">没有找到匹配的模板</div>');
+            } else {
+                results.forEach(template => {
+                    const $item = $(`
+                        <div class="template-search-item" data-id="${template.id}">
+                            <span class="template-search-item-name">${template.name}</span>
+                            ${template.description ? `<span class="template-search-item-desc">${template.description}</span>` : ''}
+                        </div>
+                    `);
+                    
+                    // 点击项目选择模板
+                    $item.on('click', function() {
+                        const templateId = $(this).data('id');
+                        selectTemplate(templateId, template.name);
+                    });
+                    
+                    $searchResults.append($item);
+                });
+            }
+            
+            $searchResults.show();
+        }
+        
+        // 选择模板函数
+        function selectTemplate(templateId, templateName) {
+            // 设置隐藏下拉框的值
+            $hiddenSelect.val(templateId);
+            
+            // 设置输入框的值
+            $searchInput.val(templateName);
+            
+            // 隐藏搜索结果
+            $searchResults.hide();
+            
+            // 启用查看详情按钮
+            $('#viewTemplateDetails').prop('disabled', false);
+        }
     }
 }); 

@@ -198,4 +198,279 @@ select.form-control {
     .btn {
         min-width: 150px;
     }
+}
+
+/* 模板提示词区域样式 */
+.template-description-text,
+.system-prompt-text,
+.user-prompt-text {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 5px;
+    min-height: 40px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.system-prompt-container,
+.user-prompt-container {
+    margin-bottom: 15px;
+}
+
+.system-prompt-container label,
+.user-prompt-container label {
+    font-weight: bold;
+}
+
+/* 系统提示词和用户提示词不同的底色 */
+.system-prompt-text {
+    background-color: #f0f7ff;
+    border-color: #c0d7f7;
+}
+
+.user-prompt-text {
+    background-color: #f0fff0;
+    border-color: #c0f7c0;
+}
+
+/* 模板提示词区域中的查看详情按钮 */
+#viewTemplateDetails {
+    margin-left: 10px;
+}
+
+/* 模态对话框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 70%;
+    max-width: 800px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+.modal-title {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.template-details h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* 模板选择器样式 */
+.template-list-item {
+    padding: 8px 0;
+}
+
+.template-name {
+    font-weight: bold;
+    display: block;
+}
+
+.template-description {
+    display: block;
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 3px;
+}
+
+/* 调整模板名称选择器的样式 */
+#promptTemplate {
+    width: calc(100% - 110px) !important;
+}
+
+/* 确保查看详情按钮和下拉框并排显示 */
+.prompt-templates-section .form-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+/* 修复Select2与Bootstrap的样式冲突 */
+.select2-container--default .select2-selection--single {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    height: 38px;
+    padding: 5px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+/* 光标悬停样式 */
+.select2-results__option--highlighted[aria-selected] {
+    background-color: #3498db !important;
+    color: white;
+}
+
+/* 改进下拉框搜索体验的样式 */
+.select2-container-search .select2-selection {
+    cursor: text !important;
+}
+
+.select2-dropdown-open-search .select2-search {
+    padding: 8px;
+}
+
+.select2-dropdown-open-search .select2-search .select2-search__field {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* 调整下拉菜单的样式 */
+.select2-dropdown {
+    border-color: #ddd;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 提示点击可输入搜索的样式 */
+.select2-container-search .select2-selection:after {
+    content: "点击输入搜索";
+    position: absolute;
+    right: 25px;
+    top: 7px;
+    color: #aaa;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* 控件获得焦点后隐藏提示 */
+.select2-container--focus .select2-selection:after {
+    display: none;
+}
+
+/* 自定义模板搜索样式 */
+.template-search-container {
+    position: relative;
+    width: 100%;
+    margin-right: 10px;
+}
+
+.template-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.template-search-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.template-search-item:hover {
+    background-color: #f5f9ff;
+}
+
+.template-search-item.selected {
+    background-color: #e6f2ff;
+}
+
+.template-search-item-name {
+    font-weight: bold;
+    display: block;
+}
+
+.template-search-item-desc {
+    display: block;
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 3px;
+}
+
+/* 自定义文件搜索样式 */
+.file-search-container {
+    position: relative;
+    width: 100%;
+}
+
+.file-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.file-search-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.file-search-item:hover {
+    background-color: #f5f9ff;
+}
+
+.file-search-item.selected {
+    background-color: #e6f2ff;
+}
+
+.file-search-item-name {
+    font-weight: bold;
+    display: block;
+}
+
+.file-search-item-date {
+    display: block;
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 3px;
 } 
