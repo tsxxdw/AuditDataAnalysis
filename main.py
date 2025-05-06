@@ -9,8 +9,8 @@ from routes.index_file_upload_api import file_upload_bp
 from routes.index_import_api import import_api_bp
 from routes.index_one_to_one_import_api import index_one_to_one_import_bp
 from routes.index_table_structure_api import index_table_structure_bp
-from routes.common.common_api import common_api_bp
-from routes.index_analysis_api import index_analysis_bp
+from routes.common.common_database_api import common_api_bp
+from routes.index_analysis import index_analysis_bp
 from routes.index_prompt_templates_api import index_prompt_templates_bp
 from routes.pages import pages_bp
 from service.log.logger import app_logger
