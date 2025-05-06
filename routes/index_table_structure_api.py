@@ -107,6 +107,7 @@ def create_table():
         table_name = data.get('tableName')
         table_comment = data.get('tableComment', '')
         excel_path = data.get('excelPath')
+        sheet_id = data.get('sheetId')
         comment_row = int(data.get('commentRow', 1))
         
         # 参数验证
@@ -115,6 +116,9 @@ def create_table():
         
         if not excel_path:
             return jsonify({"success": False, "message": "Excel文件路径不能为空"}), 400
+            
+        if not sheet_id:
+            return jsonify({"success": False, "message": "工作表不能为空"}), 400
         
         # 获取当前数据库连接信息
         db_type = DatabaseConfigUtil.get_default_db_type()
@@ -127,12 +131,13 @@ def create_table():
         try:
             rows = ExcelUtil.read_excel_data(
                 file_path=excel_path,
+                sheet_name=sheet_id,
                 start_row=comment_row - 1,  # 行号从0开始，需要减1
                 row_limit=1
             )
             
             if not rows or len(rows) == 0:
-                return jsonify({"success": False, "message": "Excel文件中未找到字段注释行"}), 400
+                return jsonify({"success": False, "message": "Excel文件中未找到备注信息行"}), 400
                 
             field_comments = rows[0]  # 获取字段注释行
             

@@ -1,5 +1,8 @@
 // 数据库表结构管理页面JS文件(index_table_structure)
 $(document).ready(function() {
+    // 初始化文件选择器
+    initializeFileSelector();
+    
     // 加载表列表
     loadTableList();
     
@@ -25,7 +28,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     $('#sqlContent').val(response.sql);
-                } else {
+        } else {
                     alert(response.message || '生成SQL失败');
                 }
             },
@@ -80,7 +83,8 @@ $(document).ready(function() {
     $('#createTable').on('click', function() {
         const tableName = $('#tableName').val();
         const tableComment = $('#tableComment').val();
-        const excelPath = $('#excelPath').val();
+        const excelPath = $('#file-select').val();
+        const sheetId = $('#sheet-select').val();
         const commentRow = $('#commentRow').val();
         
         if(!tableName) {
@@ -89,12 +93,17 @@ $(document).ready(function() {
         }
         
         if(!excelPath) {
-            alert('请输入Excel文件路径');
+            alert('请选择Excel文件');
+            return;
+        }
+        
+        if(!sheetId) {
+            alert('请选择工作表');
             return;
         }
         
         if(!commentRow) {
-            alert('请输入注释行号');
+            alert('请输入备注信息所在行号');
             return;
         }
         
@@ -107,6 +116,7 @@ $(document).ready(function() {
                 tableName: tableName,
                 tableComment: tableComment,
                 excelPath: excelPath,
+                sheetId: sheetId,
                 commentRow: commentRow
             }),
             success: function(response) {
@@ -262,6 +272,129 @@ $(document).ready(function() {
         }
     });
     
+    // 监听Excel文件选择变化，加载工作表
+    $('#file-select').on('change', function() {
+        loadExcelFileSheets($(this).val());
+    });
+    
+    // 初始化文件选择器
+    function initializeFileSelector() {
+        $('#file-select').select2({
+            placeholder: '搜索并选择Excel文件...',
+            allowClear: true,
+            ajax: {
+                url: '/api/files/list',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term // 搜索参数
+                    };
+                },
+                processResults: function(data) {
+                    console.log("Select2处理API结果, 获取到文件数量:", data.length);
+                    
+                    // 转换API返回的数据为Select2需要的格式
+                    var results = data.map(function(file) {
+                        // 只处理Excel文件
+                        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                            return {
+                                id: file.path,
+                                text: file.name,
+                                date: file.date,
+                                url: file.url
+                            };
+                        }
+                        return null;
+                    }).filter(function(item) {
+                        return item !== null;
+                    });
+                    
+                    // 按日期倒序排序
+                    results.sort(function(a, b) {
+                        return new Date(b.date) - new Date(a.date);
+                    });
+                    
+                    console.log("处理后的Excel文件数量:", results.length);
+                    
+                    return {
+                        results: results
+                    };
+                },
+                cache: true
+            },
+            templateResult: formatFileItem,
+            templateSelection: formatFileSelection
+        });
+    }
+    
+    // 格式化下拉选项，显示文件名和时间
+    function formatFileItem(file) {
+        if (!file.id) return file.text;
+        
+        var $fileElement = $(
+            '<div class="file-list-item">' +
+                '<span class="file-name">' + file.text + '</span>' +
+                '<span class="file-date">' + file.date + '</span>' +
+            '</div>'
+        );
+        
+        return $fileElement;
+    }
+    
+    // 格式化已选项
+    function formatFileSelection(file) {
+        return file.text || file.text;
+    }
+    
+    // 加载Excel文件的工作表
+    function loadExcelFileSheets(filePath) {
+        if (!filePath) {
+            $('#sheet-select').empty().append('<option value="" disabled selected>请先选择Excel文件</option>');
+            return;
+        }
+        
+        // 清空并显示加载中
+        $('#sheet-select').empty().append('<option value="" disabled selected>加载中...</option>');
+        
+        // 从API获取工作表信息
+        $.ajax({
+            url: '/api/import/excel/sheets',
+            method: 'GET',
+            data: { file_path: filePath },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.sheets && response.sheets.length > 0) {
+                    updateSheetSelect(response.sheets);
+                } else {
+                    $('#sheet-select').empty().append('<option value="" disabled selected>未找到工作表</option>');
+                    console.error('警告: 所选Excel文件中未找到工作表');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#sheet-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                console.error('错误: 加载工作表失败 - ' + (xhr.responseJSON?.error || error));
+            }
+        });
+    }
+    
+    // 更新工作表下拉框
+    function updateSheetSelect(sheets) {
+        $('#sheet-select').empty().append('<option value="" disabled selected>请选择工作表</option>');
+        
+        $.each(sheets, function(index, sheet) {
+            $('#sheet-select').append(
+                $('<option></option>')
+                    .attr('value', sheet.id)
+                    .text(sheet.name)
+            );
+        });
+        
+        if (sheets.length > 0) {
+            console.log('成功加载 ' + sheets.length + ' 个工作表');
+        }
+    }
+    
     // 加载表列表
     function loadTableList() {
         $.ajax({
@@ -275,7 +408,17 @@ $(document).ready(function() {
                     
                     // 填充表下拉框
                     response.tables.forEach(table => {
-                        $('#indexTableName').append(`<option value="${table.name}">${table.name}</option>`);
+                        // 构建表显示名称，包含备注信息
+                        var displayName = table.name;
+                        if (table.comment && table.comment.trim() !== '') {
+                            displayName += ' (' + table.comment + ')';
+                        }
+                        
+                        $('#indexTableName').append(
+                            $('<option></option>')
+                                .attr('value', table.name)
+                                .text(displayName)
+                        );
                     });
                 } else {
                     console.error('获取表列表失败:', response.message);
