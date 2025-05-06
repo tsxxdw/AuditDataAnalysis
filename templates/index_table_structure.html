@@ -24,30 +24,29 @@
                 <h2 class="section-title">表创建区域</h2>
                 <div class="form-group">
                     <label for="tableName">表名：</label>
-                    <input type="text" id="tableName" class="form-control" placeholder="t_n_xxx">
+                    <input type="text" id="tableName" class="form-control" placeholder="请输入表名">
                 </div>
+                
                 <div class="form-group">
-                    <label for="tableComment">表备注：</label>
-                    <input type="text" id="tableComment" class="form-control" placeholder="某某表">
+                    <label for="tableComment">表注释：</label>
+                    <input type="text" id="tableComment" class="form-control" placeholder="请输入表注释">
                 </div>
+                
                 <div class="form-group">
-                    <label for="dataSource">字段备注EXCEL源：</label>
-                    <select id="dataSource" class="form-control">
-                        <option value="">请选择EXCEL源</option>
-                        <option value="mysql">MySQL</option>
-                        <option value="sqlserver">SQL Server</option>
-                        <option value="oracle">Oracle</option>
-                    </select>
+                    <label for="excelPath">Excel文件路径：</label>
+                    <input type="text" class="form-control" id="excelPath" placeholder="请输入Excel文件路径">
+                    <small class="form-text text-muted">请确保文件路径正确，例如：/path/to/excel.xlsx</small>
                 </div>
+                
                 <div class="form-group">
-                    <label for="commentRow">字段备注所在行：</label>
-                    <select id="commentRow" class="form-control">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
+                    <label for="commentRow">字段注释行：</label>
+                    <input type="number" class="form-control" id="commentRow" placeholder="请输入字段注释所在的行号" value="1">
+                    <small class="form-text text-muted">Excel中字段注释所在的行号，从1开始</small>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="generateTableSql">生成表SQL</button>
+                    <button type="button" class="btn btn-success" id="createTable">创建表</button>
                 </div>
             </section>
             
@@ -56,28 +55,30 @@
                 <h2 class="section-title">索引管理区域</h2>
                 <div class="form-group">
                     <label for="indexTableName">表名：</label>
-                    <select id="indexTableName" class="form-control">
+                    <select class="form-control" id="indexTableName">
                         <option value="">请选择表</option>
-                        <option value="table1">表1</option>
-                        <option value="table2">表2</option>
-                        <option value="table3">表3</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="fieldName">字段名：</label>
-                    <select id="fieldName" class="form-control">
+                    <select class="form-control" id="fieldName">
                         <option value="">请选择字段</option>
-                        <option value="field1">字段1</option>
-                        <option value="field2">字段2</option>
-                        <option value="field3">字段3</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label for="indexOperationType">索引操作类型：</label>
-                    <select id="indexOperationType" class="form-control">
-                        <option value="create">生成索引</option>
+                    <label for="indexOperationType">操作类型：</label>
+                    <select class="form-control" id="indexOperationType">
+                        <option value="create">创建索引</option>
                         <option value="delete">删除索引</option>
                     </select>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="generateIndexSql">生成索引SQL</button>
+                    <button type="button" class="btn btn-success" id="createIndex">创建索引</button>
+                    <button type="button" class="btn btn-danger" id="deleteIndex">删除索引</button>
                 </div>
             </section>
             
@@ -86,12 +87,11 @@
                 <h2 class="section-title">SQL执行区域</h2>
                 <div class="form-group">
                     <label for="sqlContent">要执行的SQL：</label>
-                    <textarea id="sqlContent" class="form-control sql-textarea" placeholder="请输入SQL语句"></textarea>
+                    <textarea class="form-control sql-textarea" id="sqlContent" rows="5" placeholder="SQL语句将显示在这里"></textarea>
                 </div>
+                
                 <div class="button-group">
-                    <button id="generateTableSql" class="btn btn-primary">生成表创建SQL</button>
-                    <button id="generateIndexSql" class="btn btn-info">生成索引SQL</button>
-                    <button id="executeSql" class="btn btn-success">执行SQL</button>
+                    <button type="button" class="btn btn-primary" id="executeSql">执行SQL</button>
                 </div>
             </section>
         </div>
@@ -99,7 +99,7 @@
     
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
-
+    
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_table_structure.js') }}"></script>
