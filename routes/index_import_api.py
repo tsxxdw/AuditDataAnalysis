@@ -374,7 +374,7 @@ def get_table_field_info(db_type, db_config, table_name):
                     fields.append({
                         "name": row[0],
                         "type": row[1],
-                        "comment": row[2] if row[2] else row[0],
+                        "comment": row[2] if row[2] else '',
                         "position": row[3]
                     })
                 
@@ -407,7 +407,7 @@ def get_table_field_info(db_type, db_config, table_name):
                 fields.append({
                     "name": row[0],
                     "type": row[1],
-                    "comment": row[2] if row[2] else row[0],
+                    "comment": row[2] if row[2] else '',
                     "position": row[3]
                 })
             
@@ -434,7 +434,7 @@ def get_table_field_info(db_type, db_config, table_name):
                 fields.append({
                     "name": row[0],
                     "type": row[1],
-                    "comment": row[0],
+                    "comment": '',
                     "position": row[2]
                 })
             

@@ -904,7 +904,11 @@ $(document).ready(function() {
         
         // 使用表字段作为表头
         $.each(fields, function(index, field) {
-            fieldHeaderRow += `<th title="${field.type}">${field.comment || field.name}</th>`;
+            var displayName = field.name;
+            if (field.comment && field.comment.trim() !== '') {
+                displayName += ' (' + field.comment + ')';
+            }
+            fieldHeaderRow += `<th title="${field.type}">${displayName}</th>`;
         });
         
         fieldHeaderRow += '</tr>';
