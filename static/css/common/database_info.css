@@ -9,17 +9,18 @@
 }
 
 .db-info-container {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 15px;
+    position: absolute;
+    right: 20px;
+    top: 5px;
 }
 
 .db-info {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background-color: #f0f7ff;
+    border: 1px solid #c0d6f9;
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 5px 10px;
     font-size: 0.85em;
-    color: #495057;
+    color: #3174c7;
     font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 } 

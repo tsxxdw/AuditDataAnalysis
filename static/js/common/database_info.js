@@ -35,8 +35,8 @@ $(document).ready(function() {
             
             dbInfoContainer.append(dbInfoElement);
             
-            // 将数据库信息容器添加到页面标题旁边
-            $('.page-title').after(dbInfoContainer);
+            // 将数据库信息容器添加到容器中的顶部位置
+            $('.container').append(dbInfoContainer);
         } else {
             // 如果容器已存在，则更新内容
             $('.db-info').text(dbInfoText);
