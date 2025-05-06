@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SearchableDropdown 示例</title>
+    <link rel="stylesheet" href="../css/components/searchable-dropdown.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .demo-section {
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .code-block {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>SearchableDropdown 示例</h1>
+
+    <div class="demo-section">
+        <h2>基础用法</h2>
+        <div id="basic-dropdown"></div>
+        <div class="code-block">
+            const basicData = [
+                { id: 1, text: '选项1' },
+                { id: 2, text: '选项2' },
+                { id: 3, text: '选项3' }
+            ];
+            
+            const basicDropdown = new SearchableDropdown({
+                element: '#basic-dropdown',
+                data: basicData
+            });
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>自定义模板</h2>
+        <div id="template-dropdown"></div>
+        <div class="code-block">
+            const templateData = [
+                { id: 1, name: '张三', age: 25, department: '技术部' },
+                { id: 2, name: '李四', age: 30, department: '市场部' },
+                { id: 3, name: '王五', age: 28, department: '销售部' }
+            ];
+            
+            const templateDropdown = new SearchableDropdown({
+                element: '#template-dropdown',
+                data: templateData,
+                valueField: 'id',
+                textField: 'name',
+                searchFields: ['name', 'department'],
+                itemTemplate: (item) => `
+                    <div>
+                        <strong>${item.name}</strong>
+                        <span style="color: #666; margin-left: 10px;">${item.department}</span>
+                    </div>
+                `
+            });
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>异步数据</h2>
+        <div id="async-dropdown"></div>
+        <div class="code-block">
+            const asyncDropdown = new SearchableDropdown({
+                element: '#async-dropdown',
+                data: async (query) => {
+                    // 模拟API调用
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            const data = [
+                                { id: 1, text: '异步选项1' },
+                                { id: 2, text: '异步选项2' },
+                                { id: 3, text: '异步选项3' }
+                            ];
+                            resolve(data.filter(item => 
+                                item.text.toLowerCase().includes(query.toLowerCase())
+                            ));
+                        }, 500);
+                    });
+                }
+            });
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>事件处理</h2>
+        <div id="event-dropdown"></div>
+        <div id="event-log" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px;"></div>
+        <div class="code-block">
+            const eventDropdown = new SearchableDropdown({
+                element: '#event-dropdown',
+                data: [
+                    { id: 1, text: '事件选项1' },
+                    { id: 2, text: '事件选项2' }
+                ],
+                onChange: (value, item) => {
+                    logEvent(`选择变更: ${item.text}`);
+                },
+                onSearch: (query) => {
+                    logEvent(`搜索: ${query}`);
+                },
+                onOpen: () => {
+                    logEvent('下拉框打开');
+                },
+                onClose: () => {
+                    logEvent('下拉框关闭');
+                }
+            });
+            
+            function logEvent(message) {
+                const log = document.getElementById('event-log');
+                log.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            }
+        </div>
+    </div>
+
+    <script src="../js/components/searchable-dropdown.js"></script>
+    <script>
+        // 基础用法
+        const basicData = [
+            { id: 1, text: '选项1' },
+            { id: 2, text: '选项2' },
+            { id: 3, text: '选项3' }
+        ];
+        
+        const basicDropdown = new SearchableDropdown({
+            element: '#basic-dropdown',
+            data: basicData
+        });
+
+        // 自定义模板
+        const templateData = [
+            { id: 1, name: '张三', age: 25, department: '技术部' },
+            { id: 2, name: '李四', age: 30, department: '市场部' },
+            { id: 3, name: '王五', age: 28, department: '销售部' }
+        ];
+        
+        const templateDropdown = new SearchableDropdown({
+            element: '#template-dropdown',
+            data: templateData,
+            valueField: 'id',
+            textField: 'name',
+            searchFields: ['name', 'department'],
+            itemTemplate: (item) => `
+                <div>
+                    <strong>${item.name}</strong>
+                    <span style="color: #666; margin-left: 10px;">${item.department}</span>
+                </div>
+            `
+        });
+
+        // 异步数据
+        const asyncDropdown = new SearchableDropdown({
+            element: '#async-dropdown',
+            data: async (query) => {
+                // 模拟API调用
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const data = [
+                            { id: 1, text: '异步选项1' },
+                            { id: 2, text: '异步选项2' },
+                            { id: 3, text: '异步选项3' }
+                        ];
+                        resolve(data.filter(item => 
+                            item.text.toLowerCase().includes(query.toLowerCase())
+                        ));
+                    }, 500);
+                });
+            }
+        });
+
+        // 事件处理
+        const eventDropdown = new SearchableDropdown({
+            element: '#event-dropdown',
+            data: [
+                { id: 1, text: '事件选项1' },
+                { id: 2, text: '事件选项2' }
+            ],
+            onChange: (value, item) => {
+                logEvent(`选择变更: ${item.text}`);
+            },
+            onSearch: (query) => {
+                logEvent(`搜索: ${query}`);
+            },
+            onOpen: () => {
+                logEvent('下拉框打开');
+            },
+            onClose: () => {
+                logEvent('下拉框关闭');
+            }
+        });
+        
+        function logEvent(message) {
+            const log = document.getElementById('event-log');
+            log.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+    </script>
+</body>
+</html> 

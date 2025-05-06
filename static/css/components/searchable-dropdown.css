@@ -1,0 +1,86 @@
+.searchable-dropdown {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+}
+
+.searchable-dropdown-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.searchable-dropdown-input:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.searchable-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 1000;
+}
+
+.searchable-dropdown.open .searchable-dropdown-list {
+    display: block;
+}
+
+.searchable-dropdown-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.searchable-dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.searchable-dropdown-item.selected {
+    background-color: #e9ecef;
+}
+
+.searchable-dropdown-no-results {
+    padding: 8px 12px;
+    color: #6c757d;
+    text-align: center;
+}
+
+/* 滚动条样式 */
+.searchable-dropdown-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.searchable-dropdown-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.searchable-dropdown-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.searchable-dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .searchable-dropdown-list {
+        max-height: 200px;
+    }
+} 
