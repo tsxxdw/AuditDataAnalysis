@@ -11,13 +11,13 @@ $(document).ready(function() {
     
     // 模态对话框关闭按钮事件
     $('.close-modal').on('click', function() {
-        $('#templateDetailsModal').hide();
+        $('#templateDetailsModal').css('display', 'none');
     });
     
     // 点击模态对话框外部关闭
     $(window).on('click', function(event) {
         if ($(event.target).is('#templateDetailsModal')) {
-            $('#templateDetailsModal').hide();
+            $('#templateDetailsModal').css('display', 'none');
         }
     });
     
@@ -56,9 +56,30 @@ $(document).ready(function() {
     
     // 查看模板详情按钮点击事件
     $('#viewTemplateDetails').on('click', function() {
-        const templateId = $('#promptTemplate').val();
+        console.log('查看模板详情点击事件触发');
+        
+        // 优先从组件实例获取值
+        let templateId = null;
+        
+        // 1. 先从按钮的data属性获取
+        templateId = $(this).data('template-id');
+        console.log('从按钮data属性获取模板ID:', templateId);
+        
+        // 2. 如果没有，从组件实例获取
+        if (!templateId && window.templateDropdown && window.templateDropdown.getValue) {
+            templateId = window.templateDropdown.getValue();
+            console.log('从组件实例获取模板ID:', templateId);
+        }
+        
+        // 3. 如果仍然没有，则从隐藏select获取
+        if (!templateId) {
+            templateId = $('#promptTemplate').val();
+            console.log('从隐藏select获取模板ID:', templateId);
+        }
         
         if (!templateId) {
+            console.log('未选择模板，不执行请求');
+            alert('请先选择一个模板');
             return;
         }
         
@@ -107,7 +128,7 @@ $(document).ready(function() {
                     }
                     
                     // 显示模态对话框
-                    $('#templateDetailsModal').show();
+                    $('#templateDetailsModal').css('display', 'block');
                 } else {
                     alert(response.message || '获取模板详情失败');
                 }
@@ -639,10 +660,17 @@ $(document).ready(function() {
             onChange: (value, item) => {
                 // 设置隐藏下拉框的值
                 $('#promptTemplate').val(value);
+                console.log('已设置隐藏select值:', value, '元素当前值:', $('#promptTemplate').val());
+                
+                // 保存ID到按钮的data属性中
+                $('#viewTemplateDetails').data('template-id', value);
                 
                 // 启用查看详情按钮
                 $('#viewTemplateDetails').prop('disabled', false);
             }
         });
+        
+        // 保存实例以便后续访问
+        window.templateDropdown = templateDropdown;
     }
 }); 
