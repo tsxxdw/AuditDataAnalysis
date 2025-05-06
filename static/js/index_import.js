@@ -442,9 +442,15 @@ $(document).ready(function() {
                 // 添加所有表选项
                 if (data.length > 0) {
                     $.each(data, function(index, table) {
+                        // 构建表显示名称，包含备注信息
+                        var displayName = table.name;
+                        if (table.comment && table.comment.trim() !== '') {
+                            displayName += ' (' + table.comment + ')';
+                        }
+                        
                         $('#table-select').append($('<option></option>')
                             .attr('value', table.id)
-                            .text(table.name));
+                            .text(displayName));
                     });
                     addLog('成功加载 ' + data.length + ' 个表');
                 } else {
