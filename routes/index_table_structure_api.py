@@ -6,6 +6,7 @@
 
 from flask import Blueprint, request, jsonify
 from service.log.logger import app_logger
+from utils.database_config_util import DatabaseConfigUtil
 
 # 创建蓝图
 index_table_structure_bp = Blueprint('index_table_structure_api', __name__, url_prefix='/api/table_structure')
