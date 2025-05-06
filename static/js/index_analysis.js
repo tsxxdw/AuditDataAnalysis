@@ -1,6 +1,6 @@
-// 数据分析页面JS文件(index_query)
+// 数据分析页面JS文件(index_analysis)
 $(document).ready(function() {
-    // 业务查询页面特定的JS代码
+    // 数据分析页面特定的JS代码
     
     // 模板示例数据
     const sqlTemplates = {
