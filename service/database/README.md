@@ -99,7 +99,7 @@ config = {
 }
 
 # 执行查询
-result = db_service.execute_query(
+result = db_service.execute_sql(
     'mysql', 
     config, 
     "SELECT * FROM users WHERE age > :age", 
@@ -107,7 +107,7 @@ result = db_service.execute_query(
 )
 
 # 处理结果
-for row in result:
+for row in result['rows']:
     print(row)
 ```
 

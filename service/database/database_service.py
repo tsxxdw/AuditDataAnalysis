@@ -42,33 +42,6 @@ class DatabaseService:
             raise AppException(error_message, code=500, details={"original_error": str(e), "db_type": config.get('type')})
     
     @safe_db_operation
-    def execute_query(self, db_type, config, query, params=None):
-        """执行查询
-        
-        Args:
-            db_type: 数据库类型
-            config: 数据库配置
-            query: SQL查询语句
-            params: 查询参数
-            
-        Returns:
-            result: 查询结果
-            
-        Raises:
-            AppException: 查询失败时抛出
-        """
-        try:
-            connection = self.pool_manager.get_connection(db_type, config)
-            result = connection.execute(query, params or {})
-            return result
-        except Exception as e:
-            app_logger.error(f"执行查询失败: {str(e)}")
-            raise AppException(f"执行查询失败: {str(e)}", code=500, details={"query": query, "db_type": db_type})
-        finally:
-            if 'connection' in locals() and connection:
-                connection.close()
-    
-    @safe_db_operation
     def execute_sql(self, db_type, config, sql, params=None):
         """执行任意SQL语句
         
@@ -221,7 +194,7 @@ class DatabaseService:
                 """
                 # 默认使用dbo架构，除非另有指定
                 schema = db_config.get('schema', 'dbo')
-                result = self.execute_query(db_type, db_config, text(query), {"schema": schema})
+                result = self.execute_sql(db_type, db_config, text(query), {"schema": schema})['rows']
                 
                 # 提取表名和备注
                 tables = []
@@ -253,7 +226,7 @@ class DatabaseService:
                     ORDER BY 
                         t.TABLE_NAME
                 """
-                result = self.execute_query(db_type, db_config, text(query), {"owner": database})
+                result = self.execute_sql(db_type, db_config, text(query), {"owner": database})['rows']
                 
                 # 提取表名和备注
                 tables = []
@@ -393,7 +366,7 @@ class DatabaseService:
                     ORDER BY 
                         c.column_id
                 """
-                result = self.execute_query(db_type, db_config, text(query), {"table_name": table_name})
+                result = self.execute_sql(db_type, db_config, text(query), {"table_name": table_name})['rows']
                 
                 fields = []
                 for row in result:
@@ -420,7 +393,7 @@ class DatabaseService:
                     ORDER BY 
                         COLUMN_ID
                 """
-                result = self.execute_query(db_type, db_config, text(query), {"owner": database, "table_name": table_name})
+                result = self.execute_sql(db_type, db_config, text(query), {"owner": database, "table_name": table_name})['rows']
                 
                 fields = []
                 for row in result:
