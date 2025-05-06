@@ -28,12 +28,6 @@ def index_import():
     app_logger.info("访问数据导入页面")
     return render_template('index_import.html', page_title='数据导入')
 
-@pages_bp.route('/index_query')
-def index_query():
-    """业务查询页面（已重命名为数据分析，保留此路由用于兼容）"""
-    app_logger.info("访问业务查询页面（重定向到数据分析页面）")
-    return render_template('index_analysis.html', page_title='数据分析')
-
 @pages_bp.route('/index_analysis')
 def index_analysis():
     """数据分析页面"""
