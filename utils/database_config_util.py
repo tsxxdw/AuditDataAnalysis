@@ -141,6 +141,23 @@ class DatabaseConfigUtil:
         except Exception as e:
             print(f"获取所有数据库配置失败: {str(e)}")
             return {}
+    
+    @staticmethod
+    def get_db_display_name(db_type: str) -> str:
+        """获取数据库类型的显示名称
+        
+        Args:
+            db_type: 数据库类型标识符
+            
+        Returns:
+            str: 数据库类型的显示名称
+        """
+        display_names = {
+            'mysql': 'MySQL',
+            'sqlserver': 'SQL Server',
+            'oracle': 'Oracle'
+        }
+        return display_names.get(db_type, db_type)
 
 
 if __name__ == "__main__":

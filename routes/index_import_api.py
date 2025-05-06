@@ -7,6 +7,8 @@
 from flask import Blueprint, jsonify, request, current_app, send_file, send_from_directory
 from utils.database_config_util import DatabaseConfigUtil
 from utils.excel_util import ExcelUtil
+from utils.request_util import is_local_request
+from utils.file_util import is_safe_file_path, ensure_export_directory
 from config.global_config import get_project_root, get_export_dir
 from service.database.database_service import DatabaseService
 from service.database.db_pool_manager import DatabasePoolManager
@@ -40,7 +42,7 @@ def get_db_types():
         for db_type in db_types:
             result.append({
                 'id': db_type,
-                'name': get_db_display_name(db_type),
+                'name': DatabaseConfigUtil.get_db_display_name(db_type),
                 'isDefault': db_type == default_type
             })
         
@@ -77,22 +79,6 @@ def get_tables():
     except Exception as e:
         app_logger.error(f"获取数据库表列表失败: {str(e)}")
         return jsonify({"error": f"获取表列表失败: {str(e)}"}), 500
-
-def get_db_display_name(db_type):
-    """获取数据库类型的显示名称
-    
-    Args:
-        db_type: 数据库类型标识符
-        
-    Returns:
-        str: 数据库类型的显示名称
-    """
-    display_names = {
-        'mysql': 'MySQL',
-        'sqlserver': 'SQL Server',
-        'oracle': 'Oracle'
-    }
-    return display_names.get(db_type, db_type)
 
 @import_api_bp.route('/api/import/excel/sheets', methods=['GET'])
 def get_excel_sheets():
@@ -342,7 +328,7 @@ def open_excel_file():
     """
     try:
         # 检查是否为本地请求
-        is_local = _is_local_request()
+        is_local = is_local_request()
         app_logger.info(f"打开Excel请求 - 是否本地请求: {is_local}, Host: {request.host}")
         
         if not is_local:
@@ -377,7 +363,7 @@ def open_excel_file():
         
         # 验证文件路径是否在允许范围内
         app_logger.info(f"验证文件路径: {file_path}")
-        if not _is_safe_file_path(file_path):
+        if not is_safe_file_path(file_path):
             app_logger.warning(f"文件路径安全检查失败: {file_path}")
             return jsonify({
                 "success": False,
@@ -406,78 +392,8 @@ def open_excel_file():
         return jsonify({
             "success": False,
             "message": f"打开Excel文件失败: {str(e)}",
-            "is_local": _is_local_request()
+            "is_local": is_local_request()
         }), 500
-
-def _is_local_request():
-    """检查当前请求是否来自本地
-    
-    基于请求的Host头判断是否为localhost或127.0.0.1
-    
-    Returns:
-        bool: 是否为本地请求
-    """
-    host = request.host.split(':')[0].lower()
-    return host in ('localhost', '127.0.0.1')
-
-def _is_safe_file_path(file_path):
-    """判断文件路径是否在允许的范围内
-    
-    防止任意文件访问，确保只能访问static/uploads目录及其子目录下的Excel文件
-    
-    Args:
-        file_path: 要检查的文件路径
-        
-    Returns:
-        bool: 文件路径是否安全
-    """
-    try:
-        # 规范化路径，处理路径分隔符差异
-        abs_path = os.path.abspath(file_path)
-        
-        # 尝试获取应用的根目录和uploads目录
-        root_dir = current_app.root_path
-        
-        # 处理多种可能的uploads目录结构
-        possible_upload_dirs = [
-            os.path.abspath(os.path.join(root_dir, 'static', 'uploads')),  # /app/static/uploads
-            os.path.abspath(os.path.join(root_dir, '..', 'static', 'uploads')),  # /static/uploads (相对于app)
-            os.path.abspath('./static/uploads')  # 当前工作目录下的static/uploads
-        ]
-        
-        # 检查文件是否存在
-        if not os.path.exists(abs_path):
-            app_logger.warning(f"文件不存在: {abs_path}")
-            return False
-        
-        # 检查是否为Excel文件
-        if not abs_path.lower().endswith(('.xlsx', '.xls')):
-            app_logger.warning(f"不是Excel文件: {abs_path}")
-            return False
-        
-        # 检查文件是否在允许的uploads目录下
-        is_in_uploads = False
-        for uploads_dir in possible_upload_dirs:
-            # 记录路径信息用于调试
-            app_logger.debug(f"检查路径是否在uploads目录下: {abs_path} vs {uploads_dir}")
-            
-            if os.path.exists(uploads_dir) and abs_path.startswith(uploads_dir):
-                is_in_uploads = True
-                break
-        
-        if not is_in_uploads:
-            app_logger.warning(f"文件路径不在允许的目录范围内: {abs_path}")
-            
-            # 输出所有尝试的目录路径，帮助调试
-            app_logger.warning(f"允许的目录: {possible_upload_dirs}")
-            
-            return False
-        
-        return True
-        
-    except Exception as e:
-        app_logger.error(f"文件路径安全检查失败: {str(e)}", exc_info=True)
-        return False
 
 @import_api_bp.route('/api/import/export-logs', methods=['POST'])
 def export_logs():
@@ -509,7 +425,7 @@ def export_logs():
             }), 400
         
         # 使用全局配置的导出目录
-        export_dir = get_export_dir()
+        export_dir = ensure_export_directory()
         app_logger.info(f"使用全局配置的导出目录: {export_dir}")
         
         # 生成唯一文件名
@@ -550,28 +466,6 @@ def export_logs():
             "success": False,
             "message": f"导出日志失败: {str(e)}"
         }), 500
-
-def _ensure_export_directory():
-    """确保导出目录存在
-    
-    使用全局配置的项目路径获取导出目录
-    
-    Returns:
-        str: 导出目录路径
-    """
-    try:
-        # 使用全局配置的导出目录
-        export_dir = get_export_dir()
-        app_logger.info(f"使用全局配置获取导出目录: {export_dir}")
-        return export_dir
-    except Exception as e:
-        app_logger.error(f"获取导出目录失败: {str(e)}", exc_info=True)
-        
-        # 使用一个确定可写入的目录作为备用
-        fallback_dir = os.path.join(os.getcwd(), 'export')
-        app_logger.warning(f"使用备用目录: {fallback_dir}")
-        os.makedirs(fallback_dir, exist_ok=True)
-        return fallback_dir
 
 @import_api_bp.route('/export/<path:filename>')
 def download_export_file(filename):
