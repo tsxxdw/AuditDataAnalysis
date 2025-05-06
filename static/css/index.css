@@ -74,6 +74,11 @@
     content: "🔄";
 }
 
+/* 提示词模板按钮图标 */
+.prompt-btn:before {
+    content: "💬";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);

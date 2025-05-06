@@ -11,6 +11,7 @@ from routes.index_one_to_one_import_api import index_one_to_one_import_bp
 from routes.index_table_structure_api import index_table_structure_bp
 from routes.common.common_api import common_api_bp
 from routes.index_analysis_api import index_analysis_bp
+from routes.index_prompt_templates_api import index_prompt_templates_bp
 from routes.pages import pages_bp
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
@@ -33,6 +34,7 @@ app.register_blueprint(index_one_to_one_import_bp)
 app.register_blueprint(index_table_structure_bp)  # 注册表结构相关API路由
 app.register_blueprint(common_api_bp)  # 注册通用API路由
 app.register_blueprint(index_analysis_bp)  # 注册数据分析API路由
+app.register_blueprint(index_prompt_templates_bp)  # 注册提示词模板API路由
 app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 
 # 初始化中间件

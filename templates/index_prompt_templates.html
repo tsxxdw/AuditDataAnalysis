@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示词模板 - 数据分析系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_prompt_templates.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
+    
+    <main>
+        <div class="container">
+            <h1 class="page-title">提示词模板管理</h1>
+            
+            <!-- 模板列表区域 -->
+            <section class="card templates-list-section">
+                <h2 class="section-title">模板列表</h2>
+                <div class="templates-container">
+                    <!-- 这里将通过JavaScript动态加载模板列表 -->
+                </div>
+            </section>
+            
+            <!-- 模板编辑区域 -->
+            <section class="card template-edit-section">
+                <h2 class="section-title">模板编辑</h2>
+                
+                <div class="form-group">
+                    <label for="templateName">模板名称：</label>
+                    <input type="text" id="templateName" class="form-control" placeholder="请输入模板名称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="templateDescription">模板描述：</label>
+                    <input type="text" id="templateDescription" class="form-control" placeholder="请简要描述此模板的用途">
+                </div>
+                
+                <div class="prompt-sections">
+                    <!-- 系统提示词部分 -->
+                    <div class="prompt-section system-section">
+                        <div class="prompt-section-header">
+                            <span class="prompt-tag">系统</span>
+                            <span class="prompt-hint">向AI系统说明背景、角色和任务</span>
+                        </div>
+                        <textarea class="form-control prompt-textarea" id="systemPrompt" placeholder="你是一位数据分析专家，擅长分析财务数据和发现异常..."></textarea>
+                    </div>
+                    
+                    <!-- 用户提示词部分 -->
+                    <div class="prompt-section user-section">
+                        <div class="prompt-section-header">
+                            <span class="prompt-tag">用户</span>
+                            <span class="prompt-hint">用户将会提出的问题</span>
+                        </div>
+                        <textarea class="form-control prompt-textarea" id="userPrompt" placeholder="请分析以下数据中的异常情况：{数据}"></textarea>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="saveTemplate">保存模板</button>
+                    <button type="button" class="btn btn-info" id="clearTemplate">清空内容</button>
+                </div>
+            </section>
+            
+            <!-- 预览区域 -->
+            <section class="card template-preview-section" style="display: none;">
+                <h2 class="section-title">模板预览</h2>
+                <div class="preview-container">
+                    <div class="preview-content"></div>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="closePreview">关闭预览</button>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
+    
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index_prompt_templates.js') }}"></script>
+</body>
+</html> 

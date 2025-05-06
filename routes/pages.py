@@ -64,6 +64,12 @@ def index_one_to_one_import():
     app_logger.info("访问一对一导入页面")
     return render_template('index_one_to_one_import.html', page_title='一对一导入')
 
+@pages_bp.route('/index_prompt_templates')
+def index_prompt_templates():
+    """提示词模板页面"""
+    app_logger.info("访问提示词模板页面")
+    return render_template('index_prompt_templates.html', page_title='提示词模板')
+
 @pages_bp.route('/settings')
 def settings():
     """系统设置页面"""
