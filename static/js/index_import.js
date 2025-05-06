@@ -6,6 +6,8 @@ $(document).ready(function() {
     window.isLocalEnvironment = null;
     // 存储原始预览表格的HTML
     window.originalTableHtml = '';
+    // 存储已选文件的数组
+    window.selectedFiles = [];
     
     // 初始化时保存原始表格HTML
     window.originalTableHtml = $('.preview-table').html();
@@ -135,24 +137,6 @@ $(document).ready(function() {
         exportLogs();
     });
     
-    // 监听文件选择变化
-    $('#file-select').on('change', function() {
-        var selectedData = $(this).select2('data');
-        if (selectedData && selectedData.length > 0) {
-            var fileNames = selectedData.map(function(file) {
-                return file.text;
-            }).join(', ');
-            
-            if (selectedData.length === 1) {
-                addLog('用户选择文件: ' + fileNames);
-            } else {
-                addLog('用户选择多个文件: ' + selectedData.length + '个文件 (' + fileNames + ')');
-            }
-            
-            updateSelectedFiles();
-        }
-    });
-    
     // 列选择变化事件
     $('#column-select').change(function() {
         var selectedColumn = $(this).find('option:selected').text();
@@ -226,17 +210,66 @@ $(document).ready(function() {
     
     // 初始化文件选择器
     function initializeFileSelector() {
-        // 初始化Select2
-        $('#file-select').select2(getSelect2Options());
-        
-        // 记录Select2初始化完成
-        console.log("Select2初始化完成");
-        
-        // 监听选择变化事件
-        $('#file-select').on('change', function() {
-            console.log("Select2选择变化事件触发");
-            updateSelectedFiles();
+        // 获取Excel文件列表
+        $.ajax({
+            url: '/api/files/list',
+            type: 'GET',
+            success: function(data) {
+                // 过滤Excel文件
+                const excelFiles = data.filter(file => 
+                    file.name.endsWith('.xlsx') || file.name.endsWith('.xls')
+                ).sort((a, b) => new Date(b.date) - new Date(a.date)); // 按日期降序排序
+                
+                // 使用SearchableDropdown组件初始化文件选择器
+                initializeExcelFilesDropdown(excelFiles);
+            },
+            error: function(xhr) {
+                console.error('获取文件列表失败:', xhr);
+                addLog('错误: 获取文件列表失败 - ' + (xhr.responseJSON?.error || xhr.statusText));
+            }
         });
+    }
+    
+    // 使用SearchableDropdown组件初始化Excel文件选择器
+    function initializeExcelFilesDropdown(files) {
+        // 转换数据结构以适应SearchableDropdown组件
+        const dropdownData = files.map(file => ({
+            id: file.path,
+            text: file.name,
+            date: file.date
+        }));
+        
+        // 创建文件下拉选择器
+        const fileDropdown = new SearchableDropdown({
+            element: '#fileDropdown',
+            data: dropdownData,
+            valueField: 'id',
+            textField: 'text',
+            searchFields: ['text'],
+            placeholder: '输入关键词搜索Excel文件...',
+            noResultsText: '没有找到匹配的Excel文件',
+            itemTemplate: (item) => `
+                <div>
+                    <span style="font-weight: bold;">${item.text}</span>
+                    <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date}</span>
+                </div>
+            `,
+            onChange: (value, item) => {
+                // 记录选择的文件
+                if (!window.selectedFiles.includes(value)) {
+                    window.selectedFiles.push(value);
+                    
+                    // 更新UI显示
+                    updateSelectedFiles();
+                    
+                    // 记录日志
+                    addLog('用户选择文件: ' + item.text);
+                }
+            }
+        });
+        
+        // 在组件上存储所有文件数据，以便后续使用
+        window.allExcelFiles = dropdownData;
     }
     
     // 初始化数据库类型下拉框
@@ -304,108 +337,6 @@ $(document).ready(function() {
         var shouldDisable = !window.isLocalEnvironment || !selectedExcel || !selectedSheet;
         
         $btn.prop('disabled', shouldDisable);
-    }
-    
-    // 打开Excel文件
-    function openExcelFile() {
-        var selectedExcel = $('#excel-file-select').val();
-        var selectedSheet = $('#sheet-select').val();
-        
-        if (!selectedExcel) {
-            addLog('错误: 请选择要打开的Excel文件');
-            return;
-        }
-        
-        // 禁用按钮，防止重复点击
-        $('#open-excel-btn').prop('disabled', true).text('打开中...');
-        
-        // 添加一条日志
-        addLog(`尝试打开Excel文件: ${selectedExcel}`);
-        
-        // 调用API打开Excel文件
-        $.ajax({
-            url: '/api/import/excel/open',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                file_path: selectedExcel,
-                sheet_id: selectedSheet
-            }),
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // 基本成功消息
-                    addLog('成功: ' + response.message);
-                    
-                    // 如果有WPS信息，显示使用的是哪种程序
-                    if (response.hasOwnProperty('using_wps')) {
-                        if (response.using_wps) {
-                            addLog('📊 使用WPS打开Excel文件', true);
-                        } else {
-                            addLog('📊 使用Microsoft Excel打开文件', true);
-                        }
-                    }
-                } else {
-                    if (!response.is_local) {
-                        addLog('错误: 此功能仅支持本地环境');
-                    } else if (!response.is_windows) {
-                        addLog('错误: 此功能仅支持Windows系统');
-                    } else {
-                        addLog('错误: ' + response.message);
-                        
-                        // 如果有详细错误信息，显示它
-                        if (response.details) {
-                            addLog('详情: ' + response.details);
-                        }
-                        
-                        // 记录当前文件路径，帮助排查问题
-                        console.log('文件路径:', selectedExcel);
-                    }
-                }
-            },
-            error: function(xhr, status, error) {
-                var errorMsg = '';
-                var detailMsg = '';
-                
-                try {
-                    // 尝试解析错误响应
-                    if (xhr.responseJSON) {
-                        if (xhr.responseJSON.message) {
-                            errorMsg = xhr.responseJSON.message;
-                        }
-                        if (xhr.responseJSON.details) {
-                            detailMsg = xhr.responseJSON.details;
-                        }
-                    } else if (xhr.status === 403) {
-                        errorMsg = '访问被拒绝，可能是文件路径不在允许的范围内';
-                    } else {
-                        errorMsg = error || '未知错误';
-                    }
-                } catch (e) {
-                    errorMsg = '无法解析错误信息: ' + e.message;
-                }
-                
-                addLog('错误: 打开Excel文件失败 - ' + errorMsg);
-                if (detailMsg) {
-                    addLog('详情: ' + detailMsg);
-                }
-                
-                // 记录到控制台，便于调试
-                console.error('Excel文件打开错误:', {
-                    status: xhr.status,
-                    statusText: xhr.statusText,
-                    error: error,
-                    response: xhr.responseText,
-                    filePath: selectedExcel,
-                    sheetId: selectedSheet
-                });
-            },
-            complete: function() {
-                // 恢复按钮状态
-                $('#open-excel-btn').prop('disabled', !window.isLocalEnvironment).text('打开EXCEL');
-                updateOpenExcelButtonState();
-            }
-        });
     }
     
     // 监听Excel文件和工作表选择变化，更新打开Excel按钮状态
@@ -643,168 +574,6 @@ $(document).ready(function() {
             addLog('成功加载 ' + sheets.length + ' 个工作表');
         }
     }
-    
-    // Select2配置选项
-    function getSelect2Options() {
-        return {
-            placeholder: '搜索并选择Excel文件...',
-            allowClear: true,
-            ajax: {
-                url: '/api/files/list',
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        search: params.term // 搜索参数
-                    };
-                },
-                processResults: function(data) {
-                    console.log("Select2处理API结果, 获取到文件数量:", data.length);
-                    
-                    // 转换API返回的数据为Select2需要的格式
-                    var results = data.map(function(file) {
-                        // 只处理Excel文件
-                        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-                            return {
-                                id: file.path,
-                                text: file.name,
-                                date: file.date,
-                                url: file.url
-                            };
-                        }
-                        return null;
-                    }).filter(function(item) {
-                        return item !== null;
-                    });
-                    
-                    // 按日期倒序排序
-                    results.sort(function(a, b) {
-                        return new Date(b.date) - new Date(a.date);
-                    });
-                    
-                    console.log("处理后的Excel文件数量:", results.length);
-                    
-                    return {
-                        results: results
-                    };
-                },
-                cache: true
-            },
-            templateResult: formatFileItem,
-            templateSelection: formatFileSelection
-        };
-    }
-    
-    // 格式化下拉选项，显示文件名和时间
-    function formatFileItem(file) {
-        if (!file.id) return file.text;
-        
-        var $fileElement = $(
-            '<div class="file-list-item">' +
-                '<span class="file-name">' + file.text + '</span>' +
-                '<span class="file-date">' + file.date + '</span>' +
-            '</div>'
-        );
-        
-        return $fileElement;
-    }
-    
-    // 格式化已选项
-    function formatFileSelection(file) {
-        return file.text || file.text;
-    }
-    
-    // 更新已选文件显示
-    function updateSelectedFiles() {
-        var selectedFiles = $('#file-select').select2('data');
-        var $container = $('#selected-files-container');
-        
-        console.log("更新已选文件:", selectedFiles.length, "个文件");
-        
-        $container.empty();
-        
-        if (selectedFiles.length === 0) {
-            return;
-        }
-        
-        // 如果选择的文件太多，只显示一部分
-        var maxDisplay = 20; // 最多显示20个文件标签
-        var displayCount = Math.min(selectedFiles.length, maxDisplay);
-        
-        // 添加已选文件标签
-        for (var i = 0; i < displayCount; i++) {
-            var file = selectedFiles[i];
-            var $tag = $(
-                '<div class="selected-file-tag" data-id="' + file.id + '">' +
-                    file.text +
-                    '<span class="remove-file" title="移除">&times;</span>' +
-                '</div>'
-            );
-            
-            // 点击X移除文件
-            $tag.find('.remove-file').on('click', function() {
-                var fileId = $(this).parent().data('id');
-                var values = $('#file-select').val();
-                values = values.filter(function(value) {
-                    return value !== fileId;
-                });
-                $('#file-select').val(values).trigger('change');
-            });
-            
-            $container.append($tag);
-        }
-        
-        // 如果有更多文件，显示计数
-        if (selectedFiles.length > maxDisplay) {
-            var moreCount = selectedFiles.length - maxDisplay;
-            var $moreTag = $(
-                '<div class="selected-file-tag more-files">' +
-                    '还有' + moreCount + '个文件...' +
-                '</div>'
-            );
-            $container.append($moreTag);
-        }
-        
-        // 显示已选文件数量
-        if (selectedFiles.length > 0) {
-            var $countTag = $(
-                '<div class="selected-file-count">' +
-                    '共选择了 ' + selectedFiles.length + ' 个文件' +
-                '</div>'
-            );
-            $container.append($countTag);
-        }
-        
-        // 更新文件路径到按钮数据中
-        updateFilePathForButtons(selectedFiles);
-    }
-    
-    // 更新文件路径到按钮数据中
-    function updateFilePathForButtons(selectedFiles) {
-        if (selectedFiles.length === 0) {
-            return;
-        }
-        
-        var filePathsArray = selectedFiles.map(function(file) {
-            return file.id;
-        });
-        
-        var filePaths = filePathsArray.join(',');
-        
-        // 将文件路径存储在按钮的data属性中
-        $('#preview-btn').data('file-paths', filePaths);
-        $('#import-btn').data('file-paths', filePaths);
-        
-        // 兼容原有代码，更新隐藏的文件路径输入框
-        $('#file-path').val(filePaths);
-    }
-    
-    // 文件浏览按钮点击事件（实际功能需要后端支持）
-    // 保留但不使用，为了兼容性
-    $('#browse-btn').click(function() {
-        // 这里只是界面演示，实际操作需要后端API支持
-        alert('浏览文件功能已替换为下拉选择器');
-    });
     
     // 预览数据
     function previewData() {
@@ -1702,86 +1471,19 @@ $(document).ready(function() {
 
     // 全选所有Excel文件
     function selectAllFiles() {
-        // 显示加载中状态
-        var $btn = $('#select-all-btn');
-        var originalText = $btn.text();
-        $btn.prop('disabled', true).text('加载中...');
+        if (!window.allExcelFiles || window.allExcelFiles.length === 0) {
+            addLog('警告: 没有可选择的Excel文件');
+            return;
+        }
         
-        // 记录调试信息
-        console.log("开始获取所有Excel文件...");
-        addLog('正在获取所有Excel文件...');
+        // 获取所有文件的ID
+        window.selectedFiles = window.allExcelFiles.map(file => file.id);
         
-        // 调用API获取所有Excel文件
-        $.ajax({
-            url: '/api/files/list',
-            method: 'GET',
-            dataType: 'json',
-            // 移除可能不支持的参数
-            // data: { fileType: 'excel' },
-            success: function(data) {
-                console.log("获取文件列表成功，文件数量:", data.length);
-                
-                // 过滤Excel文件
-                var excelFiles = data.filter(function(file) {
-                    return file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
-                });
-                
-                console.log("过滤得到Excel文件数量:", excelFiles.length);
-                
-                if (excelFiles.length === 0) {
-                    addLog('提示: 未找到Excel文件');
-                    return;
-                }
-                
-                // 提取文件ID数组
-                var fileIds = excelFiles.map(function(file) {
-                    return file.path;
-                });
-                
-                console.log("要选择的文件IDs:", fileIds);
-                
-                try {
-                    // 清空当前选择
-                    $('#file-select').val(null).trigger('change');
-                    
-                    // 创建Select2可用的选项对象
-                    var newOptions = [];
-                    excelFiles.forEach(function(file) {
-                        // 检查选项是否已存在
-                        if (!$('#file-select').find("option[value='" + file.path + "']").length) {
-                            // 创建新选项
-                            var newOption = new Option(file.name, file.path, true, true);
-                            newOptions.push(newOption);
-                        } else {
-                            // 如果选项已存在，只需选中它
-                            $('#file-select').find("option[value='" + file.path + "']").prop('selected', true);
-                        }
-                    });
-                    
-                    // 添加新选项（如果有）
-                    if (newOptions.length > 0) {
-                        $('#file-select').append(newOptions);
-                    }
-                    
-                    // 触发Select2更新
-                    $('#file-select').trigger('change');
-                    
-                    addLog(`已全选 ${excelFiles.length} 个Excel文件`);
-                    console.log("全选完成");
-                } catch (e) {
-                    console.error("选择文件时出错:", e);
-                    addLog('错误: 选择文件失败 - ' + e.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("获取文件列表失败:", error);
-                addLog('错误: 获取文件列表失败 - ' + (xhr.responseJSON?.error || error));
-            },
-            complete: function() {
-                // 恢复按钮状态
-                $btn.prop('disabled', false).text(originalText);
-            }
-        });
+        // 更新UI显示
+        updateSelectedFiles();
+        
+        // 记录日志
+        addLog('用户选择了所有Excel文件: ' + window.selectedFiles.length + '个文件');
     }
 
     // 初始化Excel列选择下拉框，填充A到CZ的列选项
@@ -1837,4 +1539,116 @@ $(document).ready(function() {
 
     // 初始化打开Excel按钮状态
     updateOpenExcelButtonState();
+
+    // 更新已选文件显示
+    function updateSelectedFiles() {
+        var $container = $('#selected-files-container');
+        
+        console.log("更新已选文件:", window.selectedFiles.length, "个文件");
+        
+        $container.empty();
+        
+        if (window.selectedFiles.length === 0) {
+            return;
+        }
+        
+        // 如果选择的文件太多，只显示一部分
+        var maxDisplay = 20; // 最多显示20个文件标签
+        var displayCount = Math.min(window.selectedFiles.length, maxDisplay);
+        
+        // 添加已选文件标签
+        for (var i = 0; i < displayCount; i++) {
+            var fileId = window.selectedFiles[i];
+            var fileInfo = window.allExcelFiles.find(f => f.id === fileId);
+            
+            if (fileInfo) {
+                var $tag = $(
+                    '<div class="selected-file-tag" data-id="' + fileId + '">' +
+                        fileInfo.text +
+                        '<span class="remove-file" title="移除">&times;</span>' +
+                    '</div>'
+                );
+                
+                // 点击X移除文件
+                $tag.find('.remove-file').on('click', function() {
+                    var fileId = $(this).parent().data('id');
+                    window.selectedFiles = window.selectedFiles.filter(id => id !== fileId);
+                    updateSelectedFiles();
+                });
+                
+                $container.append($tag);
+            }
+        }
+        
+        // 如果有更多文件，显示计数
+        if (window.selectedFiles.length > maxDisplay) {
+            var moreCount = window.selectedFiles.length - maxDisplay;
+            var $moreTag = $(
+                '<div class="selected-file-tag more-files">' +
+                    '还有' + moreCount + '个文件...' +
+                '</div>'
+            );
+            $container.append($moreTag);
+        }
+        
+        // 显示已选文件数量
+        if (window.selectedFiles.length > 0) {
+            var $countTag = $(
+                '<div class="selected-file-count">' +
+                    '共选择了 ' + window.selectedFiles.length + ' 个文件' +
+                '</div>'
+            );
+            $container.append($countTag);
+        }
+        
+        // 将选择的文件ID写入隐藏的select元素，保持兼容性
+        $('#file-select').val(window.selectedFiles);
+        
+        // 更新文件路径到按钮数据中
+        updateFilePathForButtons(window.selectedFiles);
+    }
+    
+    // 更新文件路径到按钮数据中
+    function updateFilePathForButtons(selectedFiles) {
+        if (selectedFiles.length === 0) {
+            return;
+        }
+        
+        var filePaths = selectedFiles.join(',');
+        
+        // 将文件路径存储在按钮的data属性中
+        $('#preview-btn').data('file-paths', filePaths);
+        $('#import-btn').data('file-paths', filePaths);
+        
+        // 兼容原有代码，更新隐藏的文件路径输入框
+        $('#file-path').val(filePaths);
+    }
+
+    // 移除文件
+    function removeFile(fileId) {
+        // 从已选文件中移除
+        window.selectedFiles = window.selectedFiles.filter(file => file.id !== fileId);
+        
+        // 更新UI显示
+        updateSelectedFiles();
+        
+        // 更新按钮状态
+        updateButtonStates();
+        
+        // 记录日志
+        logAction('移除文件', `文件ID: ${fileId}`);
+    }
+
+    // 更新按钮状态
+    function updateButtonStates() {
+        const hasSelectedFiles = window.selectedFiles.length > 0;
+        const hasSelectedTable = $('#table-select').val() !== '';
+        const hasSelectedSheet = $('#sheet-select').val() !== '';
+        
+        // 更新预览按钮状态
+        $('#preview-btn').prop('disabled', !(hasSelectedFiles && hasSelectedTable && hasSelectedSheet));
+        
+        // 更新导入按钮状态
+        $('#import-btn').prop('disabled', !(hasSelectedFiles && hasSelectedTable && hasSelectedSheet));
+    }
 }); 

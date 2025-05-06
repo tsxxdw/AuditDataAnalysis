@@ -367,8 +367,8 @@ $(document).ready(function() {
                 // 保存文件列表供全局访问
                 window.allExcelFiles = excelFiles;
                 
-                // 初始化自定义搜索控件
-                initializeFileSearch(excelFiles);
+                // 使用SearchableDropdown组件初始化Excel文件选择器
+                initializeExcelFileDropdown(excelFiles);
             },
             error: function(xhr) {
                 console.error('获取文件列表失败:', xhr);
@@ -376,87 +376,38 @@ $(document).ready(function() {
         });
     }
     
-    // 初始化自定义文件搜索控件
-    function initializeFileSearch(files) {
-        const $searchInput = $('#fileSearch');
-        const $searchResults = $('#fileSearchResults');
-        const $hiddenSelect = $('#file-select');
+    // 使用SearchableDropdown组件初始化Excel文件选择器
+    function initializeExcelFileDropdown(files) {
+        // 转换数据结构以适应SearchableDropdown组件
+        const dropdownData = files.map(file => ({
+            id: file.path,
+            text: file.name,
+            date: file.date
+        }));
         
-        // 输入框输入事件
-        $searchInput.on('input', function() {
-            const searchTerm = $(this).val().toLowerCase().trim();
-            
-            if (searchTerm === '') {
-                $searchResults.hide();
-                return;
-            }
-            
-            // 过滤匹配的文件
-            const matchedFiles = files.filter(file => {
-                const fileName = file.name.toLowerCase();
-                return fileName.includes(searchTerm);
-            });
-            
-            // 显示搜索结果
-            renderFileSearchResults(matchedFiles);
-        });
-        
-        // 输入框获得焦点时显示全部
-        $searchInput.on('focus', function() {
-            if (files.length > 0) {
-                renderFileSearchResults(files);
-            }
-        });
-        
-        // 处理点击其他区域隐藏搜索结果
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.file-search-container').length) {
-                $searchResults.hide();
+        // 创建Excel文件下拉选择器
+        const excelDropdown = new SearchableDropdown({
+            element: '#excelFileDropdown',
+            data: dropdownData,
+            valueField: 'id',
+            textField: 'text',
+            searchFields: ['text'],
+            placeholder: '输入关键词搜索Excel文件...',
+            noResultsText: '没有找到匹配的Excel文件',
+            itemTemplate: (item) => `
+                <div>
+                    <span style="font-weight: bold;">${item.text}</span>
+                    <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date}</span>
+                </div>
+            `,
+            onChange: (value, item) => {
+                // 设置隐藏下拉框的值
+                $('#file-select').val(value);
+                
+                // 加载工作表
+                loadExcelFileSheets(value);
             }
         });
-        
-        // 渲染搜索结果函数
-        function renderFileSearchResults(results) {
-            $searchResults.empty();
-            
-            if (results.length === 0) {
-                $searchResults.append('<div class="file-search-item">没有找到匹配的Excel文件</div>');
-            } else {
-                results.forEach(file => {
-                    const $item = $(`
-                        <div class="file-search-item" data-path="${file.path}">
-                            <span class="file-search-item-name">${file.name}</span>
-                            <span class="file-search-item-date">${file.date}</span>
-                        </div>
-                    `);
-                    
-                    // 点击项目选择文件
-                    $item.on('click', function() {
-                        const filePath = $(this).data('path');
-                        selectFile(filePath, file.name);
-                    });
-                    
-                    $searchResults.append($item);
-                });
-            }
-            
-            $searchResults.show();
-        }
-        
-        // 选择文件函数
-        function selectFile(filePath, fileName) {
-            // 设置隐藏下拉框的值
-            $hiddenSelect.val(filePath);
-            
-            // 设置输入框的值
-            $searchInput.val(fileName);
-            
-            // 隐藏搜索结果
-            $searchResults.hide();
-            
-            // 加载工作表
-            loadExcelFileSheets(filePath);
-        }
     }
     
     // 加载Excel文件的工作表
@@ -646,8 +597,8 @@ $(document).ready(function() {
             type: 'GET',
             success: function(response) {
                 if (response.success) {
-                    // 初始化自定义搜索控件
-                    initializeTemplateSearch(response.templates);
+                    // 使用SearchableDropdown组件初始化模板选择器
+                    initializeTemplateDropdown(response.templates);
                 } else {
                     console.error('加载提示词模板失败:', response.message);
                 }
@@ -658,90 +609,40 @@ $(document).ready(function() {
         });
     }
     
-    // 初始化自定义模板搜索控件
-    function initializeTemplateSearch(templates) {
-        // 存储模板数据供全局访问
+    // 使用SearchableDropdown组件初始化模板选择器
+    function initializeTemplateDropdown(templates) {
+        // 保存模板数据供全局访问
         window.allTemplates = templates;
         
-        const $searchInput = $('#templateSearch');
-        const $searchResults = $('#templateSearchResults');
-        const $hiddenSelect = $('#promptTemplate');
+        // 转换数据结构以适应SearchableDropdown组件
+        const dropdownData = templates.map(template => ({
+            id: template.id,
+            text: template.name,
+            description: template.description || ''
+        }));
         
-        // 输入框输入事件
-        $searchInput.on('input', function() {
-            const searchTerm = $(this).val().toLowerCase().trim();
-            
-            if (searchTerm === '') {
-                $searchResults.hide();
-                return;
-            }
-            
-            // 过滤匹配的模板
-            const matchedTemplates = templates.filter(template => {
-                const name = template.name.toLowerCase();
-                const description = template.description ? template.description.toLowerCase() : '';
-                return name.includes(searchTerm) || description.includes(searchTerm);
-            });
-            
-            // 显示搜索结果
-            renderSearchResults(matchedTemplates);
-        });
-        
-        // 输入框获得焦点时显示全部
-        $searchInput.on('focus', function() {
-            if (templates.length > 0) {
-                renderSearchResults(templates);
-            }
-        });
-        
-        // 处理点击其他区域隐藏搜索结果
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.template-search-container').length) {
-                $searchResults.hide();
+        // 创建模板选择下拉框
+        const templateDropdown = new SearchableDropdown({
+            element: '#templateDropdown',
+            data: dropdownData,
+            valueField: 'id',
+            textField: 'text',
+            searchFields: ['text', 'description'],
+            placeholder: '输入关键词搜索模板...',
+            noResultsText: '没有找到匹配的模板',
+            itemTemplate: (item) => `
+                <div>
+                    <span style="font-weight: bold;">${item.text}</span>
+                    ${item.description ? `<span style="color: #777; display: block; font-size: 0.85em;">${item.description}</span>` : ''}
+                </div>
+            `,
+            onChange: (value, item) => {
+                // 设置隐藏下拉框的值
+                $('#promptTemplate').val(value);
+                
+                // 启用查看详情按钮
+                $('#viewTemplateDetails').prop('disabled', false);
             }
         });
-        
-        // 渲染搜索结果函数
-        function renderSearchResults(results) {
-            $searchResults.empty();
-            
-            if (results.length === 0) {
-                $searchResults.append('<div class="template-search-item">没有找到匹配的模板</div>');
-            } else {
-                results.forEach(template => {
-                    const $item = $(`
-                        <div class="template-search-item" data-id="${template.id}">
-                            <span class="template-search-item-name">${template.name}</span>
-                            ${template.description ? `<span class="template-search-item-desc">${template.description}</span>` : ''}
-                        </div>
-                    `);
-                    
-                    // 点击项目选择模板
-                    $item.on('click', function() {
-                        const templateId = $(this).data('id');
-                        selectTemplate(templateId, template.name);
-                    });
-                    
-                    $searchResults.append($item);
-                });
-            }
-            
-            $searchResults.show();
-        }
-        
-        // 选择模板函数
-        function selectTemplate(templateId, templateName) {
-            // 设置隐藏下拉框的值
-            $hiddenSelect.val(templateId);
-            
-            // 设置输入框的值
-            $searchInput.val(templateName);
-            
-            // 隐藏搜索结果
-            $searchResults.hide();
-            
-            // 启用查看详情按钮
-            $('#viewTemplateDetails').prop('disabled', false);
-        }
     }
 }); 

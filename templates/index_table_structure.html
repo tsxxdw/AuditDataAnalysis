@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index_table_structure.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common/database_info.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common/select2.min.css') }}">
+    <!-- 引入SearchableDropdown组件样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/select2.min.js') }}"></script>
 </head>
@@ -35,19 +37,13 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="fileSearch">Excel文件：</label>
-                    <div class="file-search-container">
-                        <!-- 直接输入搜索的输入框 -->
-                        <input type="text" id="fileSearch" class="form-control" placeholder="输入关键词搜索Excel文件..." autocomplete="off">
-                        
-                        <!-- 隐藏的实际Select元素，用于存储选中的值 -->
-                        <select id="file-select" style="display: none;">
-                            <option value="">请选择Excel文件</option>
-                        </select>
-                        
-                        <!-- 显示搜索结果的下拉区域 -->
-                        <div id="fileSearchResults" class="file-search-results" style="display: none;"></div>
-                    </div>
+                    <label for="excelFileDropdown">Excel文件：</label>
+                    <!-- 使用SearchableDropdown组件 -->
+                    <div id="excelFileDropdown"></div>
+                    <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+                    <select id="file-select" style="display: none;">
+                        <option value="">请选择Excel文件</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -102,19 +98,13 @@
             <section class="card prompt-templates-section">
                 <h2 class="section-title">模板提示词</h2>
                 <div class="form-group">
-                    <label for="templateSearch">模板名称：</label>
-                    <div class="template-search-container">
-                        <!-- 直接输入搜索的输入框 -->
-                        <input type="text" id="templateSearch" class="form-control" placeholder="输入关键词搜索模板..." autocomplete="off">
-                        
-                        <!-- 隐藏的实际Select元素，用于存储选中的值 -->
-                        <select id="promptTemplate" style="display: none;">
-                            <option value="">请选择提示词模板</option>
-                        </select>
-                        
-                        <!-- 显示搜索结果的下拉区域 -->
-                        <div id="templateSearchResults" class="template-search-results" style="display: none;"></div>
-                    </div>
+                    <label for="templateDropdown">模板名称：</label>
+                    <!-- 使用SearchableDropdown组件 -->
+                    <div id="templateDropdown"></div>
+                    <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+                    <select id="promptTemplate" style="display: none;">
+                        <option value="">请选择提示词模板</option>
+                    </select>
                     <button type="button" class="btn btn-info" id="viewTemplateDetails" disabled>查看详情</button>
                 </div>
             </section>
@@ -171,6 +161,9 @@
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
     
+    <!-- 引入SearchableDropdown组件 -->
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_table_structure.js') }}"></script>

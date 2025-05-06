@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index_import.css') }}">
     <link href="{{ url_for('static', filename='css/common/select2.min.css') }}" rel="stylesheet" />
+    <!-- 引入SearchableDropdown组件样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/select2.min.js') }}"></script>
 </head>
@@ -25,9 +27,14 @@
                 <h3 class="section-title">文件选择</h3>
                 
                 <div class="file-selector-container">
-                    <select id="file-select" class="file-select" multiple="multiple" style="width: 100%;">
+                    <!-- 使用SearchableDropdown组件 -->
+                    <div id="fileDropdown" class="file-dropdown"></div>
+                    
+                    <!-- 隐藏的原始Select元素，用于保持兼容性 -->
+                    <select id="file-select" multiple="multiple" style="display: none;">
                         <!-- 选项将通过AJAX从后端加载 -->
                     </select>
+                    
                     <div class="file-select-actions">
                         <button id="select-all-btn" class="select-button">全选文件</button>
                     </div>
@@ -299,6 +306,9 @@
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
 
+    <!-- 引入SearchableDropdown组件 -->
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_import.js') }}"></script>
     
