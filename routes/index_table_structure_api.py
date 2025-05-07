@@ -356,19 +356,129 @@ def generate_table_sql():
     app_logger.info("生成创建表SQL请求")
     
     try:
-        # 获取请求参数
+        # 1. 获取请求参数
         data = request.json
         table_name = data.get('tableName')
         table_comment = data.get('tableComment', '')
+        excel_path = data.get('excelPath')
+        sheet_id = data.get('sheetId')
+        comment_row = data.get('commentRow')
+        template_id = data.get('templateId')
         
         # 参数验证
         if not table_name:
             return jsonify({"success": False, "message": "表名不能为空"}), 400
+            
+        # 验证模板ID
+        if not template_id:
+            return jsonify({"success": False, "message": "提示词模板不能为空"}), 400
         
         # 获取当前数据库类型
         db_type = DatabaseConfigUtil.get_default_db_type()
         
-        # 根据数据库类型生成不同的SQL
+        # 2. 读取Excel获取字段备注信息
+        field_comments = []
+        if excel_path and sheet_id and comment_row:
+            try:
+                # 将comment_row转为整数
+                comment_row_num = int(comment_row)
+                
+                # 先解析sheet_id，获取正确的sheet_name和sheet_index
+                sheet_name, sheet_index = ExcelUtil.parse_sheet_id(sheet_id)
+                
+                # 读取Excel中的字段备注行
+                rows = ExcelUtil.read_excel_data(
+                    file_path=excel_path,
+                    sheet_name=sheet_name,
+                    sheet_index=sheet_index,
+                    start_row=comment_row_num - 1,  # 行号从0开始，需要减1
+                    row_limit=1
+                )
+                
+                if rows and len(rows) > 0:
+                    # 过滤空值并获取字段备注
+                    field_comments = [comment for comment in rows[0] if comment]
+            except Exception as e:
+                app_logger.error(f"读取Excel文件失败: {str(e)}")
+                # 继续处理，不中断流程
+        
+        # 将字段备注用逗号分隔
+        field_comments_text = ', '.join(field_comments)
+        
+        # 3. 获取提示词模板
+        system_prompt = ""
+        user_prompt = ""
+        
+        if template_id:
+            try:
+                # 发送HTTP请求获取模板信息
+                import requests
+                template_url = f"http://localhost:5000/api/prompt_templates/{template_id}"
+                response = requests.get(template_url)
+                
+                if response.status_code == 200:
+                    template_data = response.json()
+                    if template_data.get('success'):
+                        template = template_data.get('template')
+                        
+                        # 解析模板内容
+                        import json
+                        template_content = json.loads(template.get('content', '{}'))
+                        
+                        system_prompt = template_content.get('system', '')
+                        user_prompt = template_content.get('user', '')
+                    else:
+                        app_logger.error(f"获取模板失败: {template_data.get('message')}")
+                else:
+                    app_logger.error(f"获取模板请求失败: {response.status_code}")
+            except Exception as e:
+                app_logger.error(f"获取提示词模板失败: {str(e)}")
+                # 继续处理，使用默认提示词
+        
+        # 如果没有获取到模板，使用默认提示词
+        if not user_prompt:
+            system_prompt = "你是一位数据库专家，精通各种数据库的SQL语法。请根据用户提供的表名、表备注和字段备注生成创建表的SQL语句。"
+            user_prompt = "请为我生成一个创建表的SQL语句，要求如下：\n1. 表名：{table_name}\n2. 表备注：{table_comment}\n3. 数据库类型：{db_type}\n4. 字段备注：{field_comments}\n\n请确保SQL语句符合标准规范，包含id主键字段、创建时间和更新时间字段。"
+        
+        # 4. 组装新的用户提示词，替换变量
+        user_prompt = user_prompt.replace('{table_name}', table_name)
+        user_prompt = user_prompt.replace('{table_comment}', table_comment)
+        user_prompt = user_prompt.replace('{db_type}', db_type)
+        user_prompt = user_prompt.replace('{field_comments}', field_comments_text)
+        
+        # 5. A.调用common_ollama_api生成SQL
+        try:
+            # 发送HTTP请求到common_ollama_api
+            import requests
+            ollama_url = "http://localhost:5000/api/common/ollama/generate"
+            ollama_data = {
+                "user_prompt": user_prompt,
+                "system_prompt": system_prompt,
+                "temperature": 0.1
+            }
+            
+            response = requests.post(ollama_url, json=ollama_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('success'):
+                    # 6. 返回生成的SQL
+                    generated_sql = result.get('response', '')
+                    
+                    return jsonify({
+                        "success": True,
+                        "message": "生成SQL成功",
+                        "sql": generated_sql,
+                        "from_llm": True
+                    })
+                else:
+                    app_logger.error(f"Ollama生成SQL失败: {result.get('message')}")
+            else:
+                app_logger.error(f"Ollama请求失败: {response.status_code}")
+        except Exception as e:
+            app_logger.error(f"调用Ollama API失败: {str(e)}")
+        
+        # 5. B.使用内置模板作为后备方案(当Ollama调用失败时)
         sql = ''
         if db_type == 'mysql':
             sql = f"CREATE TABLE {table_name} (\n"
@@ -399,7 +509,8 @@ def generate_table_sql():
         return jsonify({
             "success": True,
             "message": "生成SQL成功",
-            "sql": sql
+            "sql": sql,
+            "from_llm": False
         })
     
     except Exception as e:

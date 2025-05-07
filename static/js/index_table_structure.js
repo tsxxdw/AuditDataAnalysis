@@ -51,6 +51,13 @@ $(document).ready(function() {
         // 显示加载中
         $('#fieldCommentsDisplay').text('加载中...');
         
+        // 添加日志信息
+        console.log('发送Excel行读取请求，参数：', {
+            file_path: excelPath,
+            sheet_name: sheetId,
+            row_index: commentRow - 1
+        });
+        
         // 调用API读取Excel文件中的备注行
         $.ajax({
             url: '/api/table_structure/read_excel_row',
@@ -65,15 +72,19 @@ $(document).ready(function() {
                     // 将读取到的字段备注用逗号分隔显示
                     const comments = response.data.filter(item => item).join(', ');
                     $('#fieldCommentsDisplay').text(comments || '未找到字段备注');
+                    
+                    console.log('成功读取Excel行数据:', response.data);
                 } else {
+                    console.error('读取Excel行失败:', response.message);
                     $('#fieldCommentsDisplay').text('读取失败: ' + response.message);
                     alert(response.message || '读取Excel文件失败');
                 }
             },
             error: function(xhr) {
-                $('#fieldCommentsDisplay').text('请求失败，请查看控制台日志');
-                console.error('读取Excel文件请求失败:', xhr);
-                alert('读取Excel文件请求失败，请查看控制台日志');
+                const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
+                console.error('读取Excel文件请求失败:', xhr, errorMsg);
+                $('#fieldCommentsDisplay').text('请求失败: ' + errorMsg);
+                alert('读取Excel文件请求失败: ' + errorMsg);
             }
         });
     });
@@ -99,6 +110,46 @@ $(document).ready(function() {
             alert('请输入表名');
             return;
         }
+
+        // 获取Excel文件路径
+        let excelPath = $('#file-select').val();
+        
+        // 如果从隐藏input没获取到，尝试从组件实例获取
+        if (!excelPath && window.excelDropdown) {
+            excelPath = window.excelDropdown.getValue();
+        }
+
+        // 获取工作表ID
+        const sheetId = $('#sheet-select').val();
+        
+        // 获取备注信息所在行
+        const commentRow = $('#commentRow').val();
+        
+        // 获取选择的模板ID
+        let templateId = null;
+        
+        // 先从组件实例获取
+        if (window.templateDropdown && window.templateDropdown.getValue) {
+            templateId = window.templateDropdown.getValue();
+            console.log('从组件实例获取模板ID:', templateId);
+        }
+        
+        // 如果没有，则从隐藏select获取
+        if (!templateId) {
+            templateId = $('#promptTemplate').val();
+            console.log('从隐藏select获取模板ID:', templateId);
+        }
+        
+        // 验证模板ID是否存在
+        if (!templateId) {
+            alert('请选择一个提示词模板');
+            // 高亮提示模板选择区域
+            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
+                $(this).removeClass('field-required');
+                next();
+            });
+            return;
+        }
         
         // 调用后端API生成SQL
         $.ajax({
@@ -107,12 +158,26 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({
                 tableName: tableName,
-                tableComment: tableComment
+                tableComment: tableComment,
+                excelPath: excelPath,
+                sheetId: sheetId,
+                commentRow: commentRow,
+                templateId: templateId
             }),
             success: function(response) {
                 if (response.success) {
                     $('#sqlContent').val(response.sql);
-        } else {
+                    
+                    // 如果是从LLM生成的，可以添加一些提示
+                    if (response.from_llm) {
+                        console.log('SQL由大语言模型生成');
+                        // 可以添加一个UI提示，如临时变更按钮颜色等
+                        $('#generateTableSql').addClass('ai-generated').delay(2000).queue(function(next){
+                            $(this).removeClass('ai-generated');
+                            next();
+                        });
+                    }
+                } else {
                     alert(response.message || '生成SQL失败');
                 }
             },
