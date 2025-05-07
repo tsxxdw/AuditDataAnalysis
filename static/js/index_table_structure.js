@@ -101,58 +101,106 @@ $(document).ready(function() {
         }
     });
     
-    // 生成表SQL按钮点击事件
-    $('#generateTableSql').click(function() {
-        // 验证必填字段
+    // 生成表创建SQL按钮点击事件
+    $('#generateTableSql').on('click', function() {
         const tableName = $('#tableName').val();
         const tableComment = $('#tableComment').val();
-        const excelPath = $('#excelPath').val();
-        const sheetId = $('#sheetId').val();
-        const commentRow = $('#commentRow').val();
-        const templateId = $('#templateId').val();
-
-        if (!tableName || !tableComment || !excelPath || !sheetId || !commentRow || !templateId) {
-            alert('请填写所有必填字段！');
+        
+        if(!tableName) {
+            alert('请输入表名');
             return;
         }
 
-        // 显示加载动画
-        $('#loadingOverlay').removeClass('d-none');
-        $(this).prop('disabled', true);
+        // 获取Excel文件路径
+        let excelPath = $('#file-select').val();
+        
+        // 如果从隐藏input没获取到，尝试从组件实例获取
+        if (!excelPath && window.excelDropdown) {
+            excelPath = window.excelDropdown.getValue();
+        }
 
-        // 发送请求
+        // 获取工作表ID
+        const sheetId = $('#sheet-select').val();
+        
+        // 获取备注信息所在行
+        const commentRow = $('#commentRow').val();
+        
+        // 获取选择的模板ID
+        let templateId = null;
+        
+        // 先从组件实例获取
+        if (window.templateDropdown && window.templateDropdown.getValue) {
+            templateId = window.templateDropdown.getValue();
+            console.log('从组件实例获取模板ID:', templateId);
+        }
+        
+        // 如果没有，则从隐藏select获取
+        if (!templateId) {
+            templateId = $('#promptTemplate').val();
+            console.log('从隐藏select获取模板ID:', templateId);
+        }
+        
+        // 验证模板ID是否存在
+        if (!templateId) {
+            alert('请选择一个提示词模板');
+            // 高亮提示模板选择区域
+            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
+                $(this).removeClass('field-required');
+                next();
+            });
+            return;
+        }
+
+        // 显示按钮上的加载动画
+        const $button = $(this);
+        const $spinner = $button.find('.spinner-border');
+        $button.prop('disabled', true);
+        $spinner.removeClass('d-none');
+        
+        // 显示中央加载动画
+        $('#loadingOverlay').css('display', 'flex');
+        
+        // 调用后端API生成SQL
         $.ajax({
             url: '/api/table_structure/generate_table_sql',
-            method: 'POST',
-            data: {
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
                 tableName: tableName,
                 tableComment: tableComment,
                 excelPath: excelPath,
                 sheetId: sheetId,
                 commentRow: commentRow,
                 templateId: templateId
-            },
+            }),
             success: function(response) {
                 if (response.success) {
-                    $('#generatedSql').val(response.sql);
-                    if (response.is_llm_generated) {
-                        // 如果是大模型生成的，临时改变UI
-                        $('#generatedSql').addClass('llm-generated');
-                        setTimeout(() => {
-                            $('#generatedSql').removeClass('llm-generated');
-                        }, 2000);
+                    $('#sqlContent').val(response.sql);
+                    
+                    // 如果是从LLM生成的，可以添加一些提示
+                    if (response.from_llm) {
+                        console.log('SQL由大语言模型生成');
+                        // 可以添加一个UI提示，如临时变更按钮颜色等
+                        $button.addClass('ai-generated').delay(2000).queue(function(next){
+                            $(this).removeClass('ai-generated');
+                            next();
+                        });
                     }
                 } else {
-                    alert('生成SQL失败：' + response.message);
+                    alert(response.message || '生成SQL失败');
                 }
             },
             error: function(xhr) {
-                alert('生成SQL失败：' + (xhr.responseJSON?.message || '未知错误'));
+                console.error('生成SQL请求失败:', xhr);
+                alert('生成SQL请求失败，请查看控制台日志');
             },
             complete: function() {
-                // 隐藏加载动画
-                $('#loadingOverlay').addClass('d-none');
-                $('#generateTableSql').prop('disabled', false);
+                // 隐藏按钮上的加载动画
+                $button.prop('disabled', false);
+                $spinner.addClass('d-none');
+                
+                // 隐藏中央加载动画
+                $('#loadingOverlay').hide();
             }
         });
     });
