@@ -58,9 +58,10 @@
                     <input type="number" class="form-control" id="commentRow" placeholder="请输入备注信息所在的行号" value="1">
                 </div>
                 
-                <div class="button-group">
-                    <button type="button" class="btn btn-primary" id="generateTableSql">生成表SQL</button>
-                    <button type="button" class="btn btn-success" id="createTable">创建表</button>
+                <div class="form-group">
+                    <label for="fieldComments">字段备注：</label>
+                    <button type="button" class="btn btn-info" id="readFieldComments" style="margin-right: 15px;">读取字段备注</button>
+                    <div id="fieldCommentsDisplay" style="display: inline-block; min-width: 300px; max-width: 500px; min-height: 30px; border: 1px solid #ddd; padding: 5px; border-radius: 4px; vertical-align: middle;"></div>
                 </div>
             </section>
             
@@ -87,10 +88,6 @@
                         <option value="create">创建索引</option>
                         <option value="delete">删除索引</option>
                     </select>
-                </div>
-                
-                <div class="button-group">
-                    <button type="button" class="btn btn-primary" id="generateIndexSql">生成索引SQL</button>
                 </div>
             </section>
             
@@ -152,6 +149,8 @@
                 </div>
                 
                 <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="generateTableSql">生成表SQL</button>
+                    <button type="button" class="btn btn-primary" id="generateIndexSql">生成索引SQL</button>
                     <button type="button" class="btn btn-primary" id="executeSql">执行SQL</button>
                 </div>
             </section>

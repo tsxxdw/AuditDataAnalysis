@@ -553,4 +553,69 @@ def get_current_database_info():
             "message": f"获取数据库信息失败: {str(e)}", 
             "db_type": "未知", 
             "db_name": "未知"
+        }), 500
+
+@index_table_structure_bp.route('/read_excel_row', methods=['GET'])
+def read_excel_row():
+    """读取Excel文件的指定行
+    
+    Query Parameters:
+        file_path: Excel文件路径
+        sheet_name: 工作表名称或ID
+        row_index: 要读取的行索引（从0开始）
+        
+    Returns:
+        JSON: 包含行数据的JSON对象
+    """
+    app_logger.info("请求读取Excel文件行数据")
+    
+    try:
+        # 获取请求参数
+        file_path = request.args.get('file_path')
+        sheet_name = request.args.get('sheet_name')
+        row_index = request.args.get('row_index')
+        
+        # 参数验证
+        if not file_path:
+            return jsonify({"success": False, "message": "未指定Excel文件路径"}), 400
+        
+        if row_index is None:
+            return jsonify({"success": False, "message": "未指定行索引"}), 400
+        
+        # 转换行索引为整数
+        row_index = int(row_index)
+        
+        # 验证Excel文件路径
+        if not ExcelUtil.validate_excel_path(file_path):
+            return jsonify({"success": False, "message": f"无效的Excel文件路径: {file_path}"}), 400
+        
+        # 解析sheet_id，可能是"name:index"或仅索引
+        sheet_name_parsed, sheet_index = ExcelUtil.parse_sheet_id(sheet_name)
+        
+        # 读取指定行的数据
+        rows = ExcelUtil.read_excel_data(
+            file_path=file_path,
+            sheet_name=sheet_name_parsed,
+            sheet_index=sheet_index,
+            start_row=row_index,
+            row_limit=1
+        )
+        
+        if not rows or len(rows) == 0:
+            return jsonify({
+                "success": False,
+                "message": f"指定的行 {row_index} 不存在或为空"
+            }), 404
+        
+        # 返回行数据
+        return jsonify({
+            "success": True,
+            "data": rows[0]
+        })
+        
+    except Exception as e:
+        app_logger.error(f"读取Excel行数据失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"读取Excel行数据失败: {str(e)}"
         }), 500 

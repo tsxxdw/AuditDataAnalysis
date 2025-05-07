@@ -9,6 +9,57 @@ $(document).ready(function() {
     // 加载提示词模板列表
     loadPromptTemplates();
     
+    // 读取字段备注按钮点击事件
+    $('#readFieldComments').on('click', function() {
+        const excelPath = $('#file-select').val();
+        const sheetId = $('#sheet-select').val();
+        const commentRow = $('#commentRow').val();
+        
+        if(!excelPath) {
+            alert('请选择Excel文件');
+            return;
+        }
+        
+        if(!sheetId) {
+            alert('请选择工作表');
+            return;
+        }
+        
+        if(!commentRow) {
+            alert('请输入备注信息所在行号');
+            return;
+        }
+        
+        // 显示加载中
+        $('#fieldCommentsDisplay').text('加载中...');
+        
+        // 调用API读取Excel文件中的备注行
+        $.ajax({
+            url: '/api/table_structure/read_excel_row',
+            type: 'GET',
+            data: {
+                file_path: excelPath,
+                sheet_name: sheetId,
+                row_index: commentRow - 1  // 行号从0开始，需要减1
+            },
+            success: function(response) {
+                if (response.success) {
+                    // 将读取到的字段备注用逗号分隔显示
+                    const comments = response.data.filter(item => item).join(', ');
+                    $('#fieldCommentsDisplay').text(comments || '未找到字段备注');
+                } else {
+                    $('#fieldCommentsDisplay').text('读取失败: ' + response.message);
+                    alert(response.message || '读取Excel文件失败');
+                }
+            },
+            error: function(xhr) {
+                $('#fieldCommentsDisplay').text('请求失败，请查看控制台日志');
+                console.error('读取Excel文件请求失败:', xhr);
+                alert('读取Excel文件请求失败，请查看控制台日志');
+            }
+        });
+    });
+    
     // 模态对话框关闭按钮事件
     $('.close-modal').on('click', function() {
         $('#templateDetailsModal').css('display', 'none');
