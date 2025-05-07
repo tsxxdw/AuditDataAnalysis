@@ -7,6 +7,7 @@ Ollama API模块
 import ollama
 from flask import Blueprint, jsonify, request
 from service.log.logger import app_logger
+import re
 
 # 创建Ollama API蓝图
 common_ollama_bp = Blueprint('common_ollama_api', __name__, url_prefix='/api/common/ollama')
@@ -63,14 +64,21 @@ def generate_text():
         
         # 调用Ollama API
         app_logger.info(f"调用Ollama模型, 模型: {OLLAMA_MODEL}")
+        app_logger.info(f"Ollama请求参数: {ollama_params}")
         
         # 使用ollama包生成文本
         response = ollama.generate(**ollama_params)
         
+        app_logger.info(f"Ollama返回数据: {response}")
+        
+        # 获取响应文本并去除<think>标签内容
+        response_text = response.get("response", "")
+        response_text = re.sub(r'<think>.*?</think>', '', response_text, flags=re.DOTALL)
+        
         return jsonify({
             "success": True,
             "message": "成功生成文本",
-            "response": response.get("response"),
+            "response": response_text,
             "model": OLLAMA_MODEL
         })
         
