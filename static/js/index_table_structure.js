@@ -11,7 +11,25 @@ $(document).ready(function() {
     
     // 读取字段备注按钮点击事件
     $('#readFieldComments').on('click', function() {
-        const excelPath = $('#file-select').val();
+        // 尝试多种方式获取Excel文件路径
+        let excelPath = '';
+        
+        // 方式1：从隐藏input字段获取
+        excelPath = $('#file-select').val();
+        
+        // 方式2：如果方式1没有获取到，尝试从全局组件实例获取
+        if (!excelPath && window.excelDropdown) {
+            excelPath = window.excelDropdown.getValue();
+            
+            // 如果从组件获取到了值，同步更新隐藏字段
+            if (excelPath) {
+                $('#file-select').val(excelPath);
+                console.log('已从组件实例更新文件路径:', excelPath);
+            }
+        }
+        
+        console.log('当前选择的Excel文件路径:', excelPath);
+        
         const sheetId = $('#sheet-select').val();
         const commentRow = $('#commentRow').val();
         
@@ -475,11 +493,15 @@ $(document).ready(function() {
             onChange: (value, item) => {
                 // 设置隐藏下拉框的值
                 $('#file-select').val(value);
+                console.log('Excel文件已选择，路径已设置:', value);
                 
                 // 加载工作表
                 loadExcelFileSheets(value);
             }
         });
+        
+        // 保存到全局变量，方便后续访问
+        window.excelDropdown = excelDropdown;
     }
     
     // 加载Excel文件的工作表
