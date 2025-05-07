@@ -12,7 +12,7 @@ from service.log.logger import app_logger
 common_ollama_bp = Blueprint('common_ollama_api', __name__, url_prefix='/api/common/ollama')
 
 # Ollama 配置
-OLLAMA_MODEL = "qwen3:30b-a3b"
+OLLAMA_MODEL = "qwen3:1.7b"
 
 @common_ollama_bp.route('/generate', methods=['POST'])
 def generate_text():
@@ -49,7 +49,9 @@ def generate_text():
         ollama_params = {
             "model": OLLAMA_MODEL,
             "prompt": user_prompt,
-            "temperature": data.get("temperature", 0.7)
+            "options": {
+                "temperature": data.get("temperature", 0.7)
+            }
         }
         
         # 添加可选参数
@@ -57,7 +59,7 @@ def generate_text():
             ollama_params["system"] = data.get("system_prompt")
         
         if "max_tokens" in data:
-            ollama_params["max_tokens"] = data.get("max_tokens")
+            ollama_params["options"]["num_predict"] = data.get("max_tokens")
         
         # 调用Ollama API
         app_logger.info(f"调用Ollama模型, 模型: {OLLAMA_MODEL}")

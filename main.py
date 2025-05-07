@@ -18,6 +18,7 @@ from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
 from service.database.db_pool_manager import DatabasePoolManager
 from config.global_config import init_project_root
+from routes.common.common_ollama_api import common_ollama_bp  # 导入Ollama API蓝图
 
 # 初始化项目根路径（全局配置）
 project_root = init_project_root()
@@ -35,6 +36,7 @@ app.register_blueprint(index_table_structure_bp)  # 注册表结构相关API路�
 app.register_blueprint(common_api_bp)  # 注册通用API路由
 app.register_blueprint(index_analysis_bp)  # 注册数据分析API路由
 app.register_blueprint(index_prompt_templates_bp)  # 注册提示词模板API路由
+app.register_blueprint(common_ollama_bp)  # 注册Ollama API路由
 app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 
 # 初始化中间件

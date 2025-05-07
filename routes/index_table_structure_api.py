@@ -440,11 +440,8 @@ def generate_table_sql():
             system_prompt = "你是一位数据库专家，精通各种数据库的SQL语法。请根据用户提供的表名、表备注和字段备注生成创建表的SQL语句。"
             user_prompt = "请为我生成一个创建表的SQL语句，要求如下：\n1. 表名：{table_name}\n2. 表备注：{table_comment}\n3. 数据库类型：{db_type}\n4. 字段备注：{field_comments}\n\n请确保SQL语句符合标准规范，包含id主键字段、创建时间和更新时间字段。"
         
-        # 4. 组装新的用户提示词，替换变量
-        user_prompt = user_prompt.replace('{table_name}', table_name)
-        user_prompt = user_prompt.replace('{table_comment}', table_comment)
-        user_prompt = user_prompt.replace('{db_type}', db_type)
-        user_prompt = user_prompt.replace('{field_comments}', field_comments_text)
+        # 4. 组装新的用户提示词，直接添加表信息
+        user_prompt = f"{user_prompt}\n\n表名：{table_name}\n表备注：{table_comment}\n数据库类型：{db_type}\n字段备注：{field_comments_text}"
         
         # 5. A.调用common_ollama_api生成SQL
         try:
