@@ -1,18 +1,17 @@
 """
 Ollama API模块
 
-提供调用Ollama大语言模型的API接口
+提供调用Ollama大语言模型的API接口，使用ollama Python包
 """
 
-import requests
+import ollama
 from flask import Blueprint, jsonify, request
 from service.log.logger import app_logger
 
 # 创建Ollama API蓝图
 common_ollama_bp = Blueprint('common_ollama_api', __name__, url_prefix='/api/common/ollama')
 
-# Ollama API配置
-OLLAMA_API_BASE = "http://localhost:11434/api"
+# Ollama 配置
 OLLAMA_MODEL = "qwen3:30b-a3b"
 
 @common_ollama_bp.route('/generate', methods=['POST'])
@@ -47,7 +46,7 @@ def generate_text():
             }), 400
         
         # 准备请求参数
-        ollama_request = {
+        ollama_params = {
             "model": OLLAMA_MODEL,
             "prompt": user_prompt,
             "temperature": data.get("temperature", 0.7)
@@ -55,37 +54,24 @@ def generate_text():
         
         # 添加可选参数
         if "system_prompt" in data:
-            ollama_request["system"] = data.get("system_prompt")
+            ollama_params["system"] = data.get("system_prompt")
         
         if "max_tokens" in data:
-            ollama_request["max_tokens"] = data.get("max_tokens")
+            ollama_params["max_tokens"] = data.get("max_tokens")
         
         # 调用Ollama API
-        app_logger.info(f"发送请求到Ollama API, 模型: {OLLAMA_MODEL}")
-        response = requests.post(f"{OLLAMA_API_BASE}/generate", json=ollama_request)
+        app_logger.info(f"调用Ollama模型, 模型: {OLLAMA_MODEL}")
         
-        if response.status_code != 200:
-            app_logger.error(f"Ollama API请求失败: {response.status_code}, {response.text}")
-            return jsonify({
-                "success": False,
-                "message": f"Ollama API请求失败: {response.status_code}"
-            }), 500
-        
-        result = response.json()
+        # 使用ollama包生成文本
+        response = ollama.generate(**ollama_params)
         
         return jsonify({
             "success": True,
             "message": "成功生成文本",
-            "response": result.get("response"),
+            "response": response.get("response"),
             "model": OLLAMA_MODEL
         })
         
-    except requests.RequestException as e:
-        app_logger.error(f"请求Ollama API出错: {str(e)}")
-        return jsonify({
-            "success": False,
-            "message": f"请求Ollama API出错: {str(e)}"
-        }), 500
     except Exception as e:
         app_logger.error(f"调用Ollama模型失败: {str(e)}")
         return jsonify({
@@ -103,17 +89,9 @@ def list_models():
     app_logger.info("获取Ollama可用模型列表")
     
     try:
-        # 调用Ollama API获取模型列表
-        response = requests.get(f"{OLLAMA_API_BASE}/tags")
-        
-        if response.status_code != 200:
-            app_logger.error(f"获取Ollama模型列表失败: {response.status_code}, {response.text}")
-            return jsonify({
-                "success": False,
-                "message": f"获取Ollama模型列表失败: {response.status_code}"
-            }), 500
-        
-        models = response.json().get("models", [])
+        # 使用ollama包获取模型列表
+        models_list = ollama.list()
+        models = models_list.get("models", [])
         
         return jsonify({
             "success": True,
@@ -122,12 +100,6 @@ def list_models():
             "default_model": OLLAMA_MODEL
         })
         
-    except requests.RequestException as e:
-        app_logger.error(f"请求Ollama API出错: {str(e)}")
-        return jsonify({
-            "success": False,
-            "message": f"请求Ollama API出错: {str(e)}"
-        }), 500
     except Exception as e:
         app_logger.error(f"获取Ollama模型列表失败: {str(e)}")
         return jsonify({
