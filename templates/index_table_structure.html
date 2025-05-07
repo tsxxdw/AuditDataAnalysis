@@ -148,13 +148,26 @@
                 </div>
                 
                 <div class="button-group">
-                    <button type="button" class="btn btn-primary" id="generateTableSql">生成表SQL</button>
-                    <button type="button" class="btn btn-primary" id="generateIndexSql">生成索引SQL</button>
-                    <button type="button" class="btn btn-primary" id="executeSql">执行SQL</button>
+                    <button id="generateTableSql" class="btn btn-primary">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        生成表SQL
+                    </button>
+                    <button id="clearSql" class="btn btn-secondary">清空SQL</button>
+                    <button id="createTable" class="btn btn-success">创建表</button>
                 </div>
             </section>
         </div>
     </main>
+    
+    <!-- 全屏加载动画 -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text">正在生成SQL，请稍候...</div>
+        </div>
+    </div>
     
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}

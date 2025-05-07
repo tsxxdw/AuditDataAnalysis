@@ -101,91 +101,65 @@ $(document).ready(function() {
         }
     });
     
-    // 生成表创建SQL按钮点击事件
-    $('#generateTableSql').on('click', function() {
+    // 生成表SQL按钮点击事件
+    $('#generateTableSql').click(function() {
+        // 验证必填字段
         const tableName = $('#tableName').val();
         const tableComment = $('#tableComment').val();
-        
-        if(!tableName) {
-            alert('请输入表名');
-            return;
-        }
-
-        // 获取Excel文件路径
-        let excelPath = $('#file-select').val();
-        
-        // 如果从隐藏input没获取到，尝试从组件实例获取
-        if (!excelPath && window.excelDropdown) {
-            excelPath = window.excelDropdown.getValue();
-        }
-
-        // 获取工作表ID
-        const sheetId = $('#sheet-select').val();
-        
-        // 获取备注信息所在行
+        const excelPath = $('#excelPath').val();
+        const sheetId = $('#sheetId').val();
         const commentRow = $('#commentRow').val();
-        
-        // 获取选择的模板ID
-        let templateId = null;
-        
-        // 先从组件实例获取
-        if (window.templateDropdown && window.templateDropdown.getValue) {
-            templateId = window.templateDropdown.getValue();
-            console.log('从组件实例获取模板ID:', templateId);
-        }
-        
-        // 如果没有，则从隐藏select获取
-        if (!templateId) {
-            templateId = $('#promptTemplate').val();
-            console.log('从隐藏select获取模板ID:', templateId);
-        }
-        
-        // 验证模板ID是否存在
-        if (!templateId) {
-            alert('请选择一个提示词模板');
-            // 高亮提示模板选择区域
-            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
-                $(this).removeClass('field-required');
-                next();
-            });
+        const templateId = $('#templateId').val();
+
+        if (!tableName || !tableComment || !excelPath || !sheetId || !commentRow || !templateId) {
+            alert('请填写所有必填字段！');
             return;
         }
-        
-        // 调用后端API生成SQL
+
+        // 显示加载动画
+        $('#loadingOverlay').removeClass('d-none');
+        $(this).prop('disabled', true);
+
+        // 发送请求
         $.ajax({
             url: '/api/table_structure/generate_table_sql',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
+            method: 'POST',
+            data: {
                 tableName: tableName,
                 tableComment: tableComment,
                 excelPath: excelPath,
                 sheetId: sheetId,
                 commentRow: commentRow,
                 templateId: templateId
-            }),
+            },
             success: function(response) {
                 if (response.success) {
-                    $('#sqlContent').val(response.sql);
-                    
-                    // 如果是从LLM生成的，可以添加一些提示
-                    if (response.from_llm) {
-                        console.log('SQL由大语言模型生成');
-                        // 可以添加一个UI提示，如临时变更按钮颜色等
-                        $('#generateTableSql').addClass('ai-generated').delay(2000).queue(function(next){
-                            $(this).removeClass('ai-generated');
-                            next();
-                        });
+                    $('#generatedSql').val(response.sql);
+                    if (response.is_llm_generated) {
+                        // 如果是大模型生成的，临时改变UI
+                        $('#generatedSql').addClass('llm-generated');
+                        setTimeout(() => {
+                            $('#generatedSql').removeClass('llm-generated');
+                        }, 2000);
                     }
                 } else {
-                    alert(response.message || '生成SQL失败');
+                    alert('生成SQL失败：' + response.message);
                 }
             },
             error: function(xhr) {
-                console.error('生成SQL请求失败:', xhr);
-                alert('生成SQL请求失败，请查看控制台日志');
+                alert('生成SQL失败：' + (xhr.responseJSON?.message || '未知错误'));
+            },
+            complete: function() {
+                // 隐藏加载动画
+                $('#loadingOverlay').addClass('d-none');
+                $('#generateTableSql').prop('disabled', false);
             }
         });
+    });
+    
+    // 清空SQL按钮点击事件
+    $('#clearSql').on('click', function() {
+        $('#sqlContent').val('');
     });
     
     // 查看模板详情按钮点击事件

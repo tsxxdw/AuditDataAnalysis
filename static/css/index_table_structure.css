@@ -500,4 +500,99 @@ select.form-control {
     font-size: 0.85em;
     color: #777;
     margin-top: 3px;
+}
+
+/* 按钮加载状态样式 */
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.spinner-border {
+    margin-right: 5px;
+}
+
+/* 清空SQL按钮样式 */
+#clearSql {
+    background-color: #95a5a6;
+    color: white;
+}
+
+#clearSql:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 字段备注显示区域样式 */
+#fieldCommentsDisplay {
+    display: inline-block;
+    min-width: 300px;
+    max-width: 500px;
+    min-height: 30px;
+    max-height: 100px;
+    border: 1px solid #ddd;
+    padding: 8px;
+    border-radius: 4px;
+    vertical-align: middle;
+    overflow-y: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    background-color: #f8f9fa;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+#fieldCommentsDisplay::-webkit-scrollbar {
+    width: 8px;
+}
+
+#fieldCommentsDisplay::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#fieldCommentsDisplay::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#fieldCommentsDisplay::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* 全屏加载动画样式 */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    text-align: center;
+}
+
+.loading-spinner .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25em;
+}
+
+.loading-text {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+/* 移除按钮上的小加载动画 */
+#generateTableSql .spinner-border {
+    display: none !important;
 } 
