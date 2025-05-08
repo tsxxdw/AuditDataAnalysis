@@ -5,6 +5,9 @@ $(document).ready(function() {
     
     // 初始化日志设置模块
     LogSettings.init();
+    
+    // 初始化模型服务模块
+    ModelService.init();
 
     // 导航菜单切换
     $('.nav-item').click(function() {

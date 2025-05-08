@@ -1,0 +1,88 @@
+<div class="settings-section" id="model-service">
+    <h3 class="section-title">模型服务</h3>
+    <div class="model-service-form">
+        <!-- 服务提供商选择 -->
+        <div class="form-group provider-selection">
+            <label for="model-provider" class="highlight-label">服务提供商：</label>
+            <div class="provider-options">
+                <div class="provider-option" data-provider="silicon-flow">
+                    <img src="{{ url_for('static', filename='images/providers/silicon-flow.png') }}" alt="硅基流动" class="provider-icon">
+                    <span class="provider-name">硅基流动</span>
+                </div>
+                <div class="provider-option" data-provider="deep-search">
+                    <img src="{{ url_for('static', filename='images/providers/deep-search.png') }}" alt="深度求索" class="provider-icon">
+                    <span class="provider-name">深度求索</span>
+                </div>
+                <div class="provider-option" data-provider="ollama">
+                    <img src="{{ url_for('static', filename='images/providers/ollama.png') }}" alt="Ollama" class="provider-icon">
+                    <span class="provider-name">Ollama</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- API信息设置 -->
+        <div class="api-settings">
+            <div class="form-group">
+                <label for="api-key">API 密钥：</label>
+                <div class="input-with-button">
+                    <input type="password" id="api-key" class="text-input" placeholder="请输入API密钥">
+                    <button class="toggle-password" title="显示/隐藏密钥"><i class="eye-icon"></i></button>
+                </div>
+                <button class="verify-btn primary-btn small-btn">检测</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="api-url">API 地址：</label>
+                <input type="text" id="api-url" class="text-input" placeholder="例如: http://localhost:11434">
+            </div>
+            
+            <div class="api-url-hint">
+                <span class="hint-text">http://localhost:11434/v1/chat/completions</span>
+                <span class="hint-desc">默认使用v1版本，非自定义使用输入地址</span>
+            </div>
+        </div>
+        
+        <!-- 模型列表 -->
+        <div class="model-section">
+            <div class="section-header">
+                <h4 class="sub-title">模型 <i class="search-icon"></i></h4>
+                <button class="refresh-btn"><i class="refresh-icon"></i></button>
+            </div>
+            
+            <div class="model-list">
+                <div class="model-category">
+                    <div class="category-header">
+                        <span class="toggle-icon">▼</span>
+                        <span class="category-name">qwen3</span>
+                    </div>
+                    
+                    <div class="model-items">
+                        <div class="model-item">
+                            <span class="model-icon">Q</span>
+                            <span class="model-name">qwen3:30b-a3b</span>
+                            <div class="model-actions">
+                                <button class="model-settings-btn" title="设置"><i class="settings-icon"></i></button>
+                                <button class="model-hide-btn" title="隐藏"><i class="hide-icon"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="model-item">
+                            <span class="model-icon">Q</span>
+                            <span class="model-name">qwen3:1.7b</span>
+                            <div class="model-actions">
+                                <button class="model-settings-btn" title="设置"><i class="settings-icon"></i></button>
+                                <button class="model-hide-btn" title="隐藏"><i class="hide-icon"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部按钮区 -->
+        <div class="form-actions">
+            <button class="manage-btn primary-btn"><i class="manage-icon"></i> 管理</button>
+            <button class="add-btn secondary-btn"><i class="add-icon"></i> 添加</button>
+        </div>
+    </div>
+</div> 
