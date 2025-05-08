@@ -261,4 +261,4 @@ const DatabaseSettings = {
             password: $('#oracle-password').val()
         };
     }
-};
+}; 

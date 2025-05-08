@@ -1,0 +1,122 @@
+/* 数据库设置样式 */
+
+/* 数据库设置表单 */
+.db-settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* 数据库分割线 */
+.db-divider {
+    border-top: 1px solid #eee;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.db-connection-form {
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.highlight-label {
+    color: #e74c3c !important;
+    font-weight: 600;
+}
+
+/* 表单组件样式 */
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0;
+}
+
+.form-group label {
+    width: 120px;
+    font-weight: 500;
+    color: #555;
+}
+
+.text-input {
+    flex: 1;
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+}
+
+.text-input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.select-input {
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 200px;
+    background-color: white;
+}
+
+/* 按钮操作区样式 */
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+.secondary-btn {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.secondary-btn:hover {
+    background-color: #3a7bc8;
+}
+
+.primary-btn {
+    padding: 0.7rem 1.5rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    margin-top: 0.8rem;
+}
+
+.primary-btn:hover {
+    background-color: #2980b9;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-group label {
+        width: 100%;
+        margin-bottom: 0.3rem;
+    }
+    
+    .text-input, .select-input {
+        width: 100%;
+    }
+    
+    .form-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+} 
