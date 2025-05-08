@@ -130,14 +130,15 @@ def update_model(provider_id, model_id):
 
 @model_settings_api.route('/api/settings/model/providers/<provider_id>/models/<model_id>/delete', methods=['DELETE'])
 def delete_model(provider_id, model_id):
-    """删除模型"""
+    """删除指定的模型"""
     try:
         # 删除模型
         success = model_service.delete_model(provider_id, model_id)
-        if not success:
-            return jsonify({"success": False, "message": "删除模型失败"}), 400
         
-        return jsonify({"success": True, "message": "模型已删除"})
+        if success:
+            return jsonify({"success": True, "message": "模型已成功删除"})
+        else:
+            return jsonify({"success": False, "message": "删除模型失败，未找到指定模型或服务提供商"}), 404
     except Exception as e:
         logger.error(f"删除模型时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500

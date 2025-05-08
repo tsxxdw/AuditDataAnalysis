@@ -84,4 +84,68 @@
             <button class="manage-btn primary-btn"><i class="manage-icon"></i> 管理</button>
         </div>
     </div>
+</div>
+
+<!-- 模型管理模态窗口 -->
+<div class="model-manage-modal" id="modelManageModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">模型管理</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- 模型列表 -->
+            <div class="manage-model-list">
+                <table class="model-table">
+                    <thead>
+                        <tr>
+                            <th>模型名称</th>
+                            <th>类别</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modelTableBody">
+                        <!-- 这里将动态填充模型数据 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 添加模型表单 -->
+            <div class="add-model-form">
+                <h4>添加新模型</h4>
+                <div class="form-row">
+                    <label for="newModelId">模型ID:</label>
+                    <input type="text" id="newModelId" class="modal-input" placeholder="例如: gpt-3.5-turbo">
+                </div>
+                <div class="form-row">
+                    <label for="newModelName">模型名称:</label>
+                    <input type="text" id="newModelName" class="modal-input" placeholder="例如: GPT-3.5 Turbo">
+                </div>
+                <div class="form-row">
+                    <label for="newModelCategory">类别:</label>
+                    <input type="text" id="newModelCategory" class="modal-input" placeholder="例如: GPT">
+                </div>
+                <div class="form-row">
+                    <label for="newModelDesc">描述:</label>
+                    <textarea id="newModelDesc" class="modal-textarea" placeholder="模型描述（可选）"></textarea>
+                </div>
+                <div class="form-row">
+                    <button id="addModelBtn" class="modal-btn primary-btn">添加模型</button>
+                </div>
+            </div>
+            
+            <!-- Ollama本地模型查询部分（仅在Ollama服务提供商显示） -->
+            <div id="ollamaLocalModels" class="ollama-local-models" style="display: none;">
+                <h4>本地Ollama模型</h4>
+                <button id="refreshOllamaBtn" class="modal-btn secondary-btn">刷新本地模型</button>
+                <div class="ollama-models-list" id="ollamaModelsList">
+                    <!-- 这里将动态填充Ollama模型 -->
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn secondary-btn close-btn">关闭</button>
+        </div>
+    </div>
 </div> 
