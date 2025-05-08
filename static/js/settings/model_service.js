@@ -85,11 +85,6 @@ var ModelService = {
         $('.manage-btn').click(function() {
             ModelService.openManageDialog();
         });
-        
-        // 添加按钮
-        $('.add-btn').click(function() {
-            ModelService.openAddModelDialog();
-        });
     },
     
     // 加载模型服务设置
