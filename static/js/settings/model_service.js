@@ -43,49 +43,26 @@ var ModelService = {
             ModelService.verifyApiKey();
         });
         
-        // 刷新模型列表
-        $('.refresh-btn').click(function() {
-            ModelService.refreshModels();
+        // 同步Ollama本地模型
+        $('#syncOllamaBtn').click(function() {
+            ModelService.syncOllamaModels();
         });
         
-        // 切换模型类别展开/折叠
-        $(document).on('click', '.category-header', function() {
-            var $modelItems = $(this).next('.model-items');
-            var $toggleIcon = $(this).find('.toggle-icon');
-            
-            $modelItems.slideToggle(200);
-            
-            if ($toggleIcon.text() === '▼') {
-                $toggleIcon.text('▶');
-            } else {
-                $toggleIcon.text('▼');
-            }
+        // 为模型表格中的按钮绑定事件委托
+        $('#modelTableBody').on('click', '.hide-model-btn', function() {
+            var modelId = $(this).closest('tr').data('model-id');
+            ModelService.toggleModelVisibility(modelId, false);
         });
         
-        // 模型设置按钮
-        $(document).on('click', '.model-settings-btn', function(e) {
-            e.stopPropagation();
-            var modelId = $(this).closest('.model-item').data('model-id');
-            var modelName = $(this).closest('.model-item').find('.model-name').text();
-            ModelService.openModelSettings(modelId, modelName);
+        $('#modelTableBody').on('click', '.show-model-btn', function() {
+            var modelId = $(this).closest('tr').data('model-id');
+            ModelService.toggleModelVisibility(modelId, true);
         });
         
-        // 模型隐藏按钮
-        $(document).on('click', '.model-hide-btn', function(e) {
-            e.stopPropagation();
-            var $modelItem = $(this).closest('.model-item');
-            var modelId = $modelItem.data('model-id');
-            var modelName = $modelItem.find('.model-name').text();
-            
-            // 确认是否隐藏
-            if (confirm('确定要隐藏模型 ' + modelName + ' 吗？')) {
-                ModelService.toggleModelVisibility(modelId, false);
-            }
-        });
-        
-        // 管理按钮
-        $('.manage-btn').click(function() {
-            ModelService.openManageDialog();
+        $('#modelTableBody').on('click', '.enable-model-btn', function() {
+            var $tr = $(this).closest('tr');
+            var modelId = $tr.data('model-id');
+            ModelService.enableModel(modelId);
         });
     },
     
@@ -102,6 +79,13 @@ var ModelService = {
             success: function(response) {
                 if (response.success) {
                     var providers = response.providers;
+                    // 对提供商进行排序，确保Ollama始终在第一位
+                    providers.sort(function(a, b) {
+                        if (a.id === 'ollama') return -1;
+                        if (b.id === 'ollama') return 1;
+                        return 0;
+                    });
+                    
                     var providersHtml = '';
                     
                     // 生成服务提供商选项
@@ -170,82 +154,27 @@ var ModelService = {
                         $('#api-key').attr('placeholder', '请输入API密钥');
                     }
                     
-                    // 加载模型列表
-                    ModelService.loadModelsForProvider(providerId);
+                    // 加载所有模型（包括可见和不可见的）
+                    ModelService.loadAllModels();
+                    
+                    // Ollama特殊处理
+                    if (providerId === 'ollama') {
+                        // 设置提示文本
+                        $('#model-list-hint').text('从本地已安装的Ollama模型中选择需要使用的模型：');
+                        // 显示同步按钮
+                        $('#syncOllamaBtn').show();
+                    } else {
+                        // 非Ollama服务商
+                        $('#model-list-hint').text('从预设模型列表中选择需要使用的模型：');
+                        // 隐藏Ollama特有部分
+                        $('#syncOllamaBtn').hide();
+                    }
                 } else {
                     alert('加载服务提供商信息失败: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
                 alert('加载服务提供商信息失败: ' + error);
-            }
-        });
-    },
-    
-    // 加载提供商的模型列表
-    loadModelsForProvider: function(providerId) {
-        // 显示加载状态
-        $('.model-list').html('<div class="loading-indicator">加载中...</div>');
-        
-        // 获取分类模型列表
-        $.ajax({
-            url: '/api/settings/model/providers/' + providerId + '/models/categories',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    var categories = response.categories;
-                    var modelListHtml = '';
-                    
-                    // 如果没有模型
-                    if (Object.keys(categories).length === 0) {
-                        modelListHtml = '<div class="no-models">暂无可用模型</div>';
-                    } else {
-                        // 生成模型列表HTML
-                        for (var category in categories) {
-                            var models = categories[category];
-                            
-                            modelListHtml += `
-                                <div class="model-category">
-                                    <div class="category-header">
-                                        <span class="toggle-icon">▼</span>
-                                        <span class="category-name">${category}</span>
-                                    </div>
-                                    <div class="model-items">
-                            `;
-                            
-                            // 添加模型项
-                            for (var i = 0; i < models.length; i++) {
-                                var model = models[i];
-                                var iconText = model.name.charAt(0).toUpperCase();
-                                
-                                modelListHtml += `
-                                    <div class="model-item" data-model-id="${model.id}">
-                                        <span class="model-icon">${iconText}</span>
-                                        <span class="model-name">${model.name}</span>
-                                        <div class="model-actions">
-                                            <button class="model-settings-btn" title="设置"><i class="settings-icon"></i></button>
-                                            <button class="model-hide-btn" title="隐藏"><i class="hide-icon"></i></button>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                            
-                            modelListHtml += `
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
-                    
-                    // 更新模型列表
-                    $('.model-list').html(modelListHtml);
-                } else {
-                    $('.model-list').html('<div class="error">加载模型列表失败: ' + response.message + '</div>');
-                }
-            },
-            error: function(xhr, status, error) {
-                $('.model-list').html('<div class="error">加载模型列表失败: ' + error + '</div>');
             }
         });
     },
@@ -332,11 +261,411 @@ var ModelService = {
         });
     },
     
-    // 刷新模型列表
-    refreshModels: function() {
-        if (this.currentProvider) {
-            this.loadModelsForProvider(this.currentProvider);
+    // 同步本地Ollama模型
+    syncOllamaModels: function() {
+        var $syncBtn = $('#syncOllamaBtn');
+        var originalText = $syncBtn.text();
+        $syncBtn.text('同步中...').prop('disabled', true);
+        
+        // 调用API同步模型列表
+        $.ajax({
+            url: '/api/settings/model/providers/ollama/sync',
+            type: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                $syncBtn.text(originalText).prop('disabled', false);
+                if (response.success) {
+                    alert(response.message || '同步成功！');
+                    // 重新加载模型列表
+                    ModelService.loadAllModels();
+                } else {
+                    alert('同步失败: ' + (response.message || '未知错误'));
+                }
+            },
+            error: function(xhr, status, error) {
+                $syncBtn.text(originalText).prop('disabled', false);
+                alert('同步失败: ' + error);
+            }
+        });
+    },
+    
+    // 加载所有模型列表（包括不可见的和可用的）
+    loadAllModels: function() {
+        // 对Ollama特殊处理，直接加载本地模型
+        if (this.currentProvider === 'ollama') {
+            // 获取已添加的Ollama模型
+            $.ajax({
+                url: '/api/settings/model/providers/ollama/models',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        var activeModels = response.models;
+                        
+                        // 获取本地所有Ollama模型
+                        $.ajax({
+                            url: '/api/common/ollama/models',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(localResponse) {
+                                if (localResponse.success) {
+                                    console.log("Ollama本地模型获取成功:", localResponse);
+                                    var localModels = localResponse.models || [];
+                                    
+                                    // 处理可能的格式差异
+                                    if (Array.isArray(localModels)) {
+                                        // 将本地模型与已添加模型合并
+                                        ModelService.renderOllamaModels(localModels, activeModels);
+                                    } else {
+                                        console.error("Ollama模型格式不正确:", localModels);
+                                        $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">Ollama模型格式不正确</td></tr>');
+                                    }
+                                } else {
+                                    console.error("加载本地模型失败:", localResponse.message);
+                                    $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载本地模型失败: ' + localResponse.message + '</td></tr>');
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("加载本地模型AJAX错误:", xhr.responseText);
+                                $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载本地模型失败: ' + error + '</td></tr>');
+                            }
+                        });
+                    } else {
+                        $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载失败: ' + response.message + '</td></tr>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载失败: ' + error + '</td></tr>');
+                }
+            });
+            
+            // Ollama不需要再显示单独的本地模型部分
+            $('#ollamaLocalModels').hide();
+        } else {
+            // 非Ollama服务商使用原来的逻辑
+            $.ajax({
+                url: '/api/settings/model/providers/' + this.currentProvider + '/models',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        var activeModels = response.models;
+                        // 获取指定提供商的所有可用模型
+                        ModelService.loadAvailableModels(activeModels);
+                    } else {
+                        $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载失败: ' + response.message + '</td></tr>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载失败: ' + error + '</td></tr>');
+                }
+            });
         }
+    },
+    
+    // 渲染Ollama模型表格（本地模型和已添加模型的合并视图）
+    renderOllamaModels: function(localModels, activeModels) {
+        console.log("渲染Ollama模型:", localModels, activeModels);
+        
+        var activeModelMap = {};
+        for (var i = 0; i < activeModels.length; i++) {
+            activeModelMap[activeModels[i].id] = activeModels[i];
+        }
+        
+        var tableHtml = '';
+        
+        // 只显示本地已安装的模型
+        for (var i = 0; i < localModels.length; i++) {
+            // 适配不同的API返回格式
+            var model = localModels[i];
+            var modelName = model.name || model.model; // ollama.list() API返回的是model字段
+            
+            if (!modelName) {
+                console.error("找不到模型名称:", model);
+                continue;
+            }
+            
+            // 检查模型是否已启用
+            var isActive = activeModelMap[modelName] !== undefined;
+            var description = isActive ? (activeModelMap[modelName].description || '本地Ollama模型') : '本地Ollama模型';
+            
+            tableHtml += `
+                <tr data-model-id="${modelName}">
+                    <td title="${description}">${modelName}</td>
+                    <td>${isActive ? (activeModelMap[modelName].category || '本地模型') : '本地模型'}</td>
+                    <td>${isActive ? (activeModelMap[modelName].visible ? '可见' : '隐藏') : '未启用'}</td>
+                    <td>
+                        ${isActive ? 
+                            (activeModelMap[modelName].visible ? 
+                                '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
+                                '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
+                            '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
+                    </td>
+                </tr>
+            `;
+        }
+        
+        // 如果没有模型，显示提示信息
+        if (tableHtml === '') {
+            tableHtml = '<tr><td colspan="4" class="text-center">未找到本地Ollama模型</td></tr>';
+        }
+        
+        // 更新表格
+        $('#modelTableBody').html(tableHtml);
+        
+        // 绑定操作按钮事件
+        $('.hide-model-btn').click(function() {
+            var modelId = $(this).closest('tr').data('model-id');
+            ModelService.toggleModelVisibility(modelId, false);
+        });
+        
+        $('.show-model-btn').click(function() {
+            var modelId = $(this).closest('tr').data('model-id');
+            ModelService.toggleModelVisibility(modelId, true);
+        });
+        
+        $('.enable-model-btn').click(function() {
+            var $tr = $(this).closest('tr');
+            var modelId = $tr.data('model-id');
+            ModelService.enableModel(modelId);
+        });
+    },
+    
+    // 加载提供商的所有可用预设模型
+    loadAvailableModels: function(activeModels) {
+        // 构建当前激活模型的ID映射，便于快速查找
+        var activeModelMap = {};
+        for (var i = 0; i < activeModels.length; i++) {
+            activeModelMap[activeModels[i].id] = activeModels[i];
+        }
+        
+        // 获取预设模型配置
+        $.ajax({
+            url: '/api/settings/model/providers/' + this.currentProvider + '/available-models',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    var availableModels = response.models;
+                    var tableHtml = '';
+                    
+                    // 生成模型表格
+                    for (var i = 0; i < availableModels.length; i++) {
+                        var model = availableModels[i];
+                        var isActive = activeModelMap[model.id] !== undefined;
+                        var visibility = isActive ? 
+                            (activeModelMap[model.id].visible ? '可见' : '隐藏') : '未启用';
+                        var description = model.description || ''; 
+                        
+                        tableHtml += `
+                            <tr data-model-id="${model.id}">
+                                <td title="${description}">${model.name}</td>
+                                <td>${model.category || '未分类'}</td>
+                                <td>${visibility}</td>
+                                <td>
+                                    ${isActive ? 
+                                        (activeModelMap[model.id].visible ? 
+                                            '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
+                                            '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
+                                        '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    // 如果没有模型，显示提示信息
+                    if (availableModels.length === 0) {
+                        tableHtml = '<tr><td colspan="4" class="text-center">暂无可用模型</td></tr>';
+                    }
+                    
+                    // 更新表格
+                    $('#modelTableBody').html(tableHtml);
+                    
+                    // 绑定操作按钮事件
+                    $('.hide-model-btn').click(function() {
+                        var modelId = $(this).closest('tr').data('model-id');
+                        ModelService.toggleModelVisibility(modelId, false);
+                    });
+                    
+                    $('.show-model-btn').click(function() {
+                        var modelId = $(this).closest('tr').data('model-id');
+                        ModelService.toggleModelVisibility(modelId, true);
+                    });
+                    
+                    $('.enable-model-btn').click(function() {
+                        var $tr = $(this).closest('tr');
+                        var modelId = $tr.data('model-id');
+                        ModelService.enableModel(modelId);
+                    });
+                } else {
+                    // 如果API不存在，则使用现有模型作为可用模型
+                    ModelService.renderModelTable(activeModels);
+                }
+            },
+            error: function(xhr, status, error) {
+                // 如果API不存在，则使用现有模型作为可用模型
+                ModelService.renderModelTable(activeModels);
+            }
+        });
+    },
+    
+    // 渲染模型表格（备用方法）
+    renderModelTable: function(models) {
+        var tableHtml = '';
+        
+        // 生成模型表格
+        for (var i = 0; i < models.length; i++) {
+            var model = models[i];
+            var visibility = model.visible ? '可见' : '隐藏';
+            var description = model.description || '';
+            
+            tableHtml += `
+                <tr data-model-id="${model.id}">
+                    <td title="${description}">${model.name}</td>
+                    <td>${model.category || '未分类'}</td>
+                    <td>${visibility}</td>
+                    <td>
+                        ${model.visible ? 
+                            '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
+                            '<button class="action-btn show-model-btn" title="显示">显示</button>'}
+                    </td>
+                </tr>
+            `;
+        }
+        
+        // 如果没有模型，显示提示信息
+        if (models.length === 0) {
+            tableHtml = '<tr><td colspan="4" class="text-center">暂无可用模型</td></tr>';
+        }
+        
+        // 更新表格
+        $('#modelTableBody').html(tableHtml);
+        
+        // 绑定操作按钮事件
+        $('.hide-model-btn').click(function() {
+            var modelId = $(this).closest('tr').data('model-id');
+            ModelService.toggleModelVisibility(modelId, false);
+        });
+        
+        $('.show-model-btn').click(function() {
+            var modelId = $(this).closest('tr').data('model-id');
+            ModelService.toggleModelVisibility(modelId, true);
+        });
+        
+        $('.enable-model-btn').click(function() {
+            var $tr = $(this).closest('tr');
+            var modelId = $tr.data('model-id');
+            ModelService.enableModel(modelId);
+        });
+    },
+    
+    // 启用模型
+    enableModel: function(modelId) {
+        // 对Ollama特殊处理
+        if (this.currentProvider === 'ollama') {
+            // 添加本地Ollama模型
+            var modelData = {
+                id: modelId,
+                name: modelId,
+                category: 'Ollama本地',
+                description: 'Ollama本地模型 ' + modelId,
+                visible: true
+            };
+            
+            $.ajax({
+                url: '/api/settings/model/providers/ollama/models/add',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(modelData),
+                success: function(response) {
+                    if (response.success) {
+                        ModelService.loadAllModels();
+                        alert('Ollama模型已启用');
+                    } else {
+                        alert('启用模型失败: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('启用模型失败: ' + error);
+                }
+            });
+            return;
+        }
+        
+        // 非Ollama服务商的处理逻辑
+        // 获取预设模型配置中的对应模型
+        $.ajax({
+            url: '/api/settings/model/providers/' + this.currentProvider + '/available-models',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    var availableModels = response.models;
+                    var modelData = null;
+                    
+                    // 查找对应的模型
+                    for (var i = 0; i < availableModels.length; i++) {
+                        if (availableModels[i].id === modelId) {
+                            modelData = availableModels[i];
+                            break;
+                        }
+                    }
+                    
+                    if (modelData) {
+                        // 添加模型
+                        $.ajax({
+                            url: '/api/settings/model/providers/' + ModelService.currentProvider + '/models/add',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(modelData),
+                            success: function(response) {
+                                if (response.success) {
+                                    // 刷新模型列表
+                                    ModelService.loadAllModels();
+                                    alert('模型已启用');
+                                } else {
+                                    alert('启用模型失败: ' + response.message);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                alert('启用模型失败: ' + error);
+                            }
+                        });
+                    } else {
+                        alert('未找到对应的模型信息');
+                    }
+                } else {
+                    alert('获取模型信息失败: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('获取模型信息失败: ' + error);
+            }
+        });
+    },
+    
+    // 禁用模型
+    disableModel: function(modelId, modelName) {
+        if (!confirm('确定要禁用模型 ' + modelName + ' 吗？您可以随时重新启用。')) {
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/settings/model/providers/' + this.currentProvider + '/models/' + modelId + '/delete',
+            type: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    // 刷新模型列表
+                    ModelService.loadAllModels();
+                    alert('模型已禁用');
+                } else {
+                    alert('禁用模型失败: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('禁用模型失败: ' + error);
+            }
+        });
     },
     
     // 切换模型可见性
@@ -355,287 +684,13 @@ var ModelService = {
             success: function(response) {
                 if (response.success) {
                     // 刷新模型列表
-                    ModelService.refreshModels();
+                    ModelService.loadAllModels();
                 } else {
                     alert('更新模型可见性失败: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
                 alert('更新模型可见性失败: ' + error);
-            }
-        });
-    },
-    
-    // 打开模型设置对话框
-    openModelSettings: function(modelId, modelName) {
-        alert('打开模型设置: ' + modelName + '\n(实际项目中应显示设置对话框)');
-    },
-    
-    // 打开管理对话框，实现添加/删除模型功能
-    openManageDialog: function() {
-        if (!this.currentProvider) {
-            alert('请先选择服务提供商');
-            return;
-        }
-        
-        // 修改为显示模态窗口，加载模型列表
-        var $modal = $('#modelManageModal');
-        var $modalTitle = $modal.find('.modal-title');
-        
-        // 设置标题
-        $modalTitle.text(this.currentProvider + ' 模型管理');
-        
-        // 加载模型列表
-        this.loadAllModels();
-        
-        // 显示/隐藏Ollama特定部分
-        if (this.currentProvider === 'ollama') {
-            $('#ollamaLocalModels').show();
-            this.loadOllamaLocalModels();
-        } else {
-            $('#ollamaLocalModels').hide();
-        }
-        
-        // 显示模态窗口
-        $modal.css('display', 'block');
-        
-        // 绑定关闭按钮事件
-        $('.close-modal, .close-btn').off('click').on('click', function() {
-            $modal.css('display', 'none');
-        });
-        
-        // 绑定添加模型按钮事件
-        $('#addModelBtn').off('click').on('click', function() {
-            ModelService.addNewModel();
-        });
-        
-        // 绑定刷新Ollama模型按钮事件
-        $('#refreshOllamaBtn').off('click').on('click', function() {
-            ModelService.loadOllamaLocalModels();
-        });
-    },
-    
-    // 加载所有模型列表（包括不可见的）
-    loadAllModels: function() {
-        $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/models',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    var models = response.models;
-                    var tableHtml = '';
-                    
-                    // 生成模型表格
-                    for (var i = 0; i < models.length; i++) {
-                        var model = models[i];
-                        var visibility = model.visible ? '可见' : '隐藏';
-                        
-                        tableHtml += `
-                            <tr data-model-id="${model.id}">
-                                <td>${model.name}</td>
-                                <td>${model.category || '未分类'}</td>
-                                <td>${visibility}</td>
-                                <td>
-                                    ${model.visible ? 
-                                        '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
-                                        '<button class="action-btn show-model-btn" title="显示">显示</button>'}
-                                    <button class="action-btn delete-btn" title="删除">删除</button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                    
-                    // 如果没有模型，显示提示信息
-                    if (models.length === 0) {
-                        tableHtml = '<tr><td colspan="4" class="text-center">暂无模型</td></tr>';
-                    }
-                    
-                    // 更新表格
-                    $('#modelTableBody').html(tableHtml);
-                    
-                    // 绑定操作按钮事件
-                    $('.hide-model-btn').click(function() {
-                        var modelId = $(this).closest('tr').data('model-id');
-                        ModelService.toggleModelVisibility(modelId, false);
-                    });
-                    
-                    $('.show-model-btn').click(function() {
-                        var modelId = $(this).closest('tr').data('model-id');
-                        ModelService.toggleModelVisibility(modelId, true);
-                    });
-                    
-                    $('.delete-btn').click(function() {
-                        var $tr = $(this).closest('tr');
-                        var modelId = $tr.data('model-id');
-                        var modelName = $tr.find('td').first().text();
-                        ModelService.deleteModel(modelId, modelName);
-                    });
-                } else {
-                    $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载失败: ' + response.message + '</td></tr>');
-                }
-            },
-            error: function(xhr, status, error) {
-                $('#modelTableBody').html('<tr><td colspan="4" class="text-center error">加载失败: ' + error + '</td></tr>');
-            }
-        });
-    },
-    
-    // 添加新模型
-    addNewModel: function() {
-        var modelId = $('#newModelId').val().trim();
-        var modelName = $('#newModelName').val().trim();
-        var category = $('#newModelCategory').val().trim();
-        var description = $('#newModelDesc').val().trim();
-        
-        // 验证必填字段
-        if (!modelId) {
-            alert('请输入模型ID');
-            return;
-        }
-        
-        if (!modelName) {
-            alert('请输入模型名称');
-            return;
-        }
-        
-        // 默认分类
-        if (!category) {
-            category = '其他';
-        }
-        
-        // 构建请求数据
-        var modelData = {
-            id: modelId,
-            name: modelName,
-            category: category,
-            description: description,
-            visible: true
-        };
-        
-        // 发送添加请求
-        $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/models/add',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(modelData),
-            success: function(response) {
-                if (response.success) {
-                    // 清空输入框
-                    $('#newModelId').val('');
-                    $('#newModelName').val('');
-                    $('#newModelCategory').val('');
-                    $('#newModelDesc').val('');
-                    
-                    // 刷新模型列表
-                    ModelService.loadAllModels();
-                    alert('模型添加成功');
-                } else {
-                    alert('添加模型失败: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('添加模型失败: ' + error);
-            }
-        });
-    },
-    
-    // 删除模型
-    deleteModel: function(modelId, modelName) {
-        if (!confirm('确定要删除模型 ' + modelName + ' 吗？此操作不可恢复。')) {
-            return;
-        }
-        
-        $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/models/' + modelId + '/delete',
-            type: 'DELETE',
-            success: function(response) {
-                if (response.success) {
-                    // 刷新模型列表
-                    ModelService.loadAllModels();
-                    alert('模型已删除');
-                } else {
-                    alert('删除模型失败: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('删除模型失败: ' + error);
-            }
-        });
-    },
-    
-    // 获取Ollama本地模型列表
-    loadOllamaLocalModels: function() {
-        $('#ollamaModelsList').html('<div class="loading-indicator">加载中...</div>');
-        
-        $.ajax({
-            url: '/api/common/ollama/models',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    var models = response.models;
-                    var modelsHtml = '';
-                    
-                    // 获取当前已添加的模型IDs
-                    $.ajax({
-                        url: '/api/settings/model/providers/ollama/models',
-                        type: 'GET',
-                        dataType: 'json',
-                        async: false,
-                        success: function(modelResponse) {
-                            if (modelResponse.success) {
-                                var existingModels = modelResponse.models;
-                                var existingModelIds = existingModels.map(function(m) { return m.id; });
-                                
-                                // 生成本地模型列表
-                                for (var i = 0; i < models.length; i++) {
-                                    var model = models[i];
-                                    var modelName = model.name;
-                                    var isAdded = existingModelIds.includes(modelName);
-                                    
-                                    modelsHtml += `
-                                        <div class="ollama-model-item" data-model-name="${modelName}">
-                                            <span class="ollama-model-name">${modelName}</span>
-                                            <div class="ollama-model-actions">
-                                                ${isAdded ? 
-                                                  '<button class="action-btn" disabled>已添加</button>' : 
-                                                  '<button class="action-btn add-local-model-btn">添加</button>'}
-                                            </div>
-                                        </div>
-                                    `;
-                                }
-                            }
-                        }
-                    });
-                    
-                    // 如果没有模型，显示提示
-                    if (models.length === 0) {
-                        modelsHtml = '<div class="empty-text">未找到本地Ollama模型</div>';
-                    }
-                    
-                    // 更新列表
-                    $('#ollamaModelsList').html(modelsHtml);
-                    
-                    // 绑定添加按钮事件
-                    $('.add-local-model-btn').click(function() {
-                        var modelName = $(this).closest('.ollama-model-item').data('model-name');
-                        
-                        // 自动填充表单
-                        $('#newModelId').val(modelName);
-                        $('#newModelName').val(modelName);
-                        $('#newModelCategory').val('Ollama本地');
-                        $('#newModelDesc').val('Ollama本地模型 ' + modelName);
-                        
-                        // 滚动到添加表单区域
-                        $('.add-model-form').get(0).scrollIntoView({ behavior: 'smooth' });
-                    });
-                } else {
-                    $('#ollamaModelsList').html('<div class="error">加载Ollama模型失败: ' + response.message + '</div>');
-                }
-            },
-            error: function(xhr, status, error) {
-                $('#ollamaModelsList').html('<div class="error">加载Ollama模型失败: ' + error + '</div>');
             }
         });
     }

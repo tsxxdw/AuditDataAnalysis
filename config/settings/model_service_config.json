@@ -3,24 +3,52 @@
   "providers": {
     "silicon-flow": {
       "name": "硅基流动",
-      "apiKey": "",
-      "apiUrl": "https://api.silicon-flow.com",
+      "apiKey": "Z0FBQUFBQm9IWEdYMVlHaEZzWE9JajAyWlhqLU1LZjBWZTFDUGwtRWN4SEFxbzB4SkxWakVvU0pqVjlTaXJraW95SnhzRDRaRldrUXNrQXdBX1pBb29LM1JuTEFLX0VQU0U3QWtCYzEzSUs3QTV2Q1l3aVlvcDVzZ1Y4NnB5dDhNTkYzSnZmY09zTEVXREtVVVVaa1pWcGlXQ1Bic0MtWnBnPT0=",
+      "apiUrl": "https://api.siliconflow.cn",
       "apiVersion": "v1",
       "enabled": true,
       "models": [
         {
-          "id": "silicon-16k",
-          "name": "silicon-16k",
+          "id": "Qwen/QwQ-32B",
+          "name": "QwQ-32B",
+          "visible": true,
+          "category": "通用模型",
+          "description": "硅基流动通用大模型，支持32K上下文窗口"
+        },
+        {
+          "id": "Qwen/QwQ-7B",
+          "name": "QwQ-7B",
           "visible": true,
           "category": "通用模型",
           "description": "硅基流动通用大模型，支持16K上下文窗口"
         },
         {
-          "id": "silicon-32k",
-          "name": "silicon-32k",
-          "visible": true,
+          "id": "Qwen/QwQ-72B",
+          "name": "QwQ-72B",
+          "visible": false,
+          "category": "高级模型",
+          "description": "硅基流动最强大模型，支持32K上下文窗口"
+        },
+        {
+          "id": "THUDM/chatglm3-6b",
+          "name": "ChatGLM3-6B",
+          "visible": false,
+          "category": "开源模型",
+          "description": "清华大学开发的开源模型"
+        },
+        {
+          "id": "01-ai/Yi-34B",
+          "name": "Yi-34B",
+          "visible": false,
+          "category": "开源模型",
+          "description": "零一万物开发的开源大模型"
+        },
+        {
           "category": "通用模型",
-          "description": "硅基流动通用大模型，支持32K上下文窗口"
+          "description": "通义千问3 8B大模型（免费）",
+          "id": "Qwen/Qwen3-8B",
+          "name": "Qwen3-8B",
+          "visible": true
         }
       ]
     },
@@ -44,12 +72,33 @@
           "visible": true,
           "category": "搜索模型",
           "description": "深度求索13B搜索增强大模型"
+        },
+        {
+          "id": "deep-search-base",
+          "name": "深度求索基础模型",
+          "visible": false,
+          "category": "基础模型",
+          "description": "适用于通用场景的基础模型"
+        },
+        {
+          "id": "deep-search-code",
+          "name": "深度求索代码模型",
+          "visible": false,
+          "category": "专业模型",
+          "description": "专为代码开发场景优化的模型"
+        },
+        {
+          "id": "deep-search-finance",
+          "name": "深度求索金融模型",
+          "visible": false,
+          "category": "专业模型",
+          "description": "专为金融领域优化的大模型"
         }
       ]
     },
     "ollama": {
       "name": "Ollama",
-      "apiKey": "",
+      "apiKey": "Z0FBQUFBQm9IWEdSWEdqUkE3OVEyMXBRLVpUd0NqYTh0UXVuUEF2YVdhMXJyUlpEZ1p6V1ZhQ21yZGhHUzk3X1lwNEplbndkdDhqN3VpaTNLMmNWcDcwaWlCdl9PTUkwVzhjYnB4Q3RLZU1HZDhDMEJQU3NYZTQ3dlVSVUxHdk1Pb21lNTFVZVZBc05zaktMTC0zWkh3QVFDNEhVRzVfbUJ3PT0=",
       "apiUrl": "http://localhost:11434",
       "apiVersion": "v1",
       "enabled": true,
@@ -67,8 +116,85 @@
           "visible": true,
           "category": "qwen3",
           "description": "通义千问3 1.7B大模型"
+        },
+        {
+          "id": "deepseek-r1:1.5b",
+          "name": "deepseek-r1:1.5b",
+          "category": "Ollama本地",
+          "description": "Ollama本地模型 deepseek-r1:1.5b",
+          "visible": true
+        },
+        {
+          "id": "bge-m3:latest",
+          "name": "bge-m3:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 bge-m3:latest",
+          "visible": true
+        },
+        {
+          "id": "nomic-embed-text:latest",
+          "name": "nomic-embed-text:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 nomic-embed-text:latest",
+          "visible": true
+        },
+        {
+          "id": "gemma3:12b",
+          "name": "gemma3:12b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 gemma3:12b",
+          "visible": true
+        },
+        {
+          "id": "gemma3:latest",
+          "name": "gemma3:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 gemma3:latest",
+          "visible": true
+        },
+        {
+          "id": "gemma3:1b",
+          "name": "gemma3:1b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 gemma3:1b",
+          "visible": true
+        },
+        {
+          "id": "gemma3:4b",
+          "name": "gemma3:4b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 gemma3:4b",
+          "visible": true
+        },
+        {
+          "id": "deepseek-r1:14b",
+          "name": "deepseek-r1:14b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:14b",
+          "visible": true
+        },
+        {
+          "id": "deepseek-r1:7b",
+          "name": "deepseek-r1:7b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:7b",
+          "visible": true
+        },
+        {
+          "id": "deepseek-r1:32b",
+          "name": "deepseek-r1:32b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:32b",
+          "visible": true
+        },
+        {
+          "id": "qwen3:0.6b",
+          "name": "qwen3:0.6b",
+          "category": "Ollama本地",
+          "description": "Ollama本地模型 qwen3:0.6b",
+          "visible": true
         }
       ]
     }
   }
-} 
+}

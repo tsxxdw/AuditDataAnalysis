@@ -6,6 +6,7 @@ import json
 import requests
 import logging
 from typing import Dict, List, Optional, Any, Union
+from utils.encryption_util import encrypt_api_key, decrypt_api_key, is_encrypted
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,16 +21,88 @@ class ModelService:
         """初始化模型服务"""
         self.config = self._load_config()
         self.default_provider = self.config.get('defaultProvider', 'ollama')
+        
+        # 启动时验证Ollama模型
+        self._validate_ollama_models()
     
     def _load_config(self) -> Dict:
         """加载模型服务配置"""
         try:
             with open(self.CONFIG_PATH, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                config = json.load(f)
+                
+                # 配置文件中的API密钥无需在这里解密
+                # 只有在实际使用时才解密
+                
+                return config
         except Exception as e:
             logger.error(f"加载模型配置文件失败: {str(e)}")
             # 返回默认配置
             return {"defaultProvider": "ollama", "providers": {}}
+    
+    def _validate_ollama_models(self) -> None:
+        """验证Ollama模型配置，移除本地不存在的模型记录"""
+        try:
+            # 检查Ollama提供商是否存在
+            if 'ollama' not in self.config.get('providers', {}):
+                logger.info("Ollama提供商不存在，跳过验证")
+                return
+            
+            # 获取Ollama提供商的配置
+            ollama_provider = self.config['providers']['ollama']
+            
+            # 检查是否有配置的模型
+            if 'models' not in ollama_provider or not ollama_provider['models']:
+                logger.info("Ollama没有配置的模型，跳过验证")
+                return
+            
+            # 尝试获取本地Ollama模型列表
+            try:
+                import ollama
+                local_models = ollama.list()
+                
+                # 提取模型ID列表
+                local_model_ids = []
+                if "models" in local_models and isinstance(local_models["models"], list):
+                    for model in local_models["models"]:
+                        if hasattr(model, 'model'):
+                            local_model_ids.append(model.model)
+                        elif hasattr(model, 'name'):
+                            local_model_ids.append(model.name)
+                
+                logger.info(f"本地Ollama模型列表: {local_model_ids}")
+                
+                # 检查配置中的每个模型是否在本地存在
+                if not local_model_ids:
+                    logger.warning("未获取到本地Ollama模型列表，无法验证")
+                    return
+                
+                models_to_keep = []
+                models_to_remove = []
+                
+                for model in ollama_provider['models']:
+                    model_id = model['id']
+                    if model_id in local_model_ids:
+                        models_to_keep.append(model)
+                    else:
+                        models_to_remove.append(model_id)
+                
+                # 如果有需要移除的模型
+                if models_to_remove:
+                    logger.info(f"移除不存在的Ollama模型: {models_to_remove}")
+                    ollama_provider['models'] = models_to_keep
+                    self._save_config()
+                    logger.info("已更新Ollama模型配置")
+                else:
+                    logger.info("所有配置的Ollama模型都存在于本地")
+                
+            except ImportError:
+                logger.warning("未安装ollama包，无法验证Ollama模型")
+            except Exception as e:
+                logger.error(f"验证Ollama模型时出错: {str(e)}")
+        
+        except Exception as e:
+            logger.error(f"验证Ollama模型配置时发生错误: {str(e)}")
     
     def _save_config(self) -> bool:
         """保存模型服务配置"""
@@ -110,7 +183,12 @@ class ModelService:
         allowed_fields = ['apiKey', 'apiUrl', 'apiVersion', 'enabled', 'name']
         for field in allowed_fields:
             if field in data:
-                self.config['providers'][provider_id][field] = data[field]
+                # 对API密钥特殊处理：加密后再存储
+                if field == 'apiKey' and data[field]:
+                    # 加密API密钥
+                    self.config['providers'][provider_id][field] = encrypt_api_key(data[field])
+                else:
+                    self.config['providers'][provider_id][field] = data[field]
         
         return self._save_config()
     
@@ -120,8 +198,12 @@ class ModelService:
         if not provider:
             return {"success": False, "message": "未找到指定的服务提供商"}
         
-        # 使用传入的参数，否则使用配置中的参数
-        api_key = api_key or provider.get('apiKey', '')
+        # 使用传入的参数，否则使用配置中的参数（需解密）
+        stored_api_key = provider.get('apiKey', '')
+        if stored_api_key and is_encrypted(stored_api_key):
+            stored_api_key = decrypt_api_key(stored_api_key)
+            
+        api_key = api_key or stored_api_key
         api_url = api_url or provider.get('apiUrl', '')
         api_version = provider.get('apiVersion', 'v1')
         
@@ -245,6 +327,10 @@ class ModelService:
         
         # 准备请求参数
         api_key = provider.get('apiKey', '')
+        # 解密API密钥
+        if api_key and is_encrypted(api_key):
+            api_key = decrypt_api_key(api_key)
+            
         api_url = provider.get('apiUrl', '')
         api_version = provider.get('apiVersion', 'v1')
         

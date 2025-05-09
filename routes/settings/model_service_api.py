@@ -4,6 +4,8 @@
 from flask import Blueprint, request, jsonify
 from service.common.model_common_service import model_service
 import logging
+import os
+import json
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -161,4 +163,163 @@ def toggle_model_visibility(provider_id, model_id):
         return jsonify({"success": True, "message": "模型可见性已更新"})
     except Exception as e:
         logger.error(f"更新模型可见性时发生错误: {str(e)}")
-        return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500 
+        return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
+
+@model_settings_api.route('/api/settings/model/providers/<provider_id>/available-models', methods=['GET'])
+def get_available_models(provider_id):
+    """获取服务提供商的所有可用预设模型"""
+    try:
+        # 从配置文件中读取预设模型
+        config_path = os.path.join('config', 'settings', 'model_service_config.json')
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        # 检查提供商是否存在
+        if provider_id not in config.get('providers', {}):
+            return jsonify({"success": False, "message": "未找到指定的服务提供商"}), 404
+            
+        # 获取预设模型列表
+        provider_config = config['providers'][provider_id]
+        
+        # 为Ollama特殊处理，如果没有预设模型，则使用通用模型
+        if provider_id == 'ollama' and not provider_config.get('models'):
+            models = [
+                {
+                    "id": "llama2",
+                    "name": "Llama 2",
+                    "category": "通用",
+                    "description": "Llama 2 开源大模型",
+                    "visible": True
+                },
+                {
+                    "id": "llama2:13b",
+                    "name": "Llama 2 13B",
+                    "category": "通用",
+                    "description": "Llama 2 13B 开源大模型",
+                    "visible": True
+                },
+                {
+                    "id": "qwen:4b",
+                    "name": "Qwen 4B",
+                    "category": "qwen",
+                    "description": "通义千问4B开源大模型",
+                    "visible": True
+                }
+            ]
+        else:
+            models = provider_config.get('models', [])
+            
+        return jsonify({"success": True, "models": models})
+    except Exception as e:
+        logger.error(f"获取预设模型列表时发生错误: {str(e)}")
+        return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
+
+@model_settings_api.route('/providers/ollama/available-models', methods=['GET'])
+def get_ollama_available_models():
+    """获取Ollama可用预设模型列表
+    
+    返回:
+        JSON: 成功/失败信息以及可用模型列表
+    """
+    logger.info("获取Ollama可用预设模型列表")
+    
+    # 对于Ollama，我们只显示本地已安装的模型，不显示预设模型
+    return jsonify({
+        "success": True,
+        "message": "Ollama仅使用本地安装的模型",
+        "models": []  # 返回空列表以确保不显示预设模型
+    })
+
+@model_settings_api.route('/api/settings/model/providers/ollama/sync', methods=['POST'])
+def sync_ollama_models():
+    """手动同步本地Ollama模型
+    
+    返回:
+        JSON: 成功/失败信息以及同步结果
+    """
+    logger.info("手动同步本地Ollama模型")
+    
+    try:
+        import ollama
+        
+        # 获取本地Ollama模型列表
+        local_models = ollama.list()
+        local_model_ids = []
+        
+        # 提取模型ID列表
+        if "models" in local_models and isinstance(local_models["models"], list):
+            for model in local_models["models"]:
+                if hasattr(model, 'model'):
+                    local_model_ids.append(model.model)
+                elif hasattr(model, 'name'):
+                    local_model_ids.append(model.name)
+        
+        # 获取当前配置
+        from service.common.model_common_service import model_service
+        ollama_config = model_service.config.get('providers', {}).get('ollama', {})
+        configured_models = ollama_config.get('models', [])
+        
+        # 保留已配置但本地也存在的模型
+        models_to_keep = []
+        models_removed = []
+        
+        for model in configured_models:
+            model_id = model['id']
+            if model_id in local_model_ids:
+                models_to_keep.append(model)
+            else:
+                models_removed.append(model_id)
+        
+        # 添加本地存在但未配置的模型
+        existing_ids = [m['id'] for m in models_to_keep]
+        models_added = []
+        
+        for model_id in local_model_ids:
+            if model_id not in existing_ids:
+                # 创建新模型配置
+                new_model = {
+                    'id': model_id,
+                    'name': model_id,
+                    'category': '本地模型',
+                    'description': f'Ollama本地模型 {model_id}',
+                    'visible': True
+                }
+                models_to_keep.append(new_model)
+                models_added.append(model_id)
+        
+        # 更新配置
+        if 'ollama' in model_service.config.get('providers', {}):
+            model_service.config['providers']['ollama']['models'] = models_to_keep
+            model_service._save_config()
+            
+            # 准备返回消息
+            message = "同步完成"
+            if models_added:
+                message += f"，新增模型: {', '.join(models_added)}"
+            if models_removed:
+                message += f"，移除模型: {', '.join(models_removed)}"
+            
+            return jsonify({
+                "success": True,
+                "message": message,
+                "added": models_added,
+                "removed": models_removed
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Ollama提供商不存在"
+            })
+            
+    except ImportError:
+        return jsonify({
+            "success": False,
+            "message": "未安装ollama包，无法同步模型"
+        })
+    except Exception as e:
+        logger.error(f"同步Ollama模型时出错: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"同步失败: {str(e)}"
+        }), 500 

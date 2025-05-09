@@ -469,9 +469,13 @@
 /* Ollama本地模型部分 */
 .ollama-local-models {
     background-color: #f0f7fd;
-    padding: 15px;
+    padding: 1rem;
     border-radius: 6px;
     border-left: 3px solid #3498db;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .ollama-models-list {
@@ -518,4 +522,95 @@
         width: 100%;
         margin-bottom: 5px;
     }
+}
+
+/* 模型列表描述样式 */
+.model-list-description {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.model-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#syncOllamaBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+/* 隐藏空的Ollama容器 */
+.ollama-local-models:empty {
+    display: none !important;
+}
+
+/* 模型管理部分样式 */
+.model-management-section {
+    margin-top: 2rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.sub-section-title {
+    font-size: 1.2rem;
+    color: #333;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.model-list-description {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+#refreshModelsBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+.refresh-icon::before {
+    content: "🔄";
+    font-size: 0.9rem;
+}
+
+/* 模型表格样式优化 */
+.model-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.model-table th, .model-table td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.model-table th {
+    font-weight: 600;
+    color: #444;
+    background-color: #f8f8f8;
+}
+
+.model-table tr:hover {
+    background-color: #f5f7fa;
+}
+
+/* Ollama本地模型部分样式优化 */
+#syncOllamaBtn {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
 } 
