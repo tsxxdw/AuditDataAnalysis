@@ -387,16 +387,22 @@ var ModelService = {
             
             // 检查模型是否已启用
             var isActive = activeModelMap[modelName] !== undefined;
-            var description = isActive ? (activeModelMap[modelName].description || '本地Ollama模型') : '本地Ollama模型';
+            var modelToShow = isActive ? activeModelMap[modelName] : {
+                description: '本地Ollama模型',
+                category: '本地模型',
+                visible: true
+            };
+            
+            var description = isActive ? (modelToShow.description || '本地Ollama模型') : '本地Ollama模型';
             
             tableHtml += `
                 <tr data-model-id="${modelName}">
                     <td title="${description}">${modelName}</td>
-                    <td>${isActive ? (activeModelMap[modelName].category || '本地模型') : '本地模型'}</td>
-                    <td>${isActive ? (activeModelMap[modelName].visible ? '可见' : '隐藏') : '未启用'}</td>
+                    <td>${isActive ? (modelToShow.category || '本地模型') : '本地模型'}</td>
+                    <td>${isActive ? (modelToShow.visible ? '可见' : '隐藏') : '未启用'}</td>
                     <td>
                         ${isActive ? 
-                            (activeModelMap[modelName].visible ? 
+                            (modelToShow.visible ? 
                                 '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
                                 '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
                             '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
@@ -449,13 +455,17 @@ var ModelService = {
                     var availableModels = response.models;
                     var tableHtml = '';
                     
-                    // 生成模型表格
+                    // 生成模型表格 - 仅包含尚未被用户自己隐藏的模型
                     for (var i = 0; i < availableModels.length; i++) {
                         var model = availableModels[i];
                         var isActive = activeModelMap[model.id] !== undefined;
+                        
+                        // 如果该模型已激活，直接使用其当前状态（包括可见性）
+                        // 如果该模型未激活，才使用预设配置中的可见性
+                        var modelToShow = isActive ? activeModelMap[model.id] : model;
                         var visibility = isActive ? 
-                            (activeModelMap[model.id].visible ? '可见' : '隐藏') : '未启用';
-                        var description = model.description || ''; 
+                            (modelToShow.visible ? '可见' : '隐藏') : '未启用';
+                        var description = modelToShow.description || '';
                         
                         tableHtml += `
                             <tr data-model-id="${model.id}">
@@ -464,7 +474,7 @@ var ModelService = {
                                 <td>${visibility}</td>
                                 <td>
                                     ${isActive ? 
-                                        (activeModelMap[model.id].visible ? 
+                                        (modelToShow.visible ? 
                                             '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
                                             '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
                                         '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
@@ -516,6 +526,7 @@ var ModelService = {
         // 生成模型表格
         for (var i = 0; i < models.length; i++) {
             var model = models[i];
+            // 使用模型当前状态，包括可见性
             var visibility = model.visible ? '可见' : '隐藏';
             var description = model.description || '';
             
@@ -651,8 +662,9 @@ var ModelService = {
         }
         
         $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/models/' + modelId + '/delete',
+            url: '/api/settings/model/providers/' + this.currentProvider + '/models/delete',
             type: 'DELETE',
+            data: { modelId: modelId },
             success: function(response) {
                 if (response.success) {
                     // 刷新模型列表
@@ -675,10 +687,11 @@ var ModelService = {
         }
         
         $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/models/' + modelId + '/visibility',
+            url: '/api/settings/model/providers/' + this.currentProvider + '/models/visibility',
             type: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({
+                modelId: modelId,
                 visible: visible
             }),
             success: function(response) {

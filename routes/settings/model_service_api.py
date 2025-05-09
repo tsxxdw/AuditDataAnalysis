@@ -6,6 +6,7 @@ from service.common.model_common_service import model_service
 import logging
 import os
 import json
+import urllib.parse
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -112,13 +113,15 @@ def add_model(provider_id):
         logger.error(f"添加模型时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
-@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/<model_id>/update', methods=['PUT'])
-def update_model(provider_id, model_id):
+@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/update', methods=['PUT'])
+def update_model(provider_id):
     """更新模型信息"""
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "message": "请求体不能为空"}), 400
+        if not data or 'modelId' not in data:
+            return jsonify({"success": False, "message": "请提供模型ID和更新数据"}), 400
+        
+        model_id = data.pop('modelId')  # 从数据中提取模型ID并移除
         
         # 更新模型
         success = model_service.update_model(provider_id, model_id, data)
@@ -130,10 +133,15 @@ def update_model(provider_id, model_id):
         logger.error(f"更新模型信息时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
-@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/<model_id>/delete', methods=['DELETE'])
-def delete_model(provider_id, model_id):
+@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/delete', methods=['DELETE'])
+def delete_model(provider_id):
     """删除指定的模型"""
     try:
+        # 从查询参数获取模型ID
+        model_id = request.args.get('modelId')
+        if not model_id:
+            return jsonify({"success": False, "message": "请提供模型ID参数"}), 400
+        
         # 删除模型
         success = model_service.delete_model(provider_id, model_id)
         
@@ -145,14 +153,15 @@ def delete_model(provider_id, model_id):
         logger.error(f"删除模型时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
-@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/<model_id>/visibility', methods=['PUT'])
-def toggle_model_visibility(provider_id, model_id):
+@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/visibility', methods=['PUT'])
+def toggle_model_visibility(provider_id):
     """切换模型可见性"""
     try:
         data = request.get_json()
-        if not data or 'visible' not in data:
-            return jsonify({"success": False, "message": "请提供可见性参数"}), 400
+        if not data or 'visible' not in data or 'modelId' not in data:
+            return jsonify({"success": False, "message": "请提供模型ID和可见性参数"}), 400
         
+        model_id = data.get('modelId')
         visible = data.get('visible')
         
         # 切换可见性
