@@ -392,39 +392,79 @@
 .model-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 15px;
+    margin-bottom: 1.5rem;
 }
 
 .model-table th, .model-table td {
-    padding: 10px;
+    padding: 0.8rem;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
 }
 
 .model-table th {
     font-weight: 600;
-    color: #555;
-    background-color: #f5f5f5;
+    color: #444;
+    background-color: #f8f8f8;
 }
 
-.model-table td .action-btn {
+.model-table tr:hover {
+    background-color: #f5f7fa;
+}
+
+/* 将状态列（第3列）的文字设置为不同颜色 */
+.model-table td:nth-child(3) {
+    font-weight: 500;
+}
+
+/* 状态为"可见"时的颜色 */
+.status-visible {
+    color: #27ae60; /* 绿色 */
+}
+
+/* 状态为"隐藏"时的颜色 */
+.status-hidden {
+    color: #e74c3c; /* 红色 */
+}
+
+/* 状态为"未启用"时的颜色 */
+.status-disabled {
+    color: #7f8c8d; /* 灰色 */
+}
+
+/* 操作按钮样式美化 */
+.action-btn, 
+.show-model-btn, 
+.enable-model-btn {
     padding: 5px 10px;
-    background: none;
-    border: 1px solid #ddd;
+    background-color: #3498db;
+    color: white;
+    border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-right: 5px;
     transition: all 0.2s;
 }
 
-.model-table td .delete-btn {
-    color: #e74c3c;
-    border-color: #e74c3c;
+.action-btn:hover, 
+.show-model-btn:hover, 
+.enable-model-btn:hover {
+    background-color: #2980b9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.model-table td .delete-btn:hover {
+/* "不显示"按钮样式 - 红色 */
+.hide-model-btn {
+    padding: 5px 10px;
     background-color: #e74c3c;
     color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.hide-model-btn:hover {
+    background-color: #c0392b;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 添加模型表单 */
@@ -584,29 +624,6 @@
 .refresh-icon::before {
     content: "🔄";
     font-size: 0.9rem;
-}
-
-/* 模型表格样式优化 */
-.model-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1.5rem;
-}
-
-.model-table th, .model-table td {
-    padding: 0.8rem;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.model-table th {
-    font-weight: 600;
-    color: #444;
-    background-color: #f8f8f8;
-}
-
-.model-table tr:hover {
-    background-color: #f5f7fa;
 }
 
 /* Ollama本地模型部分样式优化 */

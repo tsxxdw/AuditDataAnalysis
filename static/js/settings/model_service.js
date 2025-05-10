@@ -395,15 +395,21 @@ var ModelService = {
             
             var description = isActive ? (modelToShow.description || '本地Ollama模型') : '本地Ollama模型';
             
+            // 确定状态文本和状态类
+            var statusText = isActive ? (modelToShow.visible ? '可见' : '不显示') : '未启用';
+            var statusClass = isActive ? 
+                (modelToShow.visible ? 'status-visible' : 'status-hidden') : 
+                'status-disabled';
+            
             tableHtml += `
                 <tr data-model-id="${modelName}">
                     <td title="${description}">${modelName}</td>
                     <td>${isActive ? (modelToShow.category || '本地模型') : '本地模型'}</td>
-                    <td>${isActive ? (modelToShow.visible ? '可见' : '隐藏') : '未启用'}</td>
+                    <td class="${statusClass}">${statusText}</td>
                     <td>
                         ${isActive ? 
                             (modelToShow.visible ? 
-                                '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
+                                '<button class="action-btn hide-model-btn" title="不显示">不显示</button>' : 
                                 '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
                             '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
                     </td>
@@ -463,19 +469,25 @@ var ModelService = {
                         // 如果该模型已激活，直接使用其当前状态（包括可见性）
                         // 如果该模型未激活，才使用预设配置中的可见性
                         var modelToShow = isActive ? activeModelMap[model.id] : model;
-                        var visibility = isActive ? 
-                            (modelToShow.visible ? '可见' : '隐藏') : '未启用';
+                        
+                        // 确定状态文本和状态类
+                        var statusText = isActive ? 
+                            (modelToShow.visible ? '可见' : '不显示') : '未启用';
+                        var statusClass = isActive ? 
+                            (modelToShow.visible ? 'status-visible' : 'status-hidden') : 
+                            'status-disabled';
+                        
                         var description = modelToShow.description || '';
                         
                         tableHtml += `
                             <tr data-model-id="${model.id}">
                                 <td title="${description}">${model.name}</td>
                                 <td>${model.category || '未分类'}</td>
-                                <td>${visibility}</td>
+                                <td class="${statusClass}">${statusText}</td>
                                 <td>
                                     ${isActive ? 
                                         (modelToShow.visible ? 
-                                            '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
+                                            '<button class="action-btn hide-model-btn" title="不显示">不显示</button>' : 
                                             '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
                                         '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
                                 </td>
@@ -527,17 +539,18 @@ var ModelService = {
         for (var i = 0; i < models.length; i++) {
             var model = models[i];
             // 使用模型当前状态，包括可见性
-            var visibility = model.visible ? '可见' : '隐藏';
+            var statusText = model.visible ? '可见' : '不显示';
+            var statusClass = model.visible ? 'status-visible' : 'status-hidden';
             var description = model.description || '';
             
             tableHtml += `
                 <tr data-model-id="${model.id}">
                     <td title="${description}">${model.name}</td>
                     <td>${model.category || '未分类'}</td>
-                    <td>${visibility}</td>
+                    <td class="${statusClass}">${statusText}</td>
                     <td>
                         ${model.visible ? 
-                            '<button class="action-btn hide-model-btn" title="隐藏">隐藏</button>' : 
+                            '<button class="action-btn hide-model-btn" title="不显示">不显示</button>' : 
                             '<button class="action-btn show-model-btn" title="显示">显示</button>'}
                     </td>
                 </tr>

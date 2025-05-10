@@ -402,9 +402,7 @@ $(document).ready(function() {
     
     // 加载选择的Excel文件
     function loadSelectedExcelFiles() {
-        var selectedFiles = $('#file-select').select2('data');
-        
-        if (selectedFiles.length === 0) {
+        if (window.selectedFiles.length === 0) {
             addLog('错误: 请先选择Excel文件');
             return;
         }
@@ -412,19 +410,14 @@ $(document).ready(function() {
         // 禁用按钮，防止重复点击
         $('#load-excel-btn').prop('disabled', true).text('加载中...');
         
-        // 收集文件路径
-        var filePaths = selectedFiles.map(function(file) {
-            return file.id;
-        });
-        
-        addLog('正在加载Excel文件内容，共' + filePaths.length + '个文件...');
+        addLog('正在加载Excel文件内容，共' + window.selectedFiles.length + '个文件...');
         
         // 调用API处理选择的Excel文件
         $.ajax({
             url: '/api/import/excel/selected-files',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ file_paths: filePaths }),
+            data: JSON.stringify({ file_paths: window.selectedFiles }),
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.files && response.files.length > 0) {
