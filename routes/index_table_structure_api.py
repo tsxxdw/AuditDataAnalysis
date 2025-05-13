@@ -14,12 +14,16 @@ from pypinyin import lazy_pinyin
 from utils.excel_util import ExcelUtil
 from service.exception import AppException
 from sqlalchemy import text
+from service.prompt_templates.index_prompt_templates_service import PromptTemplateService
 
 # 创建蓝图
 index_table_structure_bp = Blueprint('index_table_structure_api', __name__, url_prefix='/api/table_structure')
 
 # 实例化数据库服务
 db_service = DatabaseService()
+
+# 实例化模板服务
+template_service = PromptTemplateService()
 
 def generate_field_name(column_index, comment):
     """
@@ -411,71 +415,99 @@ def generate_table_sql():
         
         if template_id:
             try:
-                # 发送HTTP请求获取模板信息
-                import requests
-                template_url = f"http://localhost:5000/api/prompt_templates/{template_id}"
-                response = requests.get(template_url)
+                # 使用模板服务获取模板内容
+                template = template_service.load_template_from_file(template_id)
                 
-                if response.status_code == 200:
-                    template_data = response.json()
-                    if template_data.get('success'):
-                        template = template_data.get('template')
-                        
-                        # 解析模板内容
-                        import json
-                        template_content = json.loads(template.get('content', '{}'))
-                        
-                        system_prompt = template_content.get('system', '')
-                        user_prompt = template_content.get('user', '')
-                    else:
-                        app_logger.error(f"获取模板失败: {template_data.get('message')}")
-                else:
-                    app_logger.error(f"获取模板请求失败: {response.status_code}")
+                if not template:
+                    error_msg = f"未找到ID为 {template_id} 的模板"
+                    app_logger.error(error_msg)
+                    return jsonify({"success": False, "message": error_msg}), 404
+                
+                # 解析模板内容
+                import json
+                template_content = json.loads(template.get('content', '{}'))
+                
+                system_prompt = template_content.get('system', '')
+                user_prompt = template_content.get('user', '')
+                
+                # 如果模板中没有包含必要的提示词，则返回错误
+                if not user_prompt:
+                    error_msg = "所选模板未包含用户提示词"
+                    app_logger.error(error_msg)
+                    return jsonify({"success": False, "message": error_msg}), 400
+                    
             except Exception as e:
-                app_logger.error(f"获取提示词模板失败: {str(e)}")
-                # 继续处理，使用默认提示词
+                error_msg = f"获取提示词模板失败: {str(e)}"
+                app_logger.error(error_msg)
+                return jsonify({"success": False, "message": error_msg}), 500
         
-        # 如果没有获取到模板，使用默认提示词
-        if not user_prompt:
-            system_prompt = "你是一位数据库专家，精通各种数据库的SQL语法。请根据用户提供的表名、表备注和字段备注生成创建表的SQL语句。"
-            user_prompt = "请为我生成一个创建表的SQL语句，要求如下：\n1. 表名：{table_name}\n2. 表备注：{table_comment}\n3. 数据库类型：{db_type}\n4. 字段备注：{field_comments}\n\n请确保SQL语句符合标准规范，包含id主键字段、创建时间和更新时间字段。"
-        
-        # 4. 组装新的用户提示词，直接添加表信息
-        user_prompt = f"{user_prompt}\n\n表名：{table_name}\n表备注：{table_comment}\n数据库类型：{db_type}\n字段备注：{field_comments_text} /no_think"
-        
-        # 5. A.调用common_ollama_api生成SQL
+        # 5. 调用默认模型服务生成SQL
         try:
-            # 发送HTTP请求到common_ollama_api
-            import requests
-            ollama_url = "http://localhost:5000/api/common/ollama/generate"
-            ollama_data = {
-                "user_prompt": user_prompt,
-                "system_prompt": system_prompt,
+            # 导入模型服务
+            from service.common.model_common_service import model_service
+            
+            # 获取默认模型信息
+            default_model = model_service.get_default_model()
+            if not default_model:
+                app_logger.error("没有找到默认模型配置")
+                raise Exception("没有找到默认模型配置，请先设置默认模型")
+            
+            # 获取模型服务提供商ID和模型ID
+            provider_id = default_model.get('provider_id')
+            model_id = default_model.get('id')
+            model_name = default_model.get('name', '').lower()
+            
+            app_logger.info(f"使用默认模型生成SQL: 提供商 {provider_id}, 模型 {model_id}")
+            
+            # 4. 组装新的用户提示词，根据模型类型决定是否添加"/no_think"
+            base_prompt = f"{user_prompt}\n\n表名：{table_name}\n表备注：{table_comment}\n数据库类型：{db_type}\n字段备注：{field_comments_text}"
+            
+            # 判断是否为Qwen3模型，如果是则添加/no_think
+            if 'qwen3' in model_id.lower() or 'qwen3' in model_name:
+                user_prompt = f"{base_prompt} /no_think"
+                app_logger.info("检测到Qwen3模型，添加/no_think指令")
+            else:
+                user_prompt = base_prompt
+                app_logger.info(f"非Qwen3模型({model_id})，不添加/no_think指令")
+            
+            # 准备消息格式
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+            
+            # 参数
+            options = {
                 "temperature": 0.1
             }
             
-            response = requests.post(ollama_url, json=ollama_data)
+            # 调用模型
+            result = model_service.chat_completion(provider_id, model_id, messages, options)
             
-            if response.status_code == 200:
-                result = response.json()
-                if result.get('success'):
-                    # 6. 返回生成的SQL
-                    generated_sql = result.get('response', '')
-                    
-                    return jsonify({
-                        "success": True,
-                        "message": "生成SQL成功",
-                        "sql": generated_sql,
-                        "from_llm": True
-                    })
-                else:
-                    app_logger.error(f"Ollama生成SQL失败: {result.get('message')}")
+            # 检查是否有错误
+            if "error" in result:
+                app_logger.error(f"模型生成SQL失败: {result.get('error')}")
+                raise Exception(f"模型生成SQL失败: {result.get('error')}")
+            
+            # 提取生成的内容
+            generated_sql = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            
+            if generated_sql:
+                return jsonify({
+                    "success": True,
+                    "message": "生成SQL成功",
+                    "sql": generated_sql,
+                    "from_llm": True
+                })
             else:
-                app_logger.error(f"Ollama请求失败: {response.status_code}")
+                app_logger.error("模型返回的SQL内容为空")
+                raise Exception("模型返回的SQL内容为空")
+                
         except Exception as e:
-            app_logger.error(f"调用Ollama API失败: {str(e)}")
+            app_logger.error(f"调用默认模型失败: {str(e)}")
+            # 如果默认模型调用失败，继续使用后备方案
         
-        # 5. B.使用内置模板作为后备方案(当Ollama调用失败时)
+        # 6. 使用内置模板作为后备方案(当模型调用失败时)
         sql = ''
         if db_type == 'mysql':
             sql = f"CREATE TABLE {table_name} (\n"
