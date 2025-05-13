@@ -317,6 +317,40 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
+/* 空白行分组样式 */
+.empty-header-group {
+    background-color: #f5f5f5;
+    border: 2px dashed #bdbdbd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: visible;
+}
+
+.empty-header-group::before {
+    content: "空白行";
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background-color: #f44336;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.empty-header-group .group-header h4 {
+    color: #757575;
+    font-style: italic;
+    font-weight: bold;
+}
+
+.empty-header-group .header-table th {
+    background-color: #eeeeee;
+    border: 1px solid #e0e0e0;
+    color: #757575;
+}
+
 .header-group-card.highlight {
     background-color: #fff8e1;
     border-color: #ffca28;

@@ -126,6 +126,8 @@ $(document).ready(function() {
         // 清空Excel信息容器
         $excelInfoContainer.empty();
         
+        console.log("显示Excel信息，文件数量:", filesInfo.length);
+        
         // 遍历文件信息并创建显示卡片
         filesInfo.forEach(function(fileInfo) {
             const fileName = fileInfo.fileName;
@@ -135,6 +137,8 @@ $(document).ready(function() {
             const sheetExists = fileInfo.sheetExists;
             const requestedSheetIndex = fileInfo.requestedSheetIndex;
             
+            console.log(`创建文件卡片: ${fileName}, 路径: ${filePath}, 工作表存在: ${sheetExists}`);
+            
             // 创建工作表选项HTML
             let sheetsOptionsHtml = '';
             
@@ -143,15 +147,15 @@ $(document).ready(function() {
                 sheetsOptionsHtml += `<option value="not-exist" selected>不存在第${requestedSheetIndex}个sheet</option>`;
             }
             
-            // 添加所有存在的工作表
+            // 添加所有存在的工作表 - 显示真实的工作表名称
             sheetsOptionsHtml += sheets.map(sheet => `
                 <option value="${sheet.index}" ${sheetExists ? (currentSheet && currentSheet.index === sheet.index ? 'selected' : '') : ''}>
-                    ${sheet.name} (${sheet.index + 1})
+                    ${sheet.name}
                 </option>
             `).join('');
             
             // 创建文件卡片
-            const fileCard = $(`
+            const fileCardHtml = `
                 <div class="excel-file-card" data-file-path="${filePath}">
                     <div class="excel-file-header">
                         <span class="excel-file-name">${fileName}</span>
@@ -175,10 +179,23 @@ $(document).ready(function() {
                         </div>
                     </div>
                 </div>
-            `);
+            `;
+            
+            // 添加到容器
+            $excelInfoContainer.append(fileCardHtml);
+            
+            // 获取刚刚创建的卡片元素
+            const $fileCard = $excelInfoContainer.find(`.excel-file-card[data-file-path="${filePath}"]`).last();
+            
+            // 如果找不到卡片元素，可能是文件路径中有特殊字符
+            if ($fileCard.length === 0) {
+                console.error(`无法找到刚刚创建的文件卡片: ${filePath}`);
+            } else {
+                console.log(`成功添加文件卡片: ${fileName}, 工作表选项数量: ${$fileCard.find('.sheet-select option').length}`);
+            }
             
             // 监听工作表选择变化
-            fileCard.find('.sheet-select').on('change', function() {
+            $fileCard.find('.sheet-select').on('change', function() {
                 const sheetValue = $(this).val();
                 
                 // 如果选择了不存在的sheet，则不更新
@@ -194,23 +211,25 @@ $(document).ready(function() {
                 if (fileIndex !== -1 && selectedSheet) {
                     loadedExcelInfo[fileIndex].currentSheet = selectedSheet;
                     loadedExcelInfo[fileIndex].sheetExists = true;
+                    
+                    console.log(`更新文件 ${fileName} 的当前工作表为: ${selectedSheet.name}`);
                 }
             });
             
             // 监听读取行选择变化
-            fileCard.find('.row-select').on('change', function() {
+            $fileCard.find('.row-select').on('change', function() {
                 const rowIndex = $(this).val();
                 
                 // 更新文件信息中的读取行
                 const fileIndex = loadedExcelInfo.findIndex(f => f.filePath === filePath);
                 if (fileIndex !== -1) {
                     loadedExcelInfo[fileIndex].readRow = rowIndex;
+                    console.log(`更新文件 ${fileName} 的读取行为: ${rowIndex}`);
                 }
             });
-            
-            // 添加到容器
-            $excelInfoContainer.append(fileCard);
         });
+        
+        console.log("Excel信息显示完成，DOM中卡片数量:", $('.excel-file-card').length);
     }
     
     // 验证按钮点击事件
@@ -227,14 +246,81 @@ $(document).ready(function() {
             return;
         }
         
-        // 检查每个Excel文件信息是否有读取行信息
-        let isValid = true;
+        console.log("开始校验文件数量:", loadedExcelInfo.length);
+        
+        // 检查是否有可用于校验的文件
+        let validFilesCount = 0;
+        
+        // 检查每个Excel文件的卡片元素是否存在
+        // 获取所有文件卡片
+        const fileCards = $('.excel-file-card');
+        console.log("DOM中找到的文件卡片数量:", fileCards.length);
+        
+        // 为每个文件更新工作表和读取行信息
+        let validFiles = [];
+        
         loadedExcelInfo.forEach(fileInfo => {
-            if (!fileInfo.readRow) {
-                // 如果没有读取行信息，使用默认值1
-                fileInfo.readRow = "1";
+            // 检查这个文件的工作表是否存在
+            if (fileInfo.sheetExists === false) {
+                console.log(`文件 ${fileInfo.fileName} 不存在所选工作表，将被排除在校验之外`);
+                return; // 跳过这个文件
+            }
+            
+            // 查找对应的文件卡片 - 改为使用索引而不是选择器
+            let foundCard = false;
+            let sheetValue = null;
+            let rowValue = "1";
+            
+            // 遍历所有卡片找到匹配的
+            fileCards.each(function() {
+                const cardPath = $(this).data('file-path');
+                if (cardPath === fileInfo.filePath) {
+                    foundCard = true;
+                    
+                    // 获取工作表和读取行的值
+                    const sheetSelect = $(this).find('.sheet-select');
+                    const rowSelect = $(this).find('.row-select');
+                    
+                    sheetValue = sheetSelect.val();
+                    if (rowSelect.length > 0) {
+                        rowValue = rowSelect.val() || "1";
+                    }
+                    
+                    console.log(`找到文件卡片: ${fileInfo.fileName}, 工作表值: ${sheetValue}, 读取行: ${rowValue}`);
+                    return false; // 跳出each循环
+                }
+            });
+            
+            // 如果找到了卡片并且工作表存在
+            if (foundCard && sheetValue && sheetValue !== 'not-exist') {
+                // 获取和更新工作表信息
+                const selectedSheetIndex = parseInt(sheetValue);
+                const selectedSheet = fileInfo.sheets.find(s => s.index == selectedSheetIndex);
+                
+                if (selectedSheet) {
+                    // 确保我们拷贝文件信息，而不是修改原始对象
+                    const updatedFileInfo = JSON.parse(JSON.stringify(fileInfo));
+                    updatedFileInfo.currentSheet = selectedSheet;
+                    updatedFileInfo.readRow = rowValue;
+                    
+                    // 添加到有效文件
+                    validFiles.push(updatedFileInfo);
+                    validFilesCount++;
+                    
+                    console.log(`文件 ${fileInfo.fileName} 是有效的，工作表: ${selectedSheet.name}, 读取行: ${rowValue}`);
+                }
+            } else {
+                console.log(`文件 ${fileInfo.fileName} 没有找到对应的文件卡片或工作表无效`);
             }
         });
+        
+        console.log("有效文件数量:", validFilesCount);
+        
+        // 检查有效文件数量
+        if (validFilesCount < 2) {
+            alert('至少需要2个有效的Excel文件才能进行表头一致性校验');
+            return;
+        }
         
         // 显示加载指示器
         $(this).prop('disabled', true).text('校验中...');
@@ -245,12 +331,27 @@ $(document).ready(function() {
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
-                filesInfo: loadedExcelInfo,
-                readRow: $readRowSelect.val() || "1", // 如果未选择，默认使用第1行
+                filesInfo: validFiles,  // 只传递有效的文件
+                readRow: "1",  // 这个值不再使用，每个文件都有自己的readRow
                 validationType: validationType
             }),
             success: function(response) {
                 if (response.success) {
+                    console.log("校验成功，准备显示结果", response);
+                    console.log("分组数量:", response.groups.length);
+                    
+                    // 检查分组中是否有空白行分组
+                    response.groups.forEach((group, index) => {
+                        const headers = group.headers || [];
+                        const isEmptyGroup = headers.length === 0 || headers.every(header => 
+                            header === null || header === undefined || (typeof header === 'string' && header.trim() === '')
+                        );
+                        console.log(`分组 ${index + 1} 是否为空白行分组: ${isEmptyGroup}, 文件数量: ${group.file_count}`);
+                        
+                        // 打印分组的头部值
+                        console.log(`分组 ${index + 1} 头部值:`, JSON.stringify(headers));
+                    });
+                    
                     showValidationResults(response);
                 } else {
                     alert('校验失败: ' + response.message);
@@ -493,15 +594,52 @@ $(document).ready(function() {
                     <div class="groups-grid">
             `;
             
+            // 首先检查并重新排序分组，将空白行分组放在最前面
+            const sortedGroups = [...groups];
+            sortedGroups.sort((a, b) => {
+                // 获取头部数组，可能为undefined
+                const headersA = a.headers || [];
+                const headersB = b.headers || [];
+                
+                // 检查组a是否是空白行分组
+                const isGroupAEmpty = headersA.length === 0 || headersA.every(header => 
+                    header === null || header === undefined || (typeof header === 'string' && header.trim() === '')
+                );
+                
+                // 检查组b是否是空白行分组
+                const isGroupBEmpty = headersB.length === 0 || headersB.every(header => 
+                    header === null || header === undefined || (typeof header === 'string' && header.trim() === '')
+                );
+                
+                // 空白行分组优先
+                if (isGroupAEmpty && !isGroupBEmpty) return -1;
+                if (!isGroupAEmpty && isGroupBEmpty) return 1;
+                
+                // 其次按文件数量排序
+                return b.file_count - a.file_count;
+            });
+            
             // 添加每个分组的卡片
-            groups.forEach(group => {
-                const headers = group.headers;
+            sortedGroups.forEach((group, groupIndex) => {
+                const headers = group.headers || [];
                 const fileCount = group.file_count;
                 
+                // 检查是否是空白行分组
+                const isEmptyGroup = headers.length === 0 || headers.every(header => 
+                    header === null || header === undefined || (typeof header === 'string' && header.trim() === '')
+                );
+                
+                console.log(`显示分组 ${groupIndex + 1}/${sortedGroups.length}, 文件数量: ${fileCount}, 是否为空白行分组: ${isEmptyGroup}`);
+                console.log(`空白行分组检查，头部值:`, JSON.stringify(headers));
+                
+                // 为空白行分组添加特殊样式
+                const groupClass = isEmptyGroup ? 'header-group-card empty-header-group' : 'header-group-card';
+                const groupTitle = isEmptyGroup ? `空白行分组 (${fileCount} 个文件)` : `组 ${group.group_id} (${fileCount} 个文件)`;
+                
                 resultsHTML += `
-                    <div class="header-group-card" data-group-id="${group.group_id}">
+                    <div class="${groupClass}" data-group-id="${group.group_id}">
                         <div class="group-header">
-                            <h4>组 ${group.group_id} (${fileCount} 个文件)</h4>
+                            <h4>${groupTitle}</h4>
                             <button class="view-files-btn" data-group-id="${group.group_id}">查看文件</button>
                         </div>
                         <div class="group-headers">
@@ -512,7 +650,10 @@ $(document).ready(function() {
                 // 添加表头单元格
                 headers.forEach((header, index) => {
                     const colLetter = getColumnLetter(index);
-                    const headerText = header !== null ? header : "(空)";
+                    // 更好地处理空值，包括null、undefined和空字符串
+                    const headerText = (header === null || header === undefined || (typeof header === 'string' && header.trim() === '')) 
+                        ? "(空)" 
+                        : header;
                     resultsHTML += `<th>${colLetter}: ${headerText}</th>`;
                 });
                 
