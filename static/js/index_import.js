@@ -339,6 +339,57 @@ $(document).ready(function() {
         $btn.prop('disabled', shouldDisable);
     }
     
+    // 打开Excel文件
+    function openExcelFile() {
+        // 获取选择的Excel文件和工作表ID
+        const filePath = $('#excel-file-select').val();
+        const sheetId = $('#sheet-select').val();
+        
+        if (!filePath) {
+            addLog('错误: 请先选择Excel文件');
+            return;
+        }
+        
+        if (!sheetId) {
+            addLog('错误: 请先选择工作表');
+            return;
+        }
+        
+        // 检查是否在本地环境
+        if (!window.isLocalEnvironment) {
+            addLog('错误: 此功能仅支持在本地环境使用');
+            return;
+        }
+        
+        addLog('正在请求打开Excel文件...');
+        
+        // 调用API打开Excel文件
+        $.ajax({
+            url: '/api/import/excel/open',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                file_path: filePath,
+                sheet_id: sheetId
+            }),
+            success: function(response) {
+                if (response.success) {
+                    addLog('成功: ' + response.message);
+                } else {
+                    addLog('错误: ' + response.message);
+                    if (!response.is_local) {
+                        addLog('注意: 此功能仅支持在本地环境使用');
+                    }
+                }
+            },
+            error: function(xhr) {
+                const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
+                addLog('错误: 打开Excel文件失败 - ' + errorMsg);
+                console.error('打开Excel文件请求失败:', xhr);
+            }
+        });
+    }
+    
     // 监听Excel文件和工作表选择变化，更新打开Excel按钮状态
     $('#excel-file-select, #sheet-select').change(function() {
         updateOpenExcelButtonState();
