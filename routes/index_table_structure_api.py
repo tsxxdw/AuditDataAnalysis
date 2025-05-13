@@ -37,13 +37,16 @@ def generate_field_name(column_index, comment):
         str: 生成的字段名，格式为 t_列索引_名称
     """
     try:
+        # 将索引从0开始调整为从1开始
+        adjusted_index = column_index + 1
+        
         # 移除非中英文字符
         clean_comment = re.sub(r'[^\u4e00-\u9fa5a-zA-Z]', '', comment)
         
         # 判断是否是空的
         if not clean_comment:
             # 如果注释为空或只包含特殊字符，使用默认名称
-            return f"t_{column_index}_field"
+            return f"t_{adjusted_index}_field"
         
         # 分离中文和英文
         chinese_pattern = re.compile(r'[\u4e00-\u9fa5]+')
@@ -65,11 +68,11 @@ def generate_field_name(column_index, comment):
         result = result[:5]
         
         # 加上前缀
-        return f"t_{column_index}_{result}"
+        return f"t_{adjusted_index}_{result}"
     except Exception as e:
         app_logger.error(f"生成字段名失败: {str(e)}")
         # 返回安全的默认名称
-        return f"t_{column_index}_field"
+        return f"t_{adjusted_index}_field"
 
 @index_table_structure_bp.route('/tables', methods=['GET'])
 def get_tables():
@@ -147,9 +150,6 @@ def create_table():
             
             # 生成创建表的SQL
             columns = []
-            
-            # 先添加id字段
-            columns.append("id INT NOT NULL AUTO_INCREMENT")
             
             # 为每个注释生成对应的字段
             for i, comment in enumerate(field_comments):
@@ -356,7 +356,7 @@ def delete_index():
 
 @index_table_structure_bp.route('/generate_table_sql', methods=['POST'])
 def generate_table_sql():
-    """生成创建表的SQL"""
+    """生成创建表的SQL，直接在后端拼接SQL而不调用AI模型"""
     app_logger.info("生成创建表SQL请求")
     
     try:
@@ -367,15 +367,10 @@ def generate_table_sql():
         excel_path = data.get('excelPath')
         sheet_id = data.get('sheetId')
         comment_row = data.get('commentRow')
-        template_id = data.get('templateId')
         
         # 参数验证
         if not table_name:
             return jsonify({"success": False, "message": "表名不能为空"}), 400
-            
-        # 验证模板ID
-        if not template_id:
-            return jsonify({"success": False, "message": "提示词模板不能为空"}), 400
         
         # 获取当前数据库类型
         db_type = DatabaseConfigUtil.get_default_db_type()
@@ -404,116 +399,202 @@ def generate_table_sql():
                     field_comments = [comment for comment in rows[0] if comment]
             except Exception as e:
                 app_logger.error(f"读取Excel文件失败: {str(e)}")
-                # 继续处理，不中断流程
+                return jsonify({"success": False, "message": f"读取Excel文件失败: {str(e)}"}), 500
         
-        # 将字段备注用逗号分隔
-        field_comments_text = ', '.join(field_comments)
+        # 3. 根据数据库类型直接拼接SQL
+        sql = ""
         
-        # 3. 获取提示词模板
-        system_prompt = ""
-        user_prompt = ""
+        # 根据数据库类型选择不同的SQL语法
+        if db_type == 'mysql':
+            sql = generate_mysql_table_sql(table_name, table_comment, field_comments)
+        elif db_type == 'sqlserver':
+            sql = generate_sqlserver_table_sql(table_name, table_comment, field_comments)
+        elif db_type == 'oracle':
+            sql = generate_oracle_table_sql(table_name, table_comment, field_comments)
+        else:
+            # 默认使用MySQL语法
+            sql = generate_mysql_table_sql(table_name, table_comment, field_comments)
         
-        if template_id:
-            try:
-                # 使用模板服务获取模板内容
-                template = template_service.load_template_from_file(template_id)
-                
-                if not template:
-                    error_msg = f"未找到ID为 {template_id} 的模板"
-                    app_logger.error(error_msg)
-                    return jsonify({"success": False, "message": error_msg}), 404
-                
-                # 解析模板内容
-                import json
-                template_content = json.loads(template.get('content', '{}'))
-                
-                system_prompt = template_content.get('system', '')
-                user_prompt = template_content.get('user', '')
-                
-                # 如果模板中没有包含必要的提示词，则返回错误
-                if not user_prompt:
-                    error_msg = "所选模板未包含用户提示词"
-                    app_logger.error(error_msg)
-                    return jsonify({"success": False, "message": error_msg}), 400
-                    
-            except Exception as e:
-                error_msg = f"获取提示词模板失败: {str(e)}"
-                app_logger.error(error_msg)
-                return jsonify({"success": False, "message": error_msg}), 500
-        
-        # 5. 调用默认模型服务生成SQL
-        try:
-            # 导入模型服务
-            from service.common.model_common_service import model_service
-            
-            # 获取默认模型信息
-            default_model = model_service.get_default_model()
-            if not default_model:
-                app_logger.error("没有找到默认模型配置")
-                raise Exception("没有找到默认模型配置，请先设置默认模型")
-            
-            # 获取模型服务提供商ID和模型ID
-            provider_id = default_model.get('provider_id')
-            model_id = default_model.get('id')
-            model_name = default_model.get('name', '').lower()
-            
-            app_logger.info(f"使用默认模型生成SQL: 提供商 {provider_id}, 模型 {model_id}")
-            
-            # 4. 组装新的用户提示词，根据模型类型决定是否添加"/no_think"
-            base_prompt = f"{user_prompt}\n\n表名：{table_name}\n表备注：{table_comment}\n数据库类型：{db_type}\n字段备注：{field_comments_text}"
-            
-            # 判断是否为Qwen3模型，如果是则添加/no_think
-            if 'qwen3' in model_id.lower() or 'qwen3' in model_name:
-                user_prompt = f"{base_prompt} /no_think"
-                app_logger.info("检测到Qwen3模型，添加/no_think指令")
-            else:
-                user_prompt = base_prompt
-                app_logger.info(f"非Qwen3模型({model_id})，不添加/no_think指令")
-            
-            # 准备消息格式
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-            
-            # 参数
-            options = {
-                "temperature": 0.1
-            }
-            
-            # 调用模型
-            result = model_service.chat_completion(provider_id, model_id, messages, options)
-            
-            # 检查是否有错误
-            if "error" in result:
-                app_logger.error(f"模型生成SQL失败: {result.get('error')}")
-                raise Exception(f"模型生成SQL失败: {result.get('error')}")
-            
-            # 提取生成的内容
-            generated_sql = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-            
-            if generated_sql:
-                return jsonify({
-                    "success": True,
-                    "message": "生成SQL成功",
-                    "sql": generated_sql,
-                    "from_llm": True
-                })
-            else:
-                app_logger.error("模型返回的SQL内容为空")
-                raise Exception("模型返回的SQL内容为空")
-                
-        except Exception as e:
-            app_logger.error(f"调用默认模型失败: {str(e)}")
-            # 直接返回错误，不使用后备方案
-            return jsonify({
-                "success": False,
-                "message": f"生成SQL失败: {str(e)}"
-            }), 500
+        return jsonify({
+            "success": True,
+            "message": "生成SQL成功",
+            "sql": sql
+        })
     
     except Exception as e:
         app_logger.error(f"生成表SQL失败: {str(e)}")
         return jsonify({"success": False, "message": f"生成表SQL失败: {str(e)}"}), 500
+
+def generate_mysql_table_sql(table_name, table_comment, field_comments):
+    """生成MySQL表创建SQL
+    
+    Args:
+        table_name (str): 表名
+        table_comment (str): 表备注
+        field_comments (list): 字段备注列表
+        
+    Returns:
+        str: 生成的MySQL表创建SQL
+    """
+    # 生成创建表的SQL
+    sql = f"CREATE TABLE {table_name} (\n"
+    
+    # 字段数量计数
+    field_count = 0
+    
+    # 为每个字段备注生成对应的字段
+    for i, comment in enumerate(field_comments):
+        if comment:  # 只处理非空注释
+            field_name = generate_field_name(i, comment)
+            sql += f"  {field_name} VARCHAR(100) COMMENT '{comment}'"
+            field_count += 1
+            
+            # 先添加逗号，后面可能还有补充字段
+            sql += ",\n"
+    
+    # 添加5个补充字段，从字段数量+1开始
+    start_index = max(14, field_count) + 1
+    for i in range(5):
+        field_num = start_index + i
+        field_name = f"t_{field_num}"
+        field_comment = f"补充字段{field_num}"
+        
+        sql += f"  {field_name} VARCHAR(100) COMMENT '{field_comment}'"
+        
+        # 如果不是最后一个补充字段，添加逗号
+        if i < 4:
+            sql += ",\n"
+        else:
+            sql += "\n"
+    
+    # 结束表定义
+    sql += f") COMMENT='{table_comment}';"
+    
+    return sql
+
+def generate_sqlserver_table_sql(table_name, table_comment, field_comments):
+    """生成SQL Server表创建SQL
+    
+    Args:
+        table_name (str): 表名
+        table_comment (str): 表备注
+        field_comments (list): 字段备注列表
+        
+    Returns:
+        str: 生成的SQL Server表创建SQL
+    """
+    # 生成创建表的SQL
+    sql = f"CREATE TABLE {table_name} (\n"
+    
+    # 标志位，用于控制是否需要添加逗号
+    first_field = True
+    field_count = 0
+    
+    # 为每个字段备注生成对应的字段
+    for i, comment in enumerate(field_comments):
+        if comment:  # 只处理非空注释
+            field_name = generate_field_name(i, comment)
+            field_count += 1
+            
+            if first_field:
+                sql += f"  {field_name} NVARCHAR(100)"
+                first_field = False
+            else:
+                sql += f",\n  {field_name} NVARCHAR(100)"
+    
+    # 添加5个补充字段，从字段数量+1开始
+    start_index = max(14, field_count) + 1
+    for i in range(5):
+        field_num = start_index + i
+        field_name = f"t_{field_num}"
+        field_comment = f"补充字段{field_num}"
+        
+        sql += f",\n  {field_name} NVARCHAR(100)"
+    
+    # 结束表定义
+    sql += "\n);\n"
+    
+    # 为表添加注释
+    sql += f"EXEC sp_addextendedproperty 'MS_Description', '{table_comment}', 'schema', 'dbo', 'table', '{table_name}';\n"
+    
+    # 为字段添加注释
+    for i, comment in enumerate(field_comments):
+        if comment:
+            field_name = generate_field_name(i, comment)
+            sql += f"EXEC sp_addextendedproperty 'MS_Description', '{comment}', 'schema', 'dbo', 'table', '{table_name}', 'column', '{field_name}';\n"
+    
+    # 为补充字段添加注释
+    start_index = max(14, field_count) + 1
+    for i in range(5):
+        field_num = start_index + i
+        field_name = f"t_{field_num}"
+        field_comment = f"补充字段{field_num}"
+        
+        sql += f"EXEC sp_addextendedproperty 'MS_Description', '{field_comment}', 'schema', 'dbo', 'table', '{table_name}', 'column', '{field_name}';\n"
+    
+    return sql
+
+def generate_oracle_table_sql(table_name, table_comment, field_comments):
+    """生成Oracle表创建SQL
+    
+    Args:
+        table_name (str): 表名
+        table_comment (str): 表备注
+        field_comments (list): 字段备注列表
+        
+    Returns:
+        str: 生成的Oracle表创建SQL
+    """
+    # 生成创建表的SQL
+    sql = f"CREATE TABLE {table_name} (\n"
+    
+    # 标志位，用于控制是否需要添加逗号
+    first_field = True
+    field_count = 0
+    
+    # 为每个字段备注生成对应的字段
+    for i, comment in enumerate(field_comments):
+        if comment:  # 只处理非空注释
+            field_name = generate_field_name(i, comment)
+            field_count += 1
+            
+            if first_field:
+                sql += f"  {field_name} VARCHAR2(100)"
+                first_field = False
+            else:
+                sql += f",\n  {field_name} VARCHAR2(100)"
+    
+    # 添加5个补充字段，从字段数量+1开始
+    start_index = max(14, field_count) + 1
+    for i in range(5):
+        field_num = start_index + i
+        field_name = f"t_{field_num}"
+        field_comment = f"补充字段{field_num}"
+        
+        sql += f",\n  {field_name} VARCHAR2(100)"
+    
+    # 结束表定义
+    sql += "\n);\n"
+    
+    # 为表添加注释
+    sql += f"COMMENT ON TABLE {table_name} IS '{table_comment}';\n"
+    
+    # 为字段添加注释
+    for i, comment in enumerate(field_comments):
+        if comment:
+            field_name = generate_field_name(i, comment)
+            sql += f"COMMENT ON COLUMN {table_name}.{field_name} IS '{comment}';\n"
+    
+    # 为补充字段添加注释
+    start_index = max(14, field_count) + 1
+    for i in range(5):
+        field_num = start_index + i
+        field_name = f"t_{field_num}"
+        field_comment = f"补充字段{field_num}"
+        
+        sql += f"COMMENT ON COLUMN {table_name}.{field_name} IS '{field_comment}';\n"
+    
+    return sql
 
 @index_table_structure_bp.route('/generate_index_sql', methods=['POST'])
 def generate_index_sql():
