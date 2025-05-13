@@ -505,42 +505,11 @@ def generate_table_sql():
                 
         except Exception as e:
             app_logger.error(f"调用默认模型失败: {str(e)}")
-            # 如果默认模型调用失败，继续使用后备方案
-        
-        # 6. 使用内置模板作为后备方案(当模型调用失败时)
-        sql = ''
-        if db_type == 'mysql':
-            sql = f"CREATE TABLE {table_name} (\n"
-            sql += f"  id INT NOT NULL AUTO_INCREMENT,\n"
-            sql += f"  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,\n"
-            sql += f"  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n"
-            sql += f"  PRIMARY KEY (id)\n"
-            sql += f") COMMENT='{table_comment}';"
-        elif db_type == 'sqlserver':
-            sql = f"CREATE TABLE {table_name} (\n"
-            sql += f"  id INT IDENTITY(1,1) NOT NULL,\n"
-            sql += f"  create_time DATETIME DEFAULT GETDATE(),\n"
-            sql += f"  update_time DATETIME DEFAULT GETDATE(),\n"
-            sql += f"  PRIMARY KEY (id)\n"
-            sql += f");\n"
-            sql += f"EXEC sp_addextendedproperty 'MS_Description', '{table_comment}', 'schema', 'dbo', 'table', '{table_name}';"
-        elif db_type == 'oracle':
-            sql = f"CREATE TABLE {table_name} (\n"
-            sql += f"  id NUMBER GENERATED ALWAYS AS IDENTITY,\n"
-            sql += f"  create_time TIMESTAMP DEFAULT SYSTIMESTAMP,\n"
-            sql += f"  update_time TIMESTAMP DEFAULT SYSTIMESTAMP,\n"
-            sql += f"  CONSTRAINT {table_name}_pk PRIMARY KEY (id)\n"
-            sql += f");\n"
-            sql += f"COMMENT ON TABLE {table_name} IS '{table_comment}';"
-        else:
-            return jsonify({"success": False, "message": f"不支持的数据库类型: {db_type}"}), 400
-        
-        return jsonify({
-            "success": True,
-            "message": "生成SQL成功",
-            "sql": sql,
-            "from_llm": False
-        })
+            # 直接返回错误，不使用后备方案
+            return jsonify({
+                "success": False,
+                "message": f"生成SQL失败: {str(e)}"
+            }), 500
     
     except Exception as e:
         app_logger.error(f"生成表SQL失败: {str(e)}")
@@ -682,34 +651,11 @@ def generate_index_sql():
                 
         except Exception as e:
             app_logger.error(f"调用默认模型失败: {str(e)}")
-            # 如果默认模型调用失败，继续使用后备方案
-        
-        # 使用内置模板作为后备方案(当模型调用失败时)
-        # 生成索引名称
-        index_name = f"idx_{table_name}_{field_name}"
-        
-        # 根据操作类型和数据库类型生成SQL
-        sql = ''
-        if operation_type == 'create':
-            sql = f"CREATE INDEX {index_name} ON {table_name}({field_name});"
-        elif operation_type == 'delete':
-            if db_type == 'mysql':
-                sql = f"DROP INDEX {index_name} ON {table_name};"
-            elif db_type == 'sqlserver':
-                sql = f"DROP INDEX {table_name}.{index_name};"
-            elif db_type == 'oracle':
-                sql = f"DROP INDEX {index_name};"
-            else:
-                sql = f"DROP INDEX {index_name};"
-        else:
-            return jsonify({"success": False, "message": "不支持的操作类型"}), 400
-        
-        return jsonify({
-            "success": True,
-            "message": "生成SQL成功",
-            "sql": sql,
-            "from_llm": False
-        })
+            # 直接返回错误，不使用后备方案
+            return jsonify({
+                "success": False,
+                "message": f"生成索引SQL失败: {str(e)}"
+            }), 500
     
     except Exception as e:
         app_logger.error(f"生成索引SQL失败: {str(e)}")
