@@ -97,4 +97,51 @@ def get_models(provider_id):
     
     except Exception as e:
         logger.error(f"获取模型列表时发生错误: {str(e)}")
-        return jsonify({"error": f"服务器错误: {str(e)}"}), 500 
+        return jsonify({"error": f"服务器错误: {str(e)}"}), 500
+
+# 添加默认模型相关的API端点
+@model_api.route('/api/model/visible-models', methods=['GET'])
+def get_visible_models():
+    """获取所有服务提供商中可见的模型"""
+    try:
+        all_visible_models = model_service.get_all_visible_models()
+        return jsonify({"success": True, "models": all_visible_models})
+    except Exception as e:
+        logger.error(f"获取所有可见模型时发生错误: {str(e)}")
+        return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
+
+@model_api.route('/api/model/default-model', methods=['GET'])
+def get_default_model():
+    """获取当前默认模型"""
+    try:
+        default_model = model_service.get_default_model()
+        if default_model:
+            return jsonify({"success": True, "model": default_model})
+        else:
+            return jsonify({"success": True, "model": None})
+    except Exception as e:
+        logger.error(f"获取默认模型时发生错误: {str(e)}")
+        return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
+
+@model_api.route('/api/model/default-model', methods=['POST'])
+def set_default_model():
+    """设置默认模型"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "请求体不能为空"}), 400
+            
+        provider_id = data.get('provider_id')
+        model_id = data.get('model_id')
+        
+        if not provider_id or not model_id:
+            return jsonify({"success": False, "error": "服务提供商ID和模型ID不能为空"}), 400
+            
+        result = model_service.set_default_model(provider_id, model_id)
+        if result:
+            return jsonify({"success": True, "message": "默认模型设置成功"})
+        else:
+            return jsonify({"success": False, "error": "设置默认模型失败，请确认提供商和模型是否有效"}), 400
+    except Exception as e:
+        logger.error(f"设置默认模型时发生错误: {str(e)}")
+        return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500 

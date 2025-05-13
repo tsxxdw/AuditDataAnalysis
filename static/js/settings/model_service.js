@@ -7,6 +7,9 @@ var ModelService = {
     init: function() {
         this.bindEvents();
         this.loadModelServiceSettings();
+        
+        // 直接加载可见模型到默认模型下拉框
+        this.updateDefaultModelDropdown();
     },
     
     // 绑定事件
@@ -63,6 +66,14 @@ var ModelService = {
             var $tr = $(this).closest('tr');
             var modelId = $tr.data('model-id');
             ModelService.enableModel(modelId);
+        });
+        
+        // 默认模型下拉框变更事件
+        $('#default-model').change(function() {
+            var selectedModel = $(this).val();
+            if (selectedModel) {
+                ModelService.setDefaultModel(selectedModel);
+            }
         });
     },
     
@@ -425,6 +436,11 @@ var ModelService = {
         // 更新表格
         $('#modelTableBody').html(tableHtml);
         
+        // 更新默认模型下拉框
+        this.updateDefaultModelDropdown(activeModels.filter(function(model) {
+            return model.visible === true;
+        }));
+        
         // 绑定操作按钮事件
         $('.hide-model-btn').click(function() {
             var modelId = $(this).closest('tr').data('model-id');
@@ -717,6 +733,130 @@ var ModelService = {
             },
             error: function(xhr, status, error) {
                 alert('更新模型可见性失败: ' + error);
+            }
+        });
+    },
+    
+    // 更新默认模型下拉框
+    updateDefaultModelDropdown: function(models) {
+        // 直接获取所有服务提供商的可见模型
+        $.ajax({
+            url: '/api/model/visible-models',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    var dropdown = $('#default-model');
+                    dropdown.empty();
+                    dropdown.append('<option value="">请选择默认模型</option>');
+                    
+                    var allVisibleModels = response.models;
+                    // 排序：按提供商分组
+                    allVisibleModels.sort(function(a, b) {
+                        // 首先按提供商名称排序
+                        if (a.provider_name !== b.provider_name) {
+                            return a.provider_name.localeCompare(b.provider_name);
+                        }
+                        // 其次按类别排序
+                        if (a.category !== b.category) {
+                            return a.category.localeCompare(b.category);
+                        }
+                        // 最后按模型名称排序
+                        return a.name.localeCompare(b.name);
+                    });
+                    
+                    var currentProviderId = '';
+                    for (var i = 0; i < allVisibleModels.length; i++) {
+                        var model = allVisibleModels[i];
+                        
+                        // 如果是新的提供商，添加分组
+                        if (model.provider_id !== currentProviderId) {
+                            if (i > 0) {
+                                dropdown.append('</optgroup>');
+                            }
+                            dropdown.append('<optgroup label="' + model.provider_name + '">');
+                            currentProviderId = model.provider_id;
+                        }
+                        
+                        // 添加选项，值为 provider_id:model_id 的组合
+                        dropdown.append('<option value="' + model.provider_id + ':' + model.id + '">' + 
+                                        model.name + ' (' + model.category + ')</option>');
+                    }
+                    
+                    // 关闭最后一个分组
+                    if (allVisibleModels.length > 0) {
+                        dropdown.append('</optgroup>');
+                    }
+                    
+                    // 加载默认模型
+                    ModelService.loadDefaultModel();
+                } else {
+                    console.error('获取可见模型失败:', response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('获取可见模型AJAX错误:', error);
+            }
+        });
+    },
+    
+    // 加载默认模型
+    loadDefaultModel: function() {
+        // 从服务器获取当前默认模型
+        $.ajax({
+            url: '/api/model/default-model',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.model) {
+                    var defaultModel = response.model;
+                    // 设置下拉框选中值为 provider_id:model_id 的组合
+                    $('#default-model').val(defaultModel.provider_id + ':' + defaultModel.id);
+                } else {
+                    $('#default-model').val('');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('加载默认模型设置失败:', error);
+                $('#default-model').val('');
+            }
+        });
+    },
+    
+    // 设置默认模型
+    setDefaultModel: function(combinedValue) {
+        // combinedValue 格式为 provider_id:model_id
+        var parts = combinedValue.split(':');
+        if (parts.length !== 2) {
+            console.error('模型值格式不正确');
+            return;
+        }
+        
+        var providerId = parts[0];
+        var modelId = parts[1];
+        
+        // 调用API设置默认模型
+        $.ajax({
+            url: '/api/model/default-model',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                provider_id: providerId,
+                model_id: modelId
+            }),
+            success: function(response) {
+                if (response.success) {
+                    console.log('默认模型设置成功');
+                    // 可以添加成功提示
+                    alert('默认模型设置成功');
+                } else {
+                    console.error('保存默认模型设置失败:', response.error);
+                    alert('保存默认模型设置失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('保存默认模型设置AJAX错误:', error);
+                alert('保存默认模型设置失败: ' + error);
             }
         });
     }

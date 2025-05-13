@@ -1,5 +1,9 @@
 {
   "defaultProvider": "ollama",
+  "defaultModel": {
+    "provider_id": "silicon-flow",
+    "model_id": "Qwen/Qwen3-32B"
+  },
   "providers": {
     "silicon-flow": {
       "name": "硅基流动",

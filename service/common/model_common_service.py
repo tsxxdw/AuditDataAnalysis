@@ -423,6 +423,76 @@ class ModelService:
         except Exception as e:
             logger.error(f"调用Ollama模型时发生错误: {str(e)}")
             return {"error": f"调用Ollama模型时发生错误: {str(e)}"}
+    
+    def get_all_visible_models(self) -> List[Dict]:
+        """获取所有服务提供商中可见的模型"""
+        all_visible_models = []
+        
+        for provider_id, provider in self.config.get('providers', {}).items():
+            # 只考虑启用的服务提供商
+            if not provider.get('enabled', False):
+                continue
+                
+            provider_name = provider.get('name', provider_id)
+            
+            # 获取该提供商的所有可见模型
+            for model in provider.get('models', []):
+                if model.get('visible', True):
+                    # 创建包含提供商信息的完整模型数据
+                    full_model = model.copy()
+                    full_model['provider_id'] = provider_id
+                    full_model['provider_name'] = provider_name
+                    all_visible_models.append(full_model)
+        
+        return all_visible_models
+    
+    def get_default_model(self) -> Dict:
+        """获取默认模型的信息"""
+        # 首先检查是否设置了全局默认模型
+        global_default = self.config.get('defaultModel')
+        if global_default:
+            provider_id = global_default.get('provider_id')
+            model_id = global_default.get('model_id')
+            
+            # 确保提供商和模型存在且可用
+            if provider_id and model_id:
+                provider = self.config.get('providers', {}).get(provider_id)
+                if provider and provider.get('enabled', False):
+                    for model in provider.get('models', []):
+                        if model.get('id') == model_id and model.get('visible', True):
+                            # 创建包含提供商信息的完整模型数据
+                            full_model = model.copy()
+                            full_model['provider_id'] = provider_id
+                            full_model['provider_name'] = provider.get('name', provider_id)
+                            return full_model
+        
+        # 如果没有设置默认模型或默认模型不可用，返回空字典
+        return {}
+    
+    def set_default_model(self, provider_id: str, model_id: str) -> bool:
+        """设置默认模型"""
+        # 验证提供商和模型是否存在且可用
+        provider = self.config.get('providers', {}).get(provider_id)
+        if not provider or not provider.get('enabled', False):
+            return False
+            
+        model_exists = False
+        for model in provider.get('models', []):
+            if model.get('id') == model_id and model.get('visible', True):
+                model_exists = True
+                break
+                
+        if not model_exists:
+            return False
+            
+        # 设置默认模型
+        self.config['defaultModel'] = {
+            'provider_id': provider_id,
+            'model_id': model_id
+        }
+        
+        # 保存配置
+        return self._save_config()
 
 # 创建全局单例实例
 model_service = ModelService()

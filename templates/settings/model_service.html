@@ -1,5 +1,11 @@
 <div class="settings-section" id="model-service">
-    <h3 class="section-title">模型服务</h3>
+    <h3 class="section-title">模型服务<div class="default-model-selector">
+        <label for="default-model">默认模型：</label>
+        <select id="default-model" class="model-select">
+            <option value="">请选择默认模型</option>
+            <!-- 这里将动态填充可用模型 -->
+        </select>
+    </div></h3>
     <div class="model-service-form">
         <!-- 服务提供商选择 -->
         <div class="form-group provider-selection">
