@@ -312,6 +312,41 @@ $(document).ready(function() {
             return;
         }
         
+        // 获取选择的模板ID
+        let templateId = null;
+        
+        // 先从组件实例获取
+        if (window.templateDropdown && window.templateDropdown.getValue) {
+            templateId = window.templateDropdown.getValue();
+            console.log('从组件实例获取模板ID:', templateId);
+        }
+        
+        // 如果没有，则从隐藏select获取
+        if (!templateId) {
+            templateId = $('#promptTemplate').val();
+            console.log('从隐藏select获取模板ID:', templateId);
+        }
+        
+        // 验证模板ID是否存在
+        if (!templateId) {
+            alert('请选择一个提示词模板');
+            // 高亮提示模板选择区域
+            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
+                $(this).removeClass('field-required');
+                next();
+            });
+            return;
+        }
+        
+        // 显示按钮上的加载动画
+        const $button = $(this);
+        const $spinner = $button.find('.spinner-border');
+        $button.prop('disabled', true);
+        $spinner.removeClass('d-none');
+        
+        // 显示中央加载动画
+        $('#loadingOverlay').css('display', 'flex');
+        
         // 调用后端API生成SQL
         $.ajax({
             url: '/api/table_structure/generate_index_sql',
@@ -320,11 +355,22 @@ $(document).ready(function() {
             data: JSON.stringify({
                 tableName: tableName,
                 fieldName: fieldName,
-                operationType: operationType
+                operationType: operationType,
+                templateId: templateId
             }),
             success: function(response) {
                 if (response.success) {
                     $('#sqlContent').val(response.sql);
+                    
+                    // 如果是从LLM生成的，可以添加一些提示
+                    if (response.from_llm) {
+                        console.log('SQL由大语言模型生成');
+                        // 可以添加一个UI提示，如临时变更按钮颜色等
+                        $button.addClass('ai-generated').delay(2000).queue(function(next){
+                            $(this).removeClass('ai-generated');
+                            next();
+                        });
+                    }
                 } else {
                     alert(response.message || '生成SQL失败');
                 }
@@ -332,6 +378,14 @@ $(document).ready(function() {
             error: function(xhr) {
                 console.error('生成SQL请求失败:', xhr);
                 alert('生成SQL请求失败，请查看控制台日志');
+            },
+            complete: function() {
+                // 隐藏按钮上的加载动画
+                $button.prop('disabled', false);
+                $spinner.addClass('d-none');
+                
+                // 隐藏中央加载动画
+                $('#loadingOverlay').hide();
             }
         });
     });
