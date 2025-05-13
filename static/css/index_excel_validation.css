@@ -1,0 +1,512 @@
+/* EXCEL校验页面样式 */
+.excel-validation-container {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.section {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.section h2 {
+    margin-top: 0;
+    margin-bottom: 1.2rem;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+/* 文件选择区域样式 */
+.file-selector-container {
+    margin-bottom: 1rem;
+}
+
+.file-dropdown {
+    width: 100%;
+    max-width: 100%;
+}
+
+.file-select-actions {
+    margin-top: 0.8rem;
+    text-align: right;
+}
+
+.select-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.3s;
+}
+
+.select-button:hover {
+    background-color: #2980b9;
+}
+
+.selected-files-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    min-height: 2rem;
+}
+
+.selected-file-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e1f5fe;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    border: 1px solid #b3e5fc;
+}
+
+.selected-file-tag .file-name {
+    margin-right: 0.5rem;
+    color: #0277bd;
+}
+
+.selected-file-tag .remove-file {
+    color: #e57373;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.selected-file-tag .remove-file:hover {
+    color: #ef5350;
+}
+
+.selected-file-tag.active {
+    background-color: #bbdefb;
+    border-color: #90caf9;
+    font-weight: 500;
+}
+
+.supported-formats {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 0.5rem;
+}
+
+/* 校验选项样式 */
+.validation-form {
+    padding: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.9rem;
+}
+
+/* Excel信息展示区域样式 */
+.excel-info-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.excel-file-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.excel-file-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.excel-file-name {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #1976d2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+
+.excel-sheet-info {
+    margin-top: 0.8rem;
+}
+
+.excel-sheet-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+.excel-sheet-select {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.validate-btn {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.validate-btn:hover {
+    background-color: #219653;
+}
+
+.validate-btn:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+}
+
+/* 结果区域样式 */
+.results-summary {
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.results-table th, .results-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.results-table th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.results-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.export-actions {
+    margin-top: 1.5rem;
+    text-align: right;
+}
+
+.export-btn {
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.export-btn:hover {
+    background-color: #e67e22;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+    .excel-info-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-actions {
+        text-align: center;
+    }
+}
+
+.excel-file-content {
+    padding: 0.5rem 0;
+}
+
+.excel-file-content .form-group {
+    margin-bottom: 0.8rem;
+}
+
+.excel-file-content label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* 警告提示样式 */
+.sheet-select option[value="not-exist"] {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+/* 验证按钮容器 */
+.validate-button-container {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+/* 表头分组和问题列表样式 */
+.groups-container, .issues-container {
+    margin-bottom: 2rem;
+}
+
+.groups-container h3, .issues-container h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 1rem;
+}
+
+.header-group-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.header-group-card.highlight {
+    background-color: #fff8e1;
+    border-color: #ffca28;
+}
+
+.group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.group-header h4 {
+    font-size: 1rem;
+    margin: 0;
+    color: #1976d2;
+}
+
+.view-files-btn {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.view-files-btn:hover {
+    background-color: #1976d2;
+}
+
+.group-headers {
+    overflow-x: auto;
+}
+
+.header-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.header-table th {
+    padding: 0.5rem;
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    white-space: nowrap;
+}
+
+.no-issues {
+    padding: 1rem;
+    text-align: center;
+    background-color: #e8f5e9;
+    border-radius: 4px;
+    color: #2e7d32;
+    font-weight: 500;
+}
+
+.issue-row {
+    cursor: pointer;
+}
+
+.issue-row:hover {
+    background-color: #fff8e1;
+}
+
+/* 对话框样式 */
+.dialog-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.dialog-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dialog-content {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 1001;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+}
+
+.dialog-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.dialog-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.dialog-body {
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.group-files-list ul {
+    padding-left: 1.5rem;
+}
+
+.group-files-list li {
+    margin-bottom: 0.5rem;
+}
+
+/* 加载Excel按钮样式 */
+.load-excel-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 1rem;
+    min-width: 180px;
+}
+
+.load-excel-btn:hover {
+    background-color: #43a047;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.load-excel-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.load-excel-btn:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.excel-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm60.1 106.5L224 336l60.1 93.5c5.1 8-.6 18.5-10.1 18.5h-34.9c-4.4 0-8.5-2.4-10.6-6.3C208.9 405.5 192 373 192 373c-6.4 14.8-10 20-36.6 68.8-2.1 3.9-6.1 6.3-10.5 6.3H110c-9.5 0-15.2-10.5-10.1-18.5l60.3-93.5-60.3-93.5c-5.2-8 .6-18.5 10.1-18.5h34.8c4.4 0 8.5 2.4 10.6 6.3 26.1 48.8 20 33.6 36.6 68.5 0 0 6.1-11.7 36.6-68.5 2.1-3.9 6.2-6.3 10.6-6.3H274c9.5-.1 15.2 10.4 10.1 18.4zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+} 

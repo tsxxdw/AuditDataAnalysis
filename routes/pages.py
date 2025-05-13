@@ -52,6 +52,12 @@ def index_validation():
     app_logger.info("访问数据校验页面")
     return render_template('index_validation.html', page_title='数据校验')
 
+@pages_bp.route('/index_excel_validation')
+def index_excel_validation():
+    """EXCEL校验页面"""
+    app_logger.info("访问EXCEL校验页面")
+    return render_template('index_excel_validation.html', page_title='EXCEL校验')
+
 @pages_bp.route('/index_sql')
 def index_sql():
     """常用SQL页面"""

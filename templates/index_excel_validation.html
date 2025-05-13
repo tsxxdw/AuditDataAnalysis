@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_excel_validation.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {% include 'components/header.html' %}
+    
+    <main class="main-content">
+        <div class="excel-validation-container">
+            <h1 class="page-title">EXCEL校验</h1>
+            
+            <div class="section file-section">
+                <h2>文件选择</h2>
+                <div class="file-selector-container">
+                    <!-- 使用SearchableDropdown组件 -->
+                    <div id="fileDropdown" class="file-dropdown"></div>
+                    
+                    <!-- 隐藏的原始Select元素，用于保持兼容性 -->
+                    <select id="file-select" style="display: none;">
+                        <!-- 选项将通过AJAX从后端加载 -->
+                    </select>
+                    
+                    <div class="file-select-actions">
+                        <button id="select-all-btn" class="select-button">全选文件</button>
+                    </div>
+                </div>
+                
+                <div id="selected-files-container" class="selected-files-container">
+                    <!-- 已选文件标签将在这里显示 -->
+                </div>
+                
+                <p class="supported-formats">支持的格式: .xlsx, .xls</p>
+            </div>
+            
+            <div class="section validation-options">
+                <h2>校验选项</h2>
+                <div class="validation-form">
+                    <div class="form-group">
+                        <label for="sheetIndexSelect">sheet选择:</label>
+                        <select id="sheetIndexSelect" class="form-select">
+                            <option value="" disabled selected>请选择sheet</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="readRowSelect">读取的行:</label>
+                        <select id="readRowSelect" class="form-select">
+                            <option value="" disabled selected>请选择读取的行</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="validationTypeSelect">校验的事项:</label>
+                        <select id="validationTypeSelect" class="form-select">
+                            <option value="" disabled selected>请选择校验事项</option>
+                            <option value="header_validation">表头一致校验</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button id="loadExcelBtn" class="load-excel-btn">
+                            <i class="excel-icon"></i>
+                            加载EXCEL信息
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Excel信息展示区域 -->
+            <div class="section excel-info-section" id="excelInfoSection" style="display: none;">
+                <h2>Excel文件信息</h2>
+                <div id="excelInfoContainer" class="excel-info-container">
+                    <!-- Excel信息将在这里显示，每个文件一个卡片 -->
+                </div>
+                <div class="validate-button-container">
+                    <button id="validateBtn" class="validate-btn">开始校验</button>
+                </div>
+            </div>
+            
+            <div class="section results-section" id="resultsSection" style="display: none;">
+                <h2>校验结果</h2>
+                <div class="results-summary" id="resultsSummary"></div>
+                <div class="results-details">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>位置</th>
+                                <th>问题类型</th>
+                                <th>详细信息</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTable">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="export-actions">
+                    <button id="exportBtn" class="export-btn">导出结果</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {% include 'components/footer.html' %}
+    
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index_excel_validation.js') }}"></script>
+</body>
+</html> 
