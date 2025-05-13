@@ -390,64 +390,6 @@ $(document).ready(function() {
         });
     });
     
-    // 创建表按钮点击事件
-    $('#createTable').on('click', function() {
-        const tableName = $('#tableName').val();
-        const tableComment = $('#tableComment').val();
-        const excelPath = $('#file-select').val();
-        const sheetId = $('#sheet-select').val();
-        const commentRow = $('#commentRow').val();
-        
-        if(!tableName) {
-            alert('请输入表名');
-            return;
-        }
-        
-        if(!excelPath) {
-            alert('请选择Excel文件');
-            return;
-        }
-        
-        if(!sheetId) {
-            alert('请选择工作表');
-            return;
-        }
-        
-        if(!commentRow) {
-            alert('请输入备注信息所在行号');
-            return;
-        }
-        
-        // 调用后端API创建表
-        $.ajax({
-            url: '/api/table_structure/create_table',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                tableName: tableName,
-                tableComment: tableComment,
-                excelPath: excelPath,
-                sheetId: sheetId,
-                commentRow: commentRow
-            }),
-            success: function(response) {
-                if (response.success) {
-                    alert('创建表成功');
-                    // 显示生成的SQL
-                    $('#sqlContent').val(response.sql);
-                    // 重新加载表列表
-                    loadTableList();
-                } else {
-                    alert(response.message || '创建表失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('创建表请求失败:', xhr);
-                alert('创建表请求失败，请查看控制台日志');
-            }
-        });
-    });
-    
     // 创建索引按钮点击事件
     $('#createIndex').on('click', function() {
         const tableName = $('#indexTableName').val();
