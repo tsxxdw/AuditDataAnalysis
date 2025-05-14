@@ -13,6 +13,7 @@ from routes.common.common_database_api import common_api_bp
 from routes.index_analysis_api import index_analysis_bp
 from routes.index_prompt_templates_api import index_prompt_templates_bp
 from routes.index_excel_validation_api import excel_validation_bp
+from routes.index_validation_api import index_validation_bp  # 导入数据校验API蓝图
 from routes.pages import pages_bp
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
@@ -40,6 +41,7 @@ app.register_blueprint(common_api_bp)  # 注册通用API路由
 app.register_blueprint(index_analysis_bp)  # 注册数据分析API路由
 app.register_blueprint(index_prompt_templates_bp)  # 注册提示词模板API路由
 app.register_blueprint(excel_validation_bp)  # 注册Excel校验API路由
+app.register_blueprint(index_validation_bp)  # 注册数据校验API路由
 app.register_blueprint(common_ollama_bp)  # 注册Ollama API路由
 app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 app.register_blueprint(model_api)  # 注册模型服务API路由
