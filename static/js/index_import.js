@@ -1272,8 +1272,24 @@ $(document).ready(function() {
         $('#success-count').text(response.success_count || 0);
         $('#failed-count').text(response.error_count || 0);
         
+        // 获取Excel文件名
+        var excelFileName = $('#excel-file-select option:selected').text();
+        // 检查是否获取到有效的文件名
+        if (!excelFileName || excelFileName.trim() === '' || excelFileName.includes('请选择')) {
+            // 尝试从路径中提取文件名
+            var filePath = $('#excel-file-select').val();
+            if (filePath) {
+                // 提取路径中的文件名部分
+                var pathParts = filePath.split(/[\/\\]/);
+                excelFileName = pathParts[pathParts.length - 1];
+            } else {
+                // 如果仍然无法获取，使用默认文本
+                excelFileName = "所选Excel文件";
+            }
+        }
+        
         // 添加完成日志
-        var completionMessage = `导入完成！成功导入${response.success_count || 0}条记录`;
+        var completionMessage = `导入完成！文件"${excelFileName}"成功导入${response.success_count || 0}条记录`;
         if (response.error_count && response.error_count > 0) {
             completionMessage += `，失败${response.error_count}条`;
         }
