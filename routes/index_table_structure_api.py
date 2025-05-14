@@ -453,7 +453,7 @@ def generate_mysql_table_sql(table_name, table_comment, field_comments):
             sql += ",\n"
     
     # 添加5个补充字段，从字段数量+1开始
-    start_index = max(14, field_count) + 1
+    start_index = field_count + 1
     for i in range(5):
         field_num = start_index + i
         field_name = f"t_{field_num}"
@@ -503,7 +503,7 @@ def generate_sqlserver_table_sql(table_name, table_comment, field_comments):
                 sql += f",\n  {field_name} NVARCHAR(100)"
     
     # 添加5个补充字段，从字段数量+1开始
-    start_index = max(14, field_count) + 1
+    start_index = field_count + 1
     for i in range(5):
         field_num = start_index + i
         field_name = f"t_{field_num}"
@@ -524,7 +524,7 @@ def generate_sqlserver_table_sql(table_name, table_comment, field_comments):
             sql += f"EXEC sp_addextendedproperty 'MS_Description', '{comment}', 'schema', 'dbo', 'table', '{table_name}', 'column', '{field_name}';\n"
     
     # 为补充字段添加注释
-    start_index = max(14, field_count) + 1
+    start_index = field_count + 1
     for i in range(5):
         field_num = start_index + i
         field_name = f"t_{field_num}"
@@ -565,7 +565,7 @@ def generate_oracle_table_sql(table_name, table_comment, field_comments):
                 sql += f",\n  {field_name} VARCHAR2(100)"
     
     # 添加5个补充字段，从字段数量+1开始
-    start_index = max(14, field_count) + 1
+    start_index = field_count + 1
     for i in range(5):
         field_num = start_index + i
         field_name = f"t_{field_num}"
@@ -586,7 +586,7 @@ def generate_oracle_table_sql(table_name, table_comment, field_comments):
             sql += f"COMMENT ON COLUMN {table_name}.{field_name} IS '{comment}';\n"
     
     # 为补充字段添加注释
-    start_index = max(14, field_count) + 1
+    start_index = field_count + 1
     for i in range(5):
         field_num = start_index + i
         field_name = f"t_{field_num}"
