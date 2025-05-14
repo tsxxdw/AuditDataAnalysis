@@ -655,6 +655,10 @@ def import_excel_data():
                 filtered_data = excel_data
                 addLog.append({"type": "info", "message": f"未设置筛选条件，使用所有{len(filtered_data)}行数据"})
             
+            # 记录数据处理信息
+            app_logger.info("开始处理数据，将对字符串类型的数据去除前后空白字符")
+            addLog.append({"type": "info", "message": "对字符串类型的数据自动去除前后空白字符"})
+            
             # 准备导入数据
             prepared_data = []
             
@@ -664,7 +668,12 @@ def import_excel_data():
                 # 将Excel列数据映射到表字段
                 for col_index, field in enumerate(table_fields):
                     if col_index < len(row_data):
-                        row_dict[field['name']] = row_data[col_index]
+                        # 获取单元格值
+                        cell_value = row_data[col_index]
+                        # 处理字符串类型的值：去除前后多余的空白
+                        if isinstance(cell_value, str):
+                            cell_value = cell_value.strip()
+                        row_dict[field['name']] = cell_value
                 prepared_data.append(row_dict)
             
             # 准备补充字段
@@ -710,8 +719,12 @@ def import_excel_data():
                                 for supplement in prepared_supplements:
                                     if supplement.get('enabled') and 'value' in supplement:
                                         field_name = supplement.get('name')
+                                        value = supplement['value']
+                                        # 处理字符串类型的补充字段值：去除前后多余的空白
+                                        if isinstance(value, str):
+                                            value = value.strip()
                                         if field_name:
-                                            row_data[field_name] = supplement['value']
+                                            row_data[field_name] = value
                         
                         # 获取字段列表（从第一行获取）
                         fields = list(current_batch[0].keys())
