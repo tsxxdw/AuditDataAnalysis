@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index_analysis.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common/database_info.css') }}">
+    <!-- 引入SearchableDropdown组件样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -19,49 +21,145 @@
         <div class="container">
             <h1 class="page-title">数据分析</h1>
             
-            <div class="query-options">
-                <div class="option-group">
-                    <label for="dbType">选择数据库：</label>
-                    <select id="dbType" class="form-control">
-                        <option value="mysql">MySQL</option>
-                        <option value="sqlserver">SQL Server</option>
-                        <option value="oracle">Oracle</option>
-                    </select>
-                </div>
+            <!-- 中央加载动画 -->
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">生成SQL中...</div>
+            </div>
+            
+            <!-- 条件选择区域 -->
+            <section class="card condition-selection-section">
+                <h2 class="section-title">条件选择区域</h2>
                 
-                <div class="option-group">
-                    <label for="sqlTemplate">SQL模板：</label>
-                    <select id="sqlTemplate" class="form-control">
-                        <option value="">请选择SQL模板</option>
-                        <option value="template1">模板一：基础查询</option>
-                        <option value="template2">模板二：聚合统计</option>
-                        <option value="template3">模板三：关联查询</option>
-                    </select>
+                <div id="tableSelectionContainer">
+                    <!-- 表选择区域将动态添加 -->
+                    <div class="table-selection-item">
+                        <div class="form-group">
+                            <label for="table-select-1">选择表：</label>
+                            <select id="table-select-1" class="form-control table-select">
+                                <option value="">请选择表</option>
+                                <!-- 表选项将动态加载 -->
+                            </select>
+                            <button type="button" class="btn btn-sm btn-info btn-add-fields" data-table-id="1">选择字段</button>
+                        </div>
+                        
+                        <div class="selected-fields-container" id="selected-fields-1">
+                            <!-- 选择的字段将显示在这里 -->
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="button-group">
-                    <button id="addTemplate" class="btn btn-secondary">新增SQL模板</button>
-                    <button id="generateSQL" class="btn btn-primary">生成执行SQL</button>
+                    <button id="addTable" class="btn btn-secondary">添加表</button>
+                    <button id="clearTables" class="btn btn-warning">清空表选择</button>
+                </div>
+            </section>
+            
+            <!-- 模板提示词区域 -->
+            <section class="card prompt-templates-section">
+                <h2 class="section-title">模板提示词</h2>
+                <div class="form-group">
+                    <label for="templateDropdown">模板名称：</label>
+                    <!-- 使用SearchableDropdown组件 -->
+                    <div id="templateDropdown"></div>
+                    <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+                    <select id="promptTemplate" style="display: none;">
+                        <option value="">请选择提示词模板</option>
+                    </select>
+                    <button type="button" class="btn btn-info" id="viewTemplateDetails" disabled>查看详情</button>
+                </div>
+            </section>
+            
+            <!-- 模板详情模态对话框 -->
+            <div id="templateDetailsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3 class="modal-title">模板详情</h3>
+                    
+                    <div class="template-details">
+                        <!-- 模板名称 -->
+                        <div class="template-name-container">
+                            <h4>模板名称</h4>
+                            <div class="template-name-text"></div>
+                        </div>
+                        
+                        <!-- 模板描述 -->
+                        <div class="template-description-container">
+                            <h4>模板描述</h4>
+                            <div class="template-description-text"></div>
+                        </div>
+                        
+                        <!-- 系统提示词 -->
+                        <div class="system-prompt-container">
+                            <h4>系统提示词</h4>
+                            <div class="system-prompt-text"></div>
+                        </div>
+                        
+                        <!-- 用户提示词 -->
+                        <div class="user-prompt-container">
+                            <h4>用户提示词</h4>
+                            <div class="user-prompt-text"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="sql-display-container">
-                <h2>SQL查询语句</h2>
-                <div id="sqlDisplay" class="sql-display">
-                    -- 生成的SQL将显示在这里
-                    SELECT * FROM table_name WHERE condition;
+            <!-- SQL执行区域 -->
+            <section class="card sql-execute-section">
+                <h2 class="section-title">SQL执行区域</h2>
+                <div class="form-group">
+                    <label for="sqlContent">要执行的SQL：</label>
+                    <textarea class="form-control sql-textarea" id="sqlContent" rows="5" placeholder="SQL语句将显示在这里"></textarea>
                 </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="executeSQL" class="btn btn-success">执行SQL</button>
-            </div>
+                
+                <div class="button-group">
+                    <button id="generateSQL" class="btn btn-primary">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        生成SQL
+                    </button>
+                    <button id="clearSQL" class="btn btn-secondary">清空SQL</button>
+                    <button id="executeSQL" class="btn btn-success" style="margin-left: auto;">执行SQL</button>
+                </div>
+                
+                <!-- 查询结果区域 -->
+                <div id="queryResultsContainer" class="query-results-container" style="display: none;">
+                    <h3>查询结果</h3>
+                    <div id="queryResults" class="query-results"></div>
+                </div>
+            </section>
         </div>
     </main>
     
+    <!-- 字段选择模态框 -->
+    <div id="fieldSelectionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-fields">&times;</span>
+            <h3 class="modal-title">选择字段</h3>
+            
+            <div class="field-selection-content">
+                <div class="field-search">
+                    <input type="text" id="fieldSearchInput" class="form-control" placeholder="搜索字段...">
+                </div>
+                
+                <div class="field-list" id="fieldList">
+                    <!-- 字段列表将在此动态加载 -->
+                </div>
+                
+                <div class="button-group">
+                    <button id="selectAllFields" class="btn btn-info">全选</button>
+                    <button id="deselectAllFields" class="btn btn-warning">取消全选</button>
+                    <button id="confirmFieldSelection" class="btn btn-primary">确认选择</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
-
+    
+    <!-- 引入SearchableDropdown组件 -->
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_analysis.js') }}"></script>
