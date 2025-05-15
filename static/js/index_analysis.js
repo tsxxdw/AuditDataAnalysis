@@ -365,44 +365,28 @@ $(document).ready(function() {
     
     // 加载表列表
     function loadTableList() {
-        // 调用API获取表列表
-        $.ajax({
-            url: '/api/table_structure/tables',
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 加载第一个表选择器的选项
-                    populateTableSelect('#table-select-1', response.tables);
-                } else {
-                    console.error('获取表列表失败:', response.message);
-                    alert(response.message || '获取表列表失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('获取表列表请求失败:', xhr);
-                alert('获取表列表请求失败');
+        // 使用通用函数加载表列表
+        loadDatabaseTables('#table-select-1', function(tables) {
+            if (tables && tables.length > 0) {
+                // 保持与原函数相同的格式：调用populateTableSelect函数
+                populateTableSelect('#table-select-1', tables);
+            } else {
+                console.error('获取表列表失败');
+                alert('获取表列表失败');
             }
         });
     }
     
     // 加载表的选择器选项
     function loadTablesForSelect(selectId) {
-        // 调用API获取表列表
-        $.ajax({
-            url: '/api/table_structure/tables',
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 加载表选择器的选项
-                    populateTableSelect(selectId, response.tables);
-                } else {
-                    console.error('获取表列表失败:', response.message);
-                    alert(response.message || '获取表列表失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('获取表列表请求失败:', xhr);
-                alert('获取表列表请求失败');
+        // 使用通用函数加载表列表
+        loadDatabaseTables(selectId, function(tables) {
+            if (tables && tables.length > 0) {
+                // 保持与原函数相同的格式：调用populateTableSelect函数
+                populateTableSelect(selectId, tables);
+            } else {
+                console.error('获取表列表失败');
+                alert('获取表列表失败');
             }
         });
     }
@@ -428,42 +412,30 @@ $(document).ready(function() {
         // 显示加载提示
         $('#fieldList').html('<div class="loading-fields">加载字段中...</div>');
         
-        // 调用API获取字段列表
-        $.ajax({
-            url: `/api/table_structure/fields/${tableName}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 清空字段列表
-                    $('#fieldList').empty();
+        // 使用通用函数加载表字段
+        loadDatabaseTableFields(tableName, null, function(fields) {
+            // 清空字段列表
+            $('#fieldList').empty();
+            
+            if (fields && fields.length > 0) {
+                // 填充字段列表
+                fields.forEach((field, index) => {
+                    const isChecked = isFieldSelected(currentFieldsTable, field.name) ? 'checked' : '';
                     
-                    // 填充字段列表
-                    if (response.fields && response.fields.length > 0) {
-                        response.fields.forEach((field, index) => {
-                            const isChecked = isFieldSelected(currentFieldsTable, field.name) ? 'checked' : '';
-                            
-                            const fieldItem = `
-                                <div class="field-item">
-                                    <input type="checkbox" id="field-${index}" ${isChecked}>
-                                    <span class="field-item-name">${field.name}</span>
-                                    <span class="field-item-type">${field.type}</span>
-                                    <span class="field-item-comment">${field.comment || ''}</span>
-                                </div>
-                            `;
-                            
-                            $('#fieldList').append(fieldItem);
-                        });
-                    } else {
-                        $('#fieldList').html('<div class="no-fields">该表没有字段</div>');
-                    }
-                } else {
-                    console.error('获取字段列表失败:', response.message);
-                    $('#fieldList').html(`<div class="load-error">加载失败: ${response.message || '未知错误'}</div>`);
-                }
-            },
-            error: function(xhr) {
-                console.error('获取字段列表请求失败:', xhr);
-                $('#fieldList').html('<div class="load-error">请求失败，请重试</div>');
+                    const fieldItem = `
+                        <div class="field-item">
+                            <input type="checkbox" id="field-${index}" ${isChecked}>
+                            <span class="field-item-name">${field.name}</span>
+                            <span class="field-item-type">${field.type}</span>
+                            <span class="field-item-comment">${field.comment || ''}</span>
+                        </div>
+                    `;
+                    
+                    $('#fieldList').append(fieldItem);
+                });
+            } else {
+                $('#fieldList').html('<div class="no-fields">该表没有字段</div>');
+                console.error('获取字段列表失败');
             }
         });
     }

@@ -305,12 +305,6 @@
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
 
-    <!-- 引入SearchableDropdown组件 -->
-    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/index_import.js') }}"></script>
-    
     <!-- 导入确认对话框 -->
     <div id="import-confirm-modal" class="modal">
         <div class="modal-content">
@@ -356,5 +350,10 @@
             </div>
         </div>
     </div>
+    
+    <!-- 引入脚本文件 -->
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index_import.js') }}"></script>
 </body>
 </html> 

@@ -45,4 +45,95 @@ $(document).ready(function() {
 
     // 页面加载时获取数据库信息
     fetchDatabaseInfo();
-}); 
+});
+
+// 公共数据库表和字段操作函数
+/**
+ * 加载数据库表列表
+ * @param {string} targetSelector - 目标下拉框选择器
+ * @param {function} callback - 可选的回调函数，用于在加载完成后执行
+ */
+function loadDatabaseTables(targetSelector, callback) {
+    $.ajax({
+        url: '/api/common/tables',
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                // 清空表下拉框
+                $(targetSelector).empty();
+                $(targetSelector).append('<option value="">请选择表</option>');
+                
+                // 填充表下拉框
+                response.tables.forEach(table => {
+                    // 构建表显示名称，包含备注信息
+                    var displayName = table.name;
+                    if (table.comment && table.comment.trim() !== '') {
+                        displayName += ' (' + table.comment + ')';
+                    }
+                    
+                    $(targetSelector).append(
+                        $('<option></option>')
+                            .attr('value', table.name)
+                            .text(displayName)
+                    );
+                });
+                
+                // 如果提供了回调函数，则执行
+                if (typeof callback === 'function') {
+                    callback(response.tables);
+                }
+            } else {
+                console.error('获取表列表失败:', response.message);
+            }
+        },
+        error: function(xhr) {
+            console.error('获取表列表请求失败:', xhr);
+        }
+    });
+}
+
+/**
+ * 加载表字段
+ * @param {string} tableName - 表名
+ * @param {string} targetSelector - 目标下拉框选择器
+ * @param {function} callback - 可选的回调函数，用于在加载完成后执行
+ */
+function loadDatabaseTableFields(tableName, targetSelector, callback) {
+    if (!tableName) {
+        // 清空字段下拉框
+        $(targetSelector).empty();
+        $(targetSelector).append('<option value="">请选择字段</option>');
+        return;
+    }
+    
+    $.ajax({
+        url: `/api/common/fields/${tableName}`,
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                // 清空字段下拉框
+                $(targetSelector).empty();
+                $(targetSelector).append('<option value="">请选择字段</option>');
+                
+                // 填充字段下拉框
+                response.fields.forEach(field => {
+                    $(targetSelector).append(
+                        `<option value="${field.name}">${field.name} - ${field.comment || '无注释'}</option>`
+                    );
+                });
+                
+                // 如果提供了回调函数，则执行
+                if (typeof callback === 'function') {
+                    callback(response.fields);
+                }
+            } else {
+                console.error('获取表字段失败:', response.message);
+                alert(response.message || '获取表字段失败');
+            }
+        },
+        error: function(xhr) {
+            console.error('获取表字段请求失败:', xhr);
+            alert('获取表字段请求失败，请查看控制台日志');
+        }
+    });
+} 

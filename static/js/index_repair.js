@@ -405,38 +405,10 @@ $(document).ready(function() {
     
     // 加载表列表的函数
     function loadTableList() {
-        // 清空下拉框并添加提示选项
-        $('#tableName').empty().append('<option value="">请选择表</option>');
-        
-        // 调用API获取表列表
-        $.ajax({
-            url: '/api/table_structure/tables',
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 填充表下拉框
-                    response.tables.forEach(table => {
-                        // 构建表显示名称，包含备注信息
-                        var displayName = table.name;
-                        if (table.comment && table.comment.trim() !== '') {
-                            displayName += ' (' + table.comment + ')';
-                        }
-                        
-                        $('#tableName').append(
-                            $('<option></option>')
-                                .attr('value', table.name)
-                                .text(displayName)
-                        );
-                    });
-                } else {
-                    console.error('获取表列表失败:', response.message);
-                    // 添加备用表
-                    addDefaultTables();
-                }
-            },
-            error: function(xhr) {
-                console.error('获取表列表请求失败:', xhr);
-                // 添加备用表
+        // 使用通用函数加载表列表
+        loadDatabaseTables('#tableName', function(tables) {
+            if (!tables || tables.length === 0) {
+                // 如果没有表或加载失败，添加默认表
                 addDefaultTables();
             }
         });
@@ -544,38 +516,28 @@ $(document).ready(function() {
         $('#originalField').empty().append('<option value="">请选择参考字段</option>');
         $('#newField').empty().append('<option value="">请选择目标字段</option>');
         
-        // 调用API获取表字段
-        $.ajax({
-            url: `/api/table_structure/fields/${tableName}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 填充两个字段下拉框
-                    response.fields.forEach(field => {
-                        const optionText = `${field.name} - ${field.comment || '无注释'}`;
-                        
-                        // 添加到参考字段下拉框
-                        $('#originalField').append(
-                            $('<option></option>')
-                                .attr('value', field.name)
-                                .text(optionText)
-                        );
-                        
-                        // 添加到目标字段下拉框
-                        $('#newField').append(
-                            $('<option></option>')
-                                .attr('value', field.name)
-                                .text(optionText)
-                        );
-                    });
-                } else {
-                    console.error('获取表字段失败:', response.message);
-                    // 添加备用字段
-                    addDefaultFields(tableName);
-                }
-            },
-            error: function(xhr) {
-                console.error(`获取表 ${tableName} 字段失败:`, xhr);
+        // 使用自定义回调处理两个下拉框的更新
+        loadDatabaseTableFields(tableName, null, function(fields) {
+            if (fields && fields.length > 0) {
+                // 填充两个字段下拉框
+                fields.forEach(field => {
+                    const optionText = `${field.name} - ${field.comment || '无注释'}`;
+                    
+                    // 添加到参考字段下拉框
+                    $('#originalField').append(
+                        $('<option></option>')
+                            .attr('value', field.name)
+                            .text(optionText)
+                    );
+                    
+                    // 添加到目标字段下拉框
+                    $('#newField').append(
+                        $('<option></option>')
+                            .attr('value', field.name)
+                            .text(optionText)
+                    );
+                });
+            } else {
                 // 添加备用字段
                 addDefaultFields(tableName);
             }

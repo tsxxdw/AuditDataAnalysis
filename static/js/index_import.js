@@ -412,7 +412,8 @@ $(document).ready(function() {
         
         addLog('正在加载数据库表列表...');
         
-        // 从后端API获取表列表
+        // 注意：这里我们可以选择使用通用函数或保持使用导入模块特定API
+        // 此实现使用导入模块特定的API，保持原有逻辑
         $.ajax({
             url: '/api/import/tables',
             method: 'GET',
@@ -448,6 +449,33 @@ $(document).ready(function() {
                 // 恢复按钮状态
                 $('#load-tables-btn').prop('disabled', false).text('加载数据');
             }
+        });
+    }
+    
+    // 可选的通用表加载函数版本（如果需要切换到通用API）
+    function loadDatabaseTablesFromCommon() {
+        var selectedDb = $('#db-select').val();
+        
+        if (!selectedDb) {
+            addLog('错误: 请先选择数据库');
+            return;
+        }
+        
+        // 禁用按钮，防止重复点击
+        $('#load-tables-btn').prop('disabled', true).text('加载中...');
+        
+        addLog('正在加载数据库表列表...');
+        
+        // 使用公共函数加载表
+        loadDatabaseTables('#table-select', function(tables) {
+            if (tables && tables.length > 0) {
+                addLog('成功加载 ' + tables.length + ' 个表');
+            } else {
+                addLog('警告: 没有找到任何表');
+            }
+            
+            // 恢复按钮状态
+            $('#load-tables-btn').prop('disabled', false).text('加载数据');
         });
     }
     

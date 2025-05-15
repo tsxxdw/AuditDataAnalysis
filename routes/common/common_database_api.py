@@ -7,9 +7,12 @@
 from flask import Blueprint, jsonify, request
 from service.log.logger import app_logger
 from utils.database_config_util import DatabaseConfigUtil
+from service.database.database_service import DatabaseService
 
 # 创建通用API蓝图
 common_api_bp = Blueprint('common_api', __name__, url_prefix='/api/common')
+# 实例化数据库服务
+db_service = DatabaseService()
 
 @common_api_bp.route('/database_info', methods=['GET'])
 def get_database_info():
@@ -45,4 +48,62 @@ def get_database_info():
             "message": f"获取数据库信息失败: {str(e)}", 
             "db_type": "未知", 
             "db_name": "未知"
+        }), 500
+
+@common_api_bp.route('/tables', methods=['GET'])
+def get_tables():
+    """获取表列表"""
+    app_logger.info("获取表列表")
+    
+    try:
+        # 获取当前数据库连接信息
+        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        
+        if not db_config:
+            return jsonify({"success": False, "message": "获取数据库配置失败", "tables": []}), 500
+        
+        # 使用数据库服务获取表列表
+        tables = db_service.get_database_tables(db_type, db_config)
+        
+        return jsonify({
+            "success": True,
+            "message": "获取表列表成功", 
+            "tables": tables
+        })
+    except Exception as e:
+        app_logger.error(f"获取表列表失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"获取表列表失败: {str(e)}",
+            "tables": []
+        }), 500
+
+@common_api_bp.route('/fields/<table_name>', methods=['GET'])
+def get_fields(table_name):
+    """获取表字段"""
+    app_logger.info(f"获取表 {table_name} 的字段")
+    
+    try:
+        # 获取当前数据库连接信息
+        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        
+        if not db_config:
+            return jsonify({"success": False, "message": "获取数据库配置失败", "fields": []}), 500
+        
+        # 使用数据库服务获取表字段
+        fields = db_service.get_table_field_info(db_type, db_config, table_name)
+        
+        return jsonify({
+            "success": True,
+            "message": "获取表字段成功", 
+            "fields": fields
+        })
+    except Exception as e:
+        app_logger.error(f"获取表字段失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"获取表字段失败: {str(e)}",
+            "fields": []
         }), 500 

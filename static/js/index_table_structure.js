@@ -600,62 +600,21 @@ $(document).ready(function() {
     
     // 加载表列表
     function loadTableList() {
-        $.ajax({
-            url: '/api/table_structure/tables',
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 清空表下拉框
-                    $('#indexTableName').empty();
-                    $('#indexTableName').append('<option value="">请选择表</option>');
-                    
-                    // 填充表下拉框
-                    response.tables.forEach(table => {
-                        // 构建表显示名称，包含备注信息
-                        var displayName = table.name;
-                        if (table.comment && table.comment.trim() !== '') {
-                            displayName += ' (' + table.comment + ')';
-                        }
-                        
-                        $('#indexTableName').append(
-                            $('<option></option>')
-                                .attr('value', table.name)
-                                .text(displayName)
-                        );
-                    });
-                } else {
-                    console.error('获取表列表失败:', response.message);
-                }
-            },
-            error: function(xhr) {
-                console.error('获取表列表请求失败:', xhr);
+        // 使用通用函数加载表列表
+        loadDatabaseTables('#indexTableName', function(tables) {
+            if (!tables || tables.length === 0) {
+                console.error('获取表列表失败');
             }
         });
     }
     
     // 加载表字段
     function loadTableFields(tableName) {
-        $.ajax({
-            url: `/api/table_structure/fields/${tableName}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 清空字段下拉框
-                    $('#fieldName').empty();
-                    $('#fieldName').append('<option value="">请选择字段</option>');
-                    
-                    // 填充字段下拉框
-                    response.fields.forEach(field => {
-                        $('#fieldName').append(`<option value="${field.name}">${field.name} - ${field.comment || '无注释'}</option>`);
-                    });
-                } else {
-                    console.error('获取表字段失败:', response.message);
-                    alert(response.message || '获取表字段失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('获取表字段请求失败:', xhr);
-                alert('获取表字段请求失败，请查看控制台日志');
+        // 使用通用函数加载表字段
+        loadDatabaseTableFields(tableName, '#fieldName', function(fields) {
+            if (!fields || fields.length === 0) {
+                console.error('获取表字段失败');
+                alert('获取表字段失败');
             }
         });
     }
