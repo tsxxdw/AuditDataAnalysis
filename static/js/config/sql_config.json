@@ -1,0 +1,181 @@
+{
+  "基础查询": [
+    {
+      "title": "简单条件查询",
+      "desc": "按条件筛选并限制返回行数",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "SELECT * FROM table_name WHERE condition LIMIT 10;",
+        "sqlserver": "SELECT TOP 10 * FROM table_name WHERE condition;",
+        "oracle": "SELECT * FROM table_name WHERE condition AND ROWNUM <= 10;"
+      }
+    },
+    {
+      "title": "多字段排序",
+      "desc": "按指定字段排序查询结果",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT column1, column2 FROM table_name WHERE column1 = 'value' ORDER BY column2 DESC;"
+      }
+    },
+    {
+      "title": "表连接查询",
+      "desc": "JOIN多表联合查询",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT t1.*, t2.column1 FROM table1 t1 JOIN table2 t2 ON t1.id = t2.id WHERE t1.status = 'active';"
+      }
+    },
+    {
+      "title": "分组查询",
+      "desc": "GROUP BY分组统计",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT category, COUNT(*) as count FROM products GROUP BY category HAVING count > 5;"
+      }
+    }
+  ],
+  "数据统计": [
+    {
+      "title": "记录总数",
+      "desc": "COUNT计算记录数",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT COUNT(*) AS total_count FROM table_name WHERE condition;"
+      }
+    },
+    {
+      "title": "分组求和",
+      "desc": "SUM分组计算总额",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT category, SUM(amount) AS total_amount \nFROM sales \nGROUP BY category \nORDER BY total_amount DESC;"
+      }
+    },
+    {
+      "title": "日期统计",
+      "desc": "按年月分组统计",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "SELECT \n    EXTRACT(YEAR FROM date_column) AS year,\n    EXTRACT(MONTH FROM date_column) AS month,\n    COUNT(*) AS count\nFROM table_name\nGROUP BY year, month\nORDER BY year, month;",
+        "sqlserver": "SELECT \n    YEAR(date_column) AS year,\n    MONTH(date_column) AS month,\n    COUNT(*) AS count\nFROM table_name\nGROUP BY YEAR(date_column), MONTH(date_column)\nORDER BY year, month;",
+        "oracle": "SELECT \n    EXTRACT(YEAR FROM date_column) AS year,\n    EXTRACT(MONTH FROM date_column) AS month,\n    COUNT(*) AS count\nFROM table_name\nGROUP BY EXTRACT(YEAR FROM date_column), EXTRACT(MONTH FROM date_column)\nORDER BY year, month;"
+      }
+    },
+    {
+      "title": "平均值统计",
+      "desc": "AVG计算平均值",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT department, AVG(salary) as avg_salary FROM employees GROUP BY department;"
+      }
+    }
+  ],
+  "数据更新": [
+    {
+      "title": "基本更新",
+      "desc": "更新指定条件的记录",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "UPDATE table_name SET column1 = 'new_value' WHERE condition;"
+      }
+    },
+    {
+      "title": "更新时间",
+      "desc": "更新为当前系统时间",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "UPDATE users \nSET last_login_date = NOW() \nWHERE user_id = 12345;",
+        "sqlserver": "UPDATE users \nSET last_login_date = GETDATE() \nWHERE user_id = 12345;",
+        "oracle": "UPDATE users \nSET last_login_date = SYSDATE \nWHERE user_id = 12345;"
+      }
+    },
+    {
+      "title": "批量更新",
+      "desc": "使用CASE批量更新",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "UPDATE products\nSET status = \n    CASE category\n        WHEN 'electronics' THEN 'active'\n        WHEN 'clothing' THEN 'sale'\n        ELSE status\n    END\nWHERE stock_quantity > 0;"
+      }
+    }
+  ],
+  "数据修复": [
+    {
+      "title": "日期格式转换",
+      "desc": "转换各种日期格式到标准日期",
+      "dbType": "mysql sqlserver oracle",
+      "verified": true,
+      "sql": {
+        "mysql": "UPDATE t_table_temp\nSET t_y = STR_TO_DATE(\n    CASE \n        WHEN t_x REGEXP '^[0-9]{4}$' AND LENGTH(t_x) = 4 THEN CONCAT(t_x, '-01-01')  \n        WHEN t_x REGEXP '^[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日$' THEN CONCAT(SUBSTRING_INDEX(t_x, '年', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '年', -1), '月', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '月', -1), '日', 1))\n        WHEN t_x REGEXP '^[0-9]{4}年[0-9]{1,2}月$' THEN CONCAT(SUBSTRING_INDEX(t_x, '年', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '年', -1), '月', 1), '-01')\n        WHEN t_x REGEXP '^[0-9]{4}年$' THEN CONCAT(SUBSTRING_INDEX(t_x, '年', 1), '-01-01')\n        WHEN t_x REGEXP '^[0-9]{4}\\\\.[0-9]{1,2}\\\\.[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '.', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '.', 2), '.', -1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '.', -1), '.', -1))\n        WHEN t_x REGEXP '^[0-9]{4}\\\\.[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '.', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '.', 2), '.', -1), '-01')\n        WHEN t_x REGEXP '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$' THEN t_x\n        WHEN t_x REGEXP '^[0-9]{4}-[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '-', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '-', 2), '-', -1), '-01')\n        WHEN t_x REGEXP '^[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}$' THEN REPLACE(t_x, '/', '-')\n        WHEN t_x REGEXP '^[0-9]{4}/[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '/', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '/', 2), '/', -1), '-01')\n        WHEN t_x REGEXP '^[0-9]{8}$' THEN CONCAT(SUBSTRING(t_x, 1, 4), '-', SUBSTRING(t_x, 5, 2), '-', SUBSTRING(t_x, 7, 2))\n        WHEN t_x REGEXP '^[0-9]{6}$' THEN CONCAT(SUBSTRING(t_x, 1, 4), '-', SUBSTRING(t_x, 5, 2), '-01')\n        ELSE NULL\n    END,\n    '%Y-%m-%d'\n)\nWHERE t_x IS NOT NULL; -- 可选：仅更新非空t_x字段",
+        "sqlserver": "UPDATE t_table_temp\nSET t_y = TRY_CONVERT(DATE, \n    CASE \n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]' AND LEN(t_x) = 4 THEN t_x + '-01-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]年[0-9]%月[0-9]%日' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('年', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('年', t_x) + 1, CHARINDEX('月', t_x) - CHARINDEX('年', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('月', t_x) + 1, CHARINDEX('日', t_x) - CHARINDEX('月', t_x) - 1)\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]年[0-9]%月' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('年', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('年', t_x) + 1, CHARINDEX('月', t_x) - CHARINDEX('年', t_x) - 1) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]年' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('年', t_x) - 1) + '-01-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9].[0-9]%.[0-9]%' AND \n             CHARINDEX('.', t_x) > 0 AND CHARINDEX('.', t_x, CHARINDEX('.', t_x) + 1) > 0 THEN \n            SUBSTRING(t_x, 1, CHARINDEX('.', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('.', t_x) + 1, CHARINDEX('.', t_x, CHARINDEX('.', t_x) + 1) - CHARINDEX('.', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('.', t_x, CHARINDEX('.', t_x) + 1) + 1, LEN(t_x))\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9].[0-9]%' AND CHARINDEX('.', t_x) > 0 THEN \n            SUBSTRING(t_x, 1, CHARINDEX('.', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('.', t_x) + 1, LEN(t_x)) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]-[0-9]%-[0-9]%' THEN t_x\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]-[0-9]%' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('-', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('-', t_x) + 1, LEN(t_x)) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]/[0-9]%/[0-9]%' THEN REPLACE(t_x, '/', '-')\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]/[0-9]%' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('/', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('/', t_x) + 1, LEN(t_x)) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' AND LEN(t_x) = 8 THEN \n            SUBSTRING(t_x, 1, 4) + '-' + SUBSTRING(t_x, 5, 2) + '-' + SUBSTRING(t_x, 7, 2)\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]' AND LEN(t_x) = 6 THEN \n            SUBSTRING(t_x, 1, 4) + '-' + SUBSTRING(t_x, 5, 2) + '-01'\n        ELSE NULL\n    END\n)\nWHERE t_x IS NOT NULL;",
+        "oracle": "UPDATE t_table_temp\nSET t_y = TO_DATE(\n    CASE \n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}$') AND LENGTH(t_x) = 4 THEN t_x || '-01-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '年') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '年') + 1, INSTR(t_x, '月') - INSTR(t_x, '年') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '月') + 1, INSTR(t_x, '日') - INSTR(t_x, '月') - 1)\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}年[0-9]{1,2}月$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '年') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '年') + 1, INSTR(t_x, '月') - INSTR(t_x, '年') - 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}年$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '年') - 1) || '-01-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}\\.[0-9]{1,2}\\.[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '.') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '.') + 1, INSTR(t_x, '.', 1, 2) - INSTR(t_x, '.') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '.', 1, 2) + 1)\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}\\.[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '.') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '.') + 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$') THEN t_x\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}-[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '-') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '-') + 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}$') THEN REPLACE(t_x, '/', '-')\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}/[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '/') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '/') + 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{8}$') THEN \n            SUBSTR(t_x, 1, 4) || '-' || SUBSTR(t_x, 5, 2) || '-' || SUBSTR(t_x, 7, 2)\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{6}$') THEN \n            SUBSTR(t_x, 1, 4) || '-' || SUBSTR(t_x, 5, 2) || '-01'\n        ELSE NULL\n    END,\n    'YYYY-MM-DD'\n)\nWHERE t_x IS NOT NULL;"
+      }
+    },
+    {
+      "title": "日期格式修复",
+      "desc": "标准化日期格式",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "-- 日期格式修复\nUPDATE table_name \nSET date_column = \n  CASE \n    WHEN LENGTH(date_column) = 8 THEN \n      CONCAT(SUBSTR(date_column, 1, 4), '-', SUBSTR(date_column, 5, 2), '-', SUBSTR(date_column, 7, 2))\n    WHEN LENGTH(date_column) = 10 AND INSTR(date_column, '/') > 0 THEN \n      REPLACE(date_column, '/', '-')\n    ELSE date_column\n  END \nWHERE date_column IS NOT NULL;",
+        "sqlserver": "-- 日期格式修复\nUPDATE table_name \nSET date_column = \n  CASE \n    WHEN LEN(date_column) = 8 THEN \n      SUBSTRING(date_column, 1, 4) + '-' + SUBSTRING(date_column, 5, 2) + '-' + SUBSTRING(date_column, 7, 2)\n    WHEN LEN(date_column) = 10 AND CHARINDEX('/', date_column) > 0 THEN \n      REPLACE(date_column, '/', '-')\n    ELSE date_column\n  END \nWHERE date_column IS NOT NULL;",
+        "oracle": "-- 日期格式修复\nUPDATE table_name \nSET date_column = \n  CASE \n    WHEN LENGTH(date_column) = 8 THEN \n      SUBSTR(date_column, 1, 4) || '-' || SUBSTR(date_column, 5, 2) || '-' || SUBSTR(date_column, 7, 2)\n    WHEN LENGTH(date_column) = 10 AND INSTR(date_column, '/') > 0 THEN \n      REPLACE(date_column, '/', '-')\n    ELSE date_column\n  END \nWHERE date_column IS NOT NULL;"
+      }
+    },
+    {
+      "title": "空值处理",
+      "desc": "NULL替换为默认值",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "-- 空值处理\nUPDATE table_name\nSET numeric_column = 0\nWHERE numeric_column IS NULL;"
+      }
+    },
+    {
+      "title": "字符串清理",
+      "desc": "清理多余空格",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "UPDATE table_name\nSET text_column = TRIM(BOTH ' ' FROM text_column)\nWHERE text_column LIKE ' %' OR text_column LIKE '% ';",
+        "sqlserver": "UPDATE table_name\nSET text_column = LTRIM(RTRIM(text_column))\nWHERE text_column LIKE ' %' OR text_column LIKE '% ';",
+        "oracle": "UPDATE table_name\nSET text_column = TRIM(' ' FROM text_column)\nWHERE text_column LIKE ' %' OR text_column LIKE '% ';"
+      }
+    }
+  ],
+  "高级查询": [
+    {
+      "title": "最新记录",
+      "desc": "ROW_NUMBER找出最新",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "WITH ranked_data AS (\n  SELECT \n    *,\n    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC) AS rn\n  FROM orders\n)\nSELECT * FROM ranked_data WHERE rn = 1; -- 每个客户的最新订单"
+      }
+    },
+    {
+      "title": "窗口函数",
+      "desc": "计算组内统计和差值",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "common": "SELECT \n  department,\n  employee_name,\n  salary,\n  AVG(salary) OVER (PARTITION BY department) as avg_dept_salary,\n  salary - AVG(salary) OVER (PARTITION BY department) as diff_from_avg\nFROM employees;"
+      }
+    },
+    {
+      "title": "递归查询",
+      "desc": "WITH RECURSIVE查层级",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "WITH RECURSIVE org_hierarchy AS (\n  -- 基础查询，获取顶级部门\n  SELECT id, name, parent_id, 0 as level\n  FROM departments\n  WHERE parent_id IS NULL\n  \n  UNION ALL\n  \n  -- 递归查询子部门\n  SELECT d.id, d.name, d.parent_id, oh.level + 1\n  FROM departments d\n  JOIN org_hierarchy oh ON d.parent_id = oh.id\n)\nSELECT * FROM org_hierarchy ORDER BY level, name;",
+        "sqlserver": "WITH org_hierarchy AS (\n  -- 基础查询，获取顶级部门\n  SELECT id, name, parent_id, 0 as level\n  FROM departments\n  WHERE parent_id IS NULL\n  \n  UNION ALL\n  \n  -- 递归查询子部门\n  SELECT d.id, d.name, d.parent_id, oh.level + 1\n  FROM departments d\n  JOIN org_hierarchy oh ON d.parent_id = oh.id\n)\nSELECT * FROM org_hierarchy ORDER BY level, name;",
+        "oracle": "WITH org_hierarchy(id, name, parent_id, level) AS (\n  -- 基础查询，获取顶级部门\n  SELECT id, name, parent_id, 0 as level\n  FROM departments\n  WHERE parent_id IS NULL\n  \n  UNION ALL\n  \n  -- 递归查询子部门\n  SELECT d.id, d.name, d.parent_id, oh.level + 1\n  FROM departments d\n  JOIN org_hierarchy oh ON d.parent_id = oh.id\n)\nSELECT * FROM org_hierarchy ORDER BY level, name;"
+      }
+    },
+    {
+      "title": "动态透视表",
+      "desc": "行转列透视统计",
+      "dbType": "mysql sqlserver oracle",
+      "sql": {
+        "mysql": "SELECT \n  product_category,\n  SUM(IF(quarter = 'Q1', sales_amount, 0)) as Q1,\n  SUM(IF(quarter = 'Q2', sales_amount, 0)) as Q2,\n  SUM(IF(quarter = 'Q3', sales_amount, 0)) as Q3,\n  SUM(IF(quarter = 'Q4', sales_amount, 0)) as Q4,\n  SUM(sales_amount) as yearly_total\nFROM sales\nGROUP BY product_category\nORDER BY yearly_total DESC;",
+        "sqlserver": "SELECT \n  product_category,\n  SUM(CASE WHEN quarter = 'Q1' THEN sales_amount ELSE 0 END) as Q1,\n  SUM(CASE WHEN quarter = 'Q2' THEN sales_amount ELSE 0 END) as Q2,\n  SUM(CASE WHEN quarter = 'Q3' THEN sales_amount ELSE 0 END) as Q3,\n  SUM(CASE WHEN quarter = 'Q4' THEN sales_amount ELSE 0 END) as Q4,\n  SUM(sales_amount) as yearly_total\nFROM sales\nGROUP BY product_category\nORDER BY yearly_total DESC;",
+        "oracle": "SELECT \n  product_category,\n  SUM(CASE WHEN quarter = 'Q1' THEN sales_amount ELSE 0 END) as Q1,\n  SUM(CASE WHEN quarter = 'Q2' THEN sales_amount ELSE 0 END) as Q2,\n  SUM(CASE WHEN quarter = 'Q3' THEN sales_amount ELSE 0 END) as Q3,\n  SUM(CASE WHEN quarter = 'Q4' THEN sales_amount ELSE 0 END) as Q4,\n  SUM(sales_amount) as yearly_total\nFROM sales\nGROUP BY product_category\nORDER BY yearly_total DESC;"
+      }
+    }
+  ]
+} 

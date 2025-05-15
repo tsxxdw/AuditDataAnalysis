@@ -3,26 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>常用SQL - 数据分析系统</title>
+    <title>SQL查询</title>
+    <!-- 基础样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_sql.css') }}">
+    <!-- jQuery -->
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+    <!-- 页面特定样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_sql.css') }}">
 </head>
 <body>
     {# 引入头部组件 #}
     {% include 'components/header.html' %}
     
     <main>
-        <div class="sql-container">
-            <h2 class="page-title">常用SQL查询</h2>
-            
-            <div class="sql-section">
-                <h3 class="section-title">SQL模板库</h3>
-                <div class="sql-templates">
-                    <!-- 这里将显示常用SQL模板列表 -->
-                    <p class="temp-message">常用SQL功能正在开发中，敬请期待！</p>
+        <div class="container">
+            <div class="page-header">
+                <h1>常用SQL查询</h1>
+                <div class="db-selector">
+                    <label for="dbType">数据库类型：</label>
+                    <select id="dbType">
+                        <option value="mysql">MySQL</option>
+                        <option value="sqlserver">SQL Server</option>
+                        <option value="oracle">Oracle</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SQL卡片区域 - 由JavaScript动态生成 -->
+            <div class="sql-category-container">
+                <!-- 此区域会被JavaScript动态填充，无需静态内容 -->
+            </div>
+
+            <!-- SQL查看模态框 -->
+            <div id="sqlModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">SQL标题</h2>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <pre id="modalSqlContent"></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="modalCopyBtn" class="btn copy-btn">复制SQL</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -30,8 +56,9 @@
     
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
-
+    
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <!-- 页面特定脚本 -->
     <script src="{{ url_for('static', filename='js/index_sql.js') }}"></script>
 </body>
 </html> 
