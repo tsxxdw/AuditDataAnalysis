@@ -101,6 +101,24 @@
   ],
   "数据修复": [
     {
+      "title": "字符串仅保留字母数字",
+      "desc": "移除所有非字母数字字符",
+      "dbType": "mysql",
+      "verified": true,
+      "sql": {
+        "mysql": "UPDATE t_table_5\nSET t_6 = REGEXP_REPLACE(t_6, '[^A-Za-z0-9]', '')"
+      }
+    },
+    {
+      "title": "身份证号格式验证",
+      "desc": "查找不符合身份证号规则的记录",
+      "dbType": "mysql",
+      "verified": true,
+      "sql": {
+        "mysql": "SELECT t_3_sfz_n \nFROM t_swrk \nWHERE \n    LENGTH(t_3_sfz_n) != 18 \n    OR t_3_sfz_n NOT REGEXP '^[0-9]{17}[0-9X]$'  -- 前17位数字 + 末位数字或大写X"
+      }
+    },
+    {
       "title": "日期格式转换",
       "desc": "转换各种日期格式到标准日期",
       "dbType": "mysql sqlserver oracle",
@@ -109,16 +127,6 @@
         "mysql": "UPDATE t_table_temp\nSET t_y = STR_TO_DATE(\n    CASE \n        WHEN t_x REGEXP '^[0-9]{4}$' AND LENGTH(t_x) = 4 THEN CONCAT(t_x, '-01-01')  \n        WHEN t_x REGEXP '^[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日$' THEN CONCAT(SUBSTRING_INDEX(t_x, '年', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '年', -1), '月', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '月', -1), '日', 1))\n        WHEN t_x REGEXP '^[0-9]{4}年[0-9]{1,2}月$' THEN CONCAT(SUBSTRING_INDEX(t_x, '年', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '年', -1), '月', 1), '-01')\n        WHEN t_x REGEXP '^[0-9]{4}年$' THEN CONCAT(SUBSTRING_INDEX(t_x, '年', 1), '-01-01')\n        WHEN t_x REGEXP '^[0-9]{4}\\\\.[0-9]{1,2}\\\\.[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '.', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '.', 2), '.', -1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '.', -1), '.', -1))\n        WHEN t_x REGEXP '^[0-9]{4}\\\\.[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '.', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '.', 2), '.', -1), '-01')\n        WHEN t_x REGEXP '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$' THEN t_x\n        WHEN t_x REGEXP '^[0-9]{4}-[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '-', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '-', 2), '-', -1), '-01')\n        WHEN t_x REGEXP '^[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}$' THEN REPLACE(t_x, '/', '-')\n        WHEN t_x REGEXP '^[0-9]{4}/[0-9]{1,2}$' THEN CONCAT(SUBSTRING_INDEX(t_x, '/', 1), '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t_x, '/', 2), '/', -1), '-01')\n        WHEN t_x REGEXP '^[0-9]{8}$' THEN CONCAT(SUBSTRING(t_x, 1, 4), '-', SUBSTRING(t_x, 5, 2), '-', SUBSTRING(t_x, 7, 2))\n        WHEN t_x REGEXP '^[0-9]{6}$' THEN CONCAT(SUBSTRING(t_x, 1, 4), '-', SUBSTRING(t_x, 5, 2), '-01')\n        ELSE NULL\n    END,\n    '%Y-%m-%d'\n)\nWHERE t_x IS NOT NULL; -- 可选：仅更新非空t_x字段",
         "sqlserver": "UPDATE t_table_temp\nSET t_y = TRY_CONVERT(DATE, \n    CASE \n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]' AND LEN(t_x) = 4 THEN t_x + '-01-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]年[0-9]%月[0-9]%日' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('年', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('年', t_x) + 1, CHARINDEX('月', t_x) - CHARINDEX('年', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('月', t_x) + 1, CHARINDEX('日', t_x) - CHARINDEX('月', t_x) - 1)\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]年[0-9]%月' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('年', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('年', t_x) + 1, CHARINDEX('月', t_x) - CHARINDEX('年', t_x) - 1) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]年' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('年', t_x) - 1) + '-01-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9].[0-9]%.[0-9]%' AND \n             CHARINDEX('.', t_x) > 0 AND CHARINDEX('.', t_x, CHARINDEX('.', t_x) + 1) > 0 THEN \n            SUBSTRING(t_x, 1, CHARINDEX('.', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('.', t_x) + 1, CHARINDEX('.', t_x, CHARINDEX('.', t_x) + 1) - CHARINDEX('.', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('.', t_x, CHARINDEX('.', t_x) + 1) + 1, LEN(t_x))\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9].[0-9]%' AND CHARINDEX('.', t_x) > 0 THEN \n            SUBSTRING(t_x, 1, CHARINDEX('.', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('.', t_x) + 1, LEN(t_x)) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]-[0-9]%-[0-9]%' THEN t_x\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]-[0-9]%' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('-', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('-', t_x) + 1, LEN(t_x)) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]/[0-9]%/[0-9]%' THEN REPLACE(t_x, '/', '-')\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9]/[0-9]%' THEN \n            SUBSTRING(t_x, 1, CHARINDEX('/', t_x) - 1) + '-' + \n            SUBSTRING(t_x, CHARINDEX('/', t_x) + 1, LEN(t_x)) + '-01'\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' AND LEN(t_x) = 8 THEN \n            SUBSTRING(t_x, 1, 4) + '-' + SUBSTRING(t_x, 5, 2) + '-' + SUBSTRING(t_x, 7, 2)\n        WHEN t_x LIKE '[0-9][0-9][0-9][0-9][0-9][0-9]' AND LEN(t_x) = 6 THEN \n            SUBSTRING(t_x, 1, 4) + '-' + SUBSTRING(t_x, 5, 2) + '-01'\n        ELSE NULL\n    END\n)\nWHERE t_x IS NOT NULL;",
         "oracle": "UPDATE t_table_temp\nSET t_y = TO_DATE(\n    CASE \n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}$') AND LENGTH(t_x) = 4 THEN t_x || '-01-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '年') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '年') + 1, INSTR(t_x, '月') - INSTR(t_x, '年') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '月') + 1, INSTR(t_x, '日') - INSTR(t_x, '月') - 1)\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}年[0-9]{1,2}月$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '年') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '年') + 1, INSTR(t_x, '月') - INSTR(t_x, '年') - 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}年$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '年') - 1) || '-01-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}\\.[0-9]{1,2}\\.[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '.') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '.') + 1, INSTR(t_x, '.', 1, 2) - INSTR(t_x, '.') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '.', 1, 2) + 1)\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}\\.[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '.') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '.') + 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$') THEN t_x\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}-[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '-') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '-') + 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}$') THEN REPLACE(t_x, '/', '-')\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{4}/[0-9]{1,2}$') THEN \n            SUBSTR(t_x, 1, INSTR(t_x, '/') - 1) || '-' ||\n            SUBSTR(t_x, INSTR(t_x, '/') + 1) || '-01'\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{8}$') THEN \n            SUBSTR(t_x, 1, 4) || '-' || SUBSTR(t_x, 5, 2) || '-' || SUBSTR(t_x, 7, 2)\n        WHEN REGEXP_LIKE(t_x, '^[0-9]{6}$') THEN \n            SUBSTR(t_x, 1, 4) || '-' || SUBSTR(t_x, 5, 2) || '-01'\n        ELSE NULL\n    END,\n    'YYYY-MM-DD'\n)\nWHERE t_x IS NOT NULL;"
-      }
-    },
-    {
-      "title": "日期格式修复",
-      "desc": "标准化日期格式",
-      "dbType": "mysql sqlserver oracle",
-      "sql": {
-        "mysql": "-- 日期格式修复\nUPDATE table_name \nSET date_column = \n  CASE \n    WHEN LENGTH(date_column) = 8 THEN \n      CONCAT(SUBSTR(date_column, 1, 4), '-', SUBSTR(date_column, 5, 2), '-', SUBSTR(date_column, 7, 2))\n    WHEN LENGTH(date_column) = 10 AND INSTR(date_column, '/') > 0 THEN \n      REPLACE(date_column, '/', '-')\n    ELSE date_column\n  END \nWHERE date_column IS NOT NULL;",
-        "sqlserver": "-- 日期格式修复\nUPDATE table_name \nSET date_column = \n  CASE \n    WHEN LEN(date_column) = 8 THEN \n      SUBSTRING(date_column, 1, 4) + '-' + SUBSTRING(date_column, 5, 2) + '-' + SUBSTRING(date_column, 7, 2)\n    WHEN LEN(date_column) = 10 AND CHARINDEX('/', date_column) > 0 THEN \n      REPLACE(date_column, '/', '-')\n    ELSE date_column\n  END \nWHERE date_column IS NOT NULL;",
-        "oracle": "-- 日期格式修复\nUPDATE table_name \nSET date_column = \n  CASE \n    WHEN LENGTH(date_column) = 8 THEN \n      SUBSTR(date_column, 1, 4) || '-' || SUBSTR(date_column, 5, 2) || '-' || SUBSTR(date_column, 7, 2)\n    WHEN LENGTH(date_column) = 10 AND INSTR(date_column, '/') > 0 THEN \n      REPLACE(date_column, '/', '-')\n    ELSE date_column\n  END \nWHERE date_column IS NOT NULL;"
       }
     },
     {
@@ -175,6 +183,17 @@
         "mysql": "SELECT \n  product_category,\n  SUM(IF(quarter = 'Q1', sales_amount, 0)) as Q1,\n  SUM(IF(quarter = 'Q2', sales_amount, 0)) as Q2,\n  SUM(IF(quarter = 'Q3', sales_amount, 0)) as Q3,\n  SUM(IF(quarter = 'Q4', sales_amount, 0)) as Q4,\n  SUM(sales_amount) as yearly_total\nFROM sales\nGROUP BY product_category\nORDER BY yearly_total DESC;",
         "sqlserver": "SELECT \n  product_category,\n  SUM(CASE WHEN quarter = 'Q1' THEN sales_amount ELSE 0 END) as Q1,\n  SUM(CASE WHEN quarter = 'Q2' THEN sales_amount ELSE 0 END) as Q2,\n  SUM(CASE WHEN quarter = 'Q3' THEN sales_amount ELSE 0 END) as Q3,\n  SUM(CASE WHEN quarter = 'Q4' THEN sales_amount ELSE 0 END) as Q4,\n  SUM(sales_amount) as yearly_total\nFROM sales\nGROUP BY product_category\nORDER BY yearly_total DESC;",
         "oracle": "SELECT \n  product_category,\n  SUM(CASE WHEN quarter = 'Q1' THEN sales_amount ELSE 0 END) as Q1,\n  SUM(CASE WHEN quarter = 'Q2' THEN sales_amount ELSE 0 END) as Q2,\n  SUM(CASE WHEN quarter = 'Q3' THEN sales_amount ELSE 0 END) as Q3,\n  SUM(CASE WHEN quarter = 'Q4' THEN sales_amount ELSE 0 END) as Q4,\n  SUM(sales_amount) as yearly_total\nFROM sales\nGROUP BY product_category\nORDER BY yearly_total DESC;"
+      }
+    }
+  ],
+  "数据库管理": [
+    {
+      "title": "创建索引",
+      "desc": "为表字段添加索引提升查询性能",
+      "dbType": "mysql",
+      "verified": true,
+      "sql": {
+        "mysql": "ALTER TABLE t_table_n ADD INDEX idx_t_n (t_n);"
       }
     }
   ]
