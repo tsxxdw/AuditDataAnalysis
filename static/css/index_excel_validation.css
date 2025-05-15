@@ -111,6 +111,7 @@
 
 .form-group {
     margin-bottom: 1.2rem;
+    position: relative;
 }
 
 .form-group label {
@@ -122,11 +123,62 @@
 
 .form-select {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.7rem 1rem;
+    padding-right: 2.5rem; /* 为下拉图标留出空间 */
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: #fff;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    appearance: none; /* 移除默认的下拉图标 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1.2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    color: #333;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+}
+
+.form-select:hover {
+    border-color: #bbb;
+}
+
+.form-select option {
+    padding: 10px;
+    font-size: 0.95rem;
+}
+
+.form-select option:checked {
+    background-color: #ebf5ff;
+    color: #2980b9;
+}
+
+/* 增加禁用状态的样式 */
+.form-select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+    border-color: #ddd;
+}
+
+/* 表单元素的焦点样式 */
+.form-select:focus, .form-select.active {
+    border-color: #3498db;
+}
+
+/* 额外增加的动画效果 */
+.form-select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.form-select:active {
+    transform: translateY(1px);
 }
 
 /* Excel信息展示区域样式 */
@@ -139,10 +191,17 @@
 
 .excel-file-card {
     border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    border-radius: 6px;
     padding: 1rem;
     background-color: #f9f9f9;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.excel-file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-color: #d0d0d0;
 }
 
 .excel-file-header {
@@ -268,14 +327,54 @@
 }
 
 .excel-file-content .form-group {
-    margin-bottom: 0.8rem;
+    margin-bottom: 1rem;
+    position: relative;
 }
 
 .excel-file-content label {
-    display: block;
-    margin-bottom: 0.4rem;
-    font-size: 0.9rem;
     color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.excel-sheet-select, 
+.excel-file-content .sheet-select,
+.excel-file-content .row-select {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    padding-right: 2.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 0.95rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1.2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    color: #333;
+}
+
+.excel-sheet-select:focus,
+.excel-file-content .sheet-select:focus,
+.excel-file-content .row-select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+}
+
+.excel-sheet-select:hover,
+.excel-file-content .sheet-select:hover,
+.excel-file-content .row-select:hover {
+    border-color: #bbb;
+}
+
+.sheet-select option[value="not-exist"] {
+    color: #e74c3c;
+    font-style: italic;
 }
 
 /* 警告提示样式 */
@@ -493,40 +592,39 @@
 
 /* 加载Excel按钮样式 */
 .load-excel-btn {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    margin-top: 1rem;
-    min-width: 180px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
 .load-excel-btn:hover {
-    background-color: #43a047;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background-color: #2980b9;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
 }
 
 .load-excel-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(52, 152, 219, 0.4);
 }
 
 .load-excel-btn:disabled {
-    background-color: #a5d6a7;
+    background-color: #95a5a6;
     cursor: not-allowed;
     box-shadow: none;
-    opacity: 0.7;
+    transform: none;
 }
 
 .form-actions {
