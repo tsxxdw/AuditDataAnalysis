@@ -7,6 +7,7 @@ import requests
 import logging
 from typing import Dict, List, Optional, Any, Union
 from utils.encryption_util import encrypt_api_key, decrypt_api_key, is_encrypted
+from service.log.logger import app_logger  # 导入app_logger
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -310,10 +311,19 @@ class ModelService:
     
     def chat_completion(self, provider_id: str, model_id: str, messages: List[Dict], options: Dict = None) -> Dict:
         """调用大模型进行对话"""
+        # 记录传递的参数
+        app_logger.info(f"开始调用大模型 - 提供商: {provider_id}, 模型: {model_id}")
+        app_logger.info(f"系统提示词: {messages[0]['content'] if messages and messages[0]['role'] == 'system' else '无'}")
+        app_logger.info(f"用户提示词: {messages[-1]['content'] if messages and messages[-1]['role'] == 'user' else '无'}")
+        if options:
+            app_logger.info(f"调用参数: {options}")
+        
         # 获取提供商配置
         provider = self.config.get('providers', {}).get(provider_id)
         if not provider:
-            return {"error": "未找到指定的服务提供商"}
+            error_msg = "未找到指定的服务提供商"
+            app_logger.error(f"调用大模型失败 - {error_msg}")
+            return {"error": error_msg}
         
         # 检查模型是否存在
         model_exists = False
@@ -323,7 +333,9 @@ class ModelService:
                 break
         
         if not model_exists:
-            return {"error": "未找到指定的模型"}
+            error_msg = "未找到指定的模型"
+            app_logger.error(f"调用大模型失败 - {error_msg}")
+            return {"error": error_msg}
         
         # 准备请求参数
         api_key = provider.get('apiKey', '')
@@ -335,11 +347,21 @@ class ModelService:
         api_version = provider.get('apiVersion', 'v1')
         
         if not api_url:
-            return {"error": "API地址不能为空"}
+            error_msg = "API地址不能为空"
+            app_logger.error(f"调用大模型失败 - {error_msg}")
+            return {"error": error_msg}
         
         # 对Ollama特殊处理
         if provider_id == 'ollama':
-            return self._ollama_chat_completion(api_url, model_id, messages, options)
+            result = self._ollama_chat_completion(api_url, model_id, messages, options)
+            # 记录返回结果
+            if "error" in result:
+                app_logger.error(f"调用大模型失败 - {result['error']}")
+            else:
+                generated_content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+                app_logger.info(f"大模型调用成功 - 提供商: {provider_id}, 模型: {model_id}")
+                app_logger.info(f"生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"生成内容: {generated_content}")
+            return result
         
         # 一般大模型API (OpenAI兼容格式)
         headers = {
@@ -363,24 +385,31 @@ class ModelService:
         # 发送请求
         try:
             url = f"{api_url}/{api_version}/chat/completions"
+            app_logger.debug(f"发送API请求到 {url}")
+            
             response = requests.post(url, headers=headers, json=request_body, timeout=60)
             
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                generated_content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+                app_logger.info(f"大模型调用成功 - 提供商: {provider_id}, 模型: {model_id}")
+                app_logger.debug(f"生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"生成内容: {generated_content}")
+                return result
             else:
-                return {
-                    "error": f"API调用失败，状态码: {response.status_code}",
-                    "details": response.text
-                }
+                error_msg = f"API调用失败，状态码: {response.status_code}, 响应: {response.text}"
+                app_logger.error(f"大模型调用失败 - {error_msg}")
+                return {"error": error_msg}
         except Exception as e:
-            logger.error(f"调用模型时发生错误: {str(e)}")
-            return {"error": f"调用模型时发生错误: {str(e)}"}
+            error_msg = f"调用模型时发生错误: {str(e)}"
+            app_logger.error(f"大模型调用失败 - {error_msg}")
+            return {"error": error_msg}
     
     def _ollama_chat_completion(self, api_url: str, model_id: str, messages: List[Dict], options: Dict = None) -> Dict:
         """Ollama特定的聊天API调用"""
         try:
             # Ollama API格式与OpenAI有所不同
             url = f"{api_url}/api/chat"
+            app_logger.debug(f"发送Ollama请求到 {url}")
             
             # 构建请求体
             request_body = {
@@ -399,6 +428,10 @@ class ModelService:
             if response.status_code == 200:
                 # 将Ollama响应转换为OpenAI兼容格式
                 ollama_response = response.json()
+                generated_content = ollama_response.get("message", {}).get("content", "")
+                app_logger.info(f"Ollama调用成功 - 模型: {model_id}")
+                app_logger.debug(f"Ollama生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"Ollama生成内容: {generated_content}")
+                
                 return {
                     "id": f"ollama-{model_id}",
                     "object": "chat.completion",
@@ -409,20 +442,23 @@ class ModelService:
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": ollama_response.get("message", {}).get("content", "")
+                                "content": generated_content
                             },
                             "finish_reason": "stop"
                         }
                     ]
                 }
             else:
+                error_msg = f"Ollama API调用失败，状态码: {response.status_code}"
+                app_logger.error(f"Ollama调用失败 - {error_msg}\n响应: {response.text}")
                 return {
-                    "error": f"Ollama API调用失败，状态码: {response.status_code}",
+                    "error": error_msg,
                     "details": response.text
                 }
         except Exception as e:
-            logger.error(f"调用Ollama模型时发生错误: {str(e)}")
-            return {"error": f"调用Ollama模型时发生错误: {str(e)}"}
+            error_msg = f"调用Ollama模型时发生错误: {str(e)}"
+            app_logger.error(f"Ollama调用失败 - {error_msg}")
+            return {"error": error_msg}
     
     def get_all_visible_models(self) -> List[Dict]:
         """获取所有服务提供商中可见的模型"""
