@@ -595,4 +595,37 @@ select.form-control {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* 条件选择区域样式 */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.section-header .section-title {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.function-switch {
+    margin-bottom: 0 !important;
+}
+
+.function-switch label {
+    width: auto;
+    margin-right: 10px;
+}
+
+.function-switch select {
+    min-width: 100px;
+}
+
+.function-content {
+    padding-top: 10px;
 } 

@@ -1,5 +1,23 @@
 // 数据库表结构管理页面JS文件(index_table_structure)
 $(document).ready(function() {
+    // 功能切换逻辑
+    $('#functionType').on('change', function() {
+        const selectedFunction = $(this).val();
+        
+        if (selectedFunction === 'table') {
+            // 显示表创建内容
+            $('#tableCreateContent').show();
+            $('#indexManageContent').hide();
+        } else if (selectedFunction === 'index') {
+            // 显示索引管理内容
+            $('#tableCreateContent').hide();
+            $('#indexManageContent').show();
+        }
+    });
+    
+    // 初始化功能选择（默认显示表创建）
+    $('#functionType').val('table').trigger('change');
+    
     // 初始化文件选择器
     initializeFileSelector();
     

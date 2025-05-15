@@ -27,70 +27,81 @@
                 <div class="loading-text">生成SQL中...</div>
             </div>
             
-            <!-- 表创建区域 -->
-            <section class="card table-create-section">
-                <h2 class="section-title">表创建区域</h2>
-                <div class="form-group">
-                    <label for="tableName">表名：</label>
-                    <input type="text" id="tableName" class="form-control" placeholder="请输入表名">
+            <!-- 条件选择区域 -->
+            <section class="card condition-selection-section">
+                <div class="section-header">
+                    <h2 class="section-title">条件选择区域</h2>
+                    <div class="form-group function-switch">
+                        <select class="form-control" id="functionType">
+                            <option value="table">表创建</option>
+                            <option value="index">索引管理</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="tableComment">表备注：</label>
-                    <input type="text" id="tableComment" class="form-control" placeholder="请输入表备注">
+                <!-- 表创建内容区域 -->
+                <div id="tableCreateContent" class="function-content">
+                    <div class="form-group">
+                        <label for="tableName">表名：</label>
+                        <input type="text" id="tableName" class="form-control" placeholder="请输入表名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tableComment">表备注：</label>
+                        <input type="text" id="tableComment" class="form-control" placeholder="请输入表备注">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="excelFileDropdown">Excel文件：</label>
+                        <!-- 使用SearchableDropdown组件 -->
+                        <div id="excelFileDropdown"></div>
+                        <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+                        <select id="file-select" style="display: none;">
+                            <option value="">请选择Excel文件</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sheet-select">要选择的sheet：</label>
+                        <select id="sheet-select" class="form-control">
+                            <option value="" disabled selected>请先选择Excel文件</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="commentRow">"备注信息"所在行：</label>
+                        <input type="number" class="form-control" id="commentRow" placeholder="请输入备注信息所在的行号" value="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="button" class="btn btn-info" id="readFieldComments" style="margin-right: 15px;">读取字段备注</button>
+                        <div id="fieldCommentsDisplay" style="display: inline-block; min-width: 300px; max-width: 500px; min-height: 30px; border: 1px solid #ddd; padding: 5px; border-radius: 4px; vertical-align: middle;"></div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="excelFileDropdown">Excel文件：</label>
-                    <!-- 使用SearchableDropdown组件 -->
-                    <div id="excelFileDropdown"></div>
-                    <!-- 隐藏的实际Select元素，用于存储选中的值 -->
-                    <select id="file-select" style="display: none;">
-                        <option value="">请选择Excel文件</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="sheet-select">要选择的sheet：</label>
-                    <select id="sheet-select" class="form-control">
-                        <option value="" disabled selected>请先选择Excel文件</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="commentRow">"备注信息"所在行：</label>
-                    <input type="number" class="form-control" id="commentRow" placeholder="请输入备注信息所在的行号" value="1">
-                </div>
-                
-                <div class="form-group">
-                    <button type="button" class="btn btn-info" id="readFieldComments" style="margin-right: 15px;">读取字段备注</button>
-                    <div id="fieldCommentsDisplay" style="display: inline-block; min-width: 300px; max-width: 500px; min-height: 30px; border: 1px solid #ddd; padding: 5px; border-radius: 4px; vertical-align: middle;"></div>
-                </div>
-            </section>
-            
-            <!-- 索引管理区域 -->
-            <section class="card index-manage-section">
-                <h2 class="section-title">索引管理区域</h2>
-                <div class="form-group">
-                    <label for="indexTableName">表名：</label>
-                    <select class="form-control" id="indexTableName">
-                        <option value="">请选择表</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="fieldName">字段名：</label>
-                    <select class="form-control" id="fieldName">
-                        <option value="">请选择字段</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="indexOperationType">操作类型：</label>
-                    <select class="form-control" id="indexOperationType">
-                        <option value="create">创建索引</option>
-                        <option value="delete">删除索引</option>
-                    </select>
+                <!-- 索引管理内容区域 -->
+                <div id="indexManageContent" class="function-content" style="display: none;">
+                    <div class="form-group">
+                        <label for="indexTableName">表名：</label>
+                        <select class="form-control" id="indexTableName">
+                            <option value="">请选择表</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fieldName">字段名：</label>
+                        <select class="form-control" id="fieldName">
+                            <option value="">请选择字段</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="indexOperationType">操作类型：</label>
+                        <select class="form-control" id="indexOperationType">
+                            <option value="create">创建索引</option>
+                            <option value="delete">删除索引</option>
+                        </select>
+                    </div>
                 </div>
             </section>
             
