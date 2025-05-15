@@ -393,7 +393,7 @@ class ModelService:
                 result = response.json()
                 generated_content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
                 app_logger.info(f"大模型调用成功 - 提供商: {provider_id}, 模型: {model_id}")
-                app_logger.debug(f"生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"生成内容: {generated_content}")
+                app_logger.info(f"生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"生成内容: {generated_content}")
                 return result
             else:
                 error_msg = f"API调用失败，状态码: {response.status_code}, 响应: {response.text}"
