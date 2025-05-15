@@ -301,21 +301,41 @@ select.form-control {
     position: relative;
     background-color: #fff;
     margin: 5% auto;
-    padding: 25px;
+    padding: 0;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     width: 70%;
     max-width: 800px;
 }
 
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-action-btn {
+    margin: 0;
+}
+
+.field-selection-content {
+    padding: 20px;
+}
+
 .close-modal, .close-modal-fields {
-    position: absolute;
-    top: 15px;
-    right: 20px;
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
     color: #666;
+    line-height: 1;
 }
 
 .close-modal:hover,
@@ -325,9 +345,7 @@ select.form-control {
 
 .modal-title {
     font-size: 20px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    margin: 0;
 }
 
 /* 字段选择模态框 */

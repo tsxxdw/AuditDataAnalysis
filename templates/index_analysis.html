@@ -53,9 +53,9 @@
                 <div class="form-group date-compare-group">
                     <label for="dateCompareType">日期对比方式：</label>
                     <select id="dateCompareType" class="form-control">
-                        <option value="year">年</option>
-                        <option value="month">年月</option>
-                        <option value="day">年月日</option>
+                        <option value="年">年</option>
+                        <option value="年月">年月</option>
+                        <option value="年月日">年月日</option>
                     </select>
                 </div>
                 
@@ -143,8 +143,14 @@
     <!-- 字段选择模态框 -->
     <div id="fieldSelectionModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal-fields">&times;</span>
-            <h3 class="modal-title">选择字段</h3>
+            <div class="modal-header">
+                <h3 class="modal-title">选择字段</h3>
+                <div class="modal-header-actions">
+                    <button id="selectAllFields" class="btn btn-sm btn-info modal-action-btn">全选</button>
+                    <button id="deselectAllFields" class="btn btn-sm btn-warning modal-action-btn">取消全选</button>
+                    <span class="close-modal-fields">&times;</span>
+                </div>
+            </div>
             
             <div class="field-selection-content">
                 <div class="field-search">
@@ -156,8 +162,6 @@
                 </div>
                 
                 <div class="button-group">
-                    <button id="selectAllFields" class="btn btn-info">全选</button>
-                    <button id="deselectAllFields" class="btn btn-warning">取消全选</button>
                     <button id="confirmFieldSelection" class="btn btn-primary">确认选择</button>
                 </div>
             </div>
