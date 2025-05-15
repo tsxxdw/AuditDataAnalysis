@@ -222,9 +222,13 @@ $(document).ready(function() {
             return;
         }
         
+        // 获取日期对比方式
+        const dateCompareType = $('#dateCompareType').val();
+        
         // 构建请求数据
         const requestData = {
             template_id: templateId,
+            date_compare_type: dateCompareType, // 添加日期对比方式参数
             tables: []
         };
         
@@ -480,7 +484,8 @@ $(document).ready(function() {
             fields.forEach((field, index) => {
                 const fieldTag = `
                     <span class="selected-field-tag">
-                        ${field.name}
+                        <div class="field-name">${field.name}</div>
+                        <div class="field-comment">${field.comment || '无备注'}</div>
                         <span class="remove-field" data-table-id="${tableId}" data-field-index="${index}">×</span>
                     </span>
                 `;

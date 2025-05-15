@@ -241,23 +241,47 @@ select.form-control {
     background-color: #fff;
 }
 
+/* 已选字段标签样式 */
 .selected-field-tag {
     display: inline-block;
     background-color: #e3f2fd;
     border: 1px solid #90caf9;
     color: #1976d2;
-    border-radius: 20px;
-    padding: 5px 12px;
+    border-radius: 8px;
+    padding: 6px 12px;
     margin: 5px;
     font-size: 13px;
     position: relative;
+    vertical-align: top;
+    min-width: 120px;
+    max-width: 250px;
+}
+
+.selected-field-tag .field-name {
+    font-weight: 600;
+    padding-right: 16px; /* 为删除按钮留出空间 */
+    word-break: break-word;
+}
+
+.selected-field-tag .field-comment {
+    font-size: 11px;
+    color: #5c6bc0;
+    margin-top: 3px;
+    font-style: italic;
+    opacity: 0.8;
+    padding-right: 16px; /* 为删除按钮留出空间 */
+    white-space: normal;
+    word-break: break-word;
 }
 
 .remove-field {
-    margin-left: 5px;
+    position: absolute;
+    top: 6px;
+    right: 8px;
     color: #f44336;
     cursor: pointer;
     font-weight: bold;
+    font-size: 14px;
 }
 
 /* 模态对话框样式 */
@@ -462,4 +486,19 @@ select.form-control {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* 日期对比方式下拉框样式 */
+.date-compare-group {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 3px solid #3498db;
+}
+
+.date-compare-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
 } 

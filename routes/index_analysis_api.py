@@ -106,6 +106,7 @@ def generate_sql():
         data = request.json
         template_id = data.get('template_id')
         tables = data.get('tables', [])
+        date_compare_type = data.get('date_compare_type', 'year')  # 获取日期对比方式，默认为'year'
         
         # 参数验证
         if not template_id:
@@ -122,27 +123,159 @@ def generate_sql():
         if not db_config:
             return jsonify({"success": False, "message": f"获取{db_type}数据库配置失败"}), 500
         
-        # 获取模板信息
-        template_info = template_service.get_template_by_id(template_id)
-        if not template_info:
-            return jsonify({"success": False, "message": "获取模板信息失败"}), 500
-        
-        # 构建生成SQL的上下文
-        context = {
-            "database_type": db_type,
-            "tables": tables,
-            "template": template_info
-        }
-        
-        # 使用模板生成SQL
-        sql = generate_sample_sql(context)
-        
-        # 返回生成的SQL
-        return jsonify({
-            "success": True,
-            "message": "SQL生成成功",
-            "sql": sql
-        })
+        # 调用默认模型服务生成SQL
+        try:
+            # 导入模型服务
+            from service.common.model_common_service import model_service
+            
+            # 获取默认模型信息
+            default_model = model_service.get_default_model()
+            if not default_model:
+                app_logger.error("没有找到默认模型配置")
+                raise Exception("没有找到默认模型配置，请先设置默认模型")
+            
+            # 获取模型服务提供商ID和模型ID
+            provider_id = default_model.get('provider_id')
+            model_id = default_model.get('id')
+            model_name = default_model.get('name', '').lower()
+            
+            app_logger.info(f"使用默认模型生成分析SQL: 提供商 {provider_id}, 模型 {model_id}")
+            
+            # 获取提示词模板
+            system_prompt = ""
+            user_prompt_template = ""
+            
+            if template_id:
+                try:
+                    # 使用模板服务获取模板内容
+                    template = template_service.load_template_from_file(template_id)
+                    
+                    if not template:
+                        error_msg = f"未找到ID为 {template_id} 的模板"
+                        app_logger.error(error_msg)
+                        return jsonify({"success": False, "message": error_msg}), 404
+                    
+                    # 解析模板内容
+                    import json
+                    template_content = json.loads(template.get('content', '{}'))
+                    
+                    system_prompt = template_content.get('system', '')
+                    user_prompt_template = template_content.get('user', '')
+                    
+                    # 如果模板中没有包含必要的提示词，则使用默认提示词
+                    if not user_prompt_template:
+                        app_logger.warning("所选模板未包含用户提示词，使用默认提示词")
+                        user_prompt_template = """请基于下面提供的表和字段信息生成SQL查询语句。
+
+请仅返回SQL语句，不要包含任何其他文字说明。
+                        """
+                        
+                except Exception as e:
+                    error_msg = f"获取提示词模板失败: {str(e)}"
+                    app_logger.error(error_msg)
+                    return jsonify({"success": False, "message": error_msg}), 500
+            
+            # 构建提示词中的表和字段信息
+            tables_info = []
+            for i, table in enumerate(tables):
+                table_name = table.get('name', '')
+                fields = table.get('fields', [])
+                
+                if table_name and fields:
+                    fields_info = []
+                    for field in fields:
+                        field_name = field.get('name', '')
+                        field_type = field.get('type', '')
+                        field_comment = field.get('comment', '')
+                        
+                        if field_name:
+                            field_info = f"{field_name}"
+                            if field_comment:
+                                field_info += f" ({field_comment})"
+                            fields_info.append(field_info)
+                    
+                    tables_info.append(f"表{i+1}: {table_name}\n字段: {', '.join(fields_info)}")
+            
+            tables_info_text = "\n".join(tables_info)
+            
+            # 组装用户提示词
+            base_prompt = f"{user_prompt_template}\n\n数据库类型: {db_type}\n日期对比方式: {date_compare_type}\n\n选择的表和字段:\n{tables_info_text}"
+            
+            # 判断是否为Qwen3模型，如果是则添加/no_think
+            if 'qwen3' in model_id.lower() or 'qwen3' in model_name:
+                user_prompt = f"{base_prompt} /no_think"
+                app_logger.info("检测到Qwen3模型，添加/no_think指令")
+            else:
+                user_prompt = base_prompt
+                app_logger.info(f"非Qwen3模型({model_id})，不添加/no_think指令")
+            
+            # 如果系统提示词为空，使用默认系统提示词
+            if not system_prompt:
+                system_prompt = "你是一位专业的数据库专家，精通各种数据库系统（MySQL、SQL Server、Oracle等）的SQL语法。请根据用户的需求生成准确无误的SQL查询语句，仅返回SQL代码，不要包含任何多余的解释。"
+            
+            # 准备消息格式
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+            
+            # 参数
+            options = {
+                "temperature": 0.2
+            }
+            
+            # 调用模型
+            result = model_service.chat_completion(provider_id, model_id, messages, options)
+            
+            # 检查是否有错误
+            if "error" in result:
+                app_logger.error(f"模型生成SQL失败: {result.get('error')}")
+                raise Exception(f"模型生成SQL失败: {result.get('error')}")
+            
+            # 提取生成的内容
+            generated_sql = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            
+            if generated_sql:
+                # 返回生成的SQL
+                return jsonify({
+                    "success": True,
+                    "message": "SQL生成成功",
+                    "sql": generated_sql,
+                    "from_llm": True
+                })
+            else:
+                app_logger.error("模型返回的SQL内容为空")
+                raise Exception("模型返回的SQL内容为空")
+                
+        except Exception as e:
+            app_logger.error(f"调用默认模型生成SQL失败: {str(e)}")
+            # 如果调用模型失败，使用备用方式生成SQL
+            app_logger.info("使用备用方式生成SQL")
+            
+            # 获取模板信息
+            template_info = template_service.load_template_from_file(template_id)
+            if not template_info:
+                return jsonify({"success": False, "message": "获取模板信息失败"}), 500
+            
+            # 构建生成SQL的上下文
+            context = {
+                "database_type": db_type,
+                "tables": tables,
+                "date_compare_type": date_compare_type,
+                "template": template_info
+            }
+            
+            # 使用模板生成SQL
+            sql = generate_sample_sql(context)
+            
+            # 返回生成的SQL
+            return jsonify({
+                "success": True,
+                "message": "SQL生成成功（备用方式）",
+                "sql": sql,
+                "from_llm": False
+            })
+            
     except Exception as e:
         app_logger.error(f"生成SQL失败: {str(e)}")
         return jsonify({
@@ -222,6 +355,7 @@ def generate_sample_sql(context):
     """
     db_type = context.get('database_type', 'mysql')
     tables = context.get('tables', [])
+    date_compare_type = context.get('date_compare_type', 'year')  # 获取日期对比方式
     
     if not tables:
         return "-- 未选择表和字段"
@@ -243,10 +377,22 @@ def generate_sample_sql(context):
     
     field_str = ", ".join(field_list) if field_list else "*"
     
+    # 添加日期对比方式相关的注释
+    date_format_comment = f"-- 使用的日期对比方式: {date_compare_type}\n"
+    
+    # 根据日期对比方式添加示例SQL注释
+    date_example = ""
+    if date_compare_type == 'year':
+        date_example = "-- 例如: YEAR(date_column) = 2023"
+    elif date_compare_type == 'month':
+        date_example = "-- 例如: DATE_FORMAT(date_column, '%Y-%m') = '2023-06'"
+    elif date_compare_type == 'day':
+        date_example = "-- 例如: DATE(date_column) = '2023-06-15'"
+    
     # 根据表的数量生成不同类型的SQL
     if len(tables) == 1:
         # 单表查询
-        sql = f"SELECT {field_str}\nFROM {table_name}"
+        sql = f"{date_format_comment}{date_example}\n\nSELECT {field_str}\nFROM {table_name}"
         
         # 添加适当的LIMIT语句
         if db_type == 'mysql':
