@@ -20,7 +20,6 @@ from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
 from service.database.db_pool_manager import DatabasePoolManager
 from config.global_config import init_project_root
-from routes.common.common_ollama_api import common_ollama_bp  # 导入Ollama API蓝图
 from routes.common.model_common_service_api import model_api  # 导入模型服务API蓝图
 from routes.settings.model_service_api import model_settings_api  # 导入模型设置API蓝图
 from routes.index_repair_api import index_repair_bp  # 注册数据修复API路由
@@ -43,7 +42,6 @@ app.register_blueprint(index_analysis_bp)  # 注册数据分析API路由
 app.register_blueprint(index_prompt_templates_bp)  # 注册提示词模板API路由
 app.register_blueprint(excel_validation_bp)  # 注册Excel校验API路由
 app.register_blueprint(index_validation_bp)  # 注册数据校验API路由
-app.register_blueprint(common_ollama_bp)  # 注册Ollama API路由
 app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 app.register_blueprint(model_api)  # 注册模型服务API路由
 app.register_blueprint(model_settings_api)  # 注册模型设置API路由
