@@ -76,6 +76,25 @@
                     <button type="button" class="btn btn-primary" id="closePreview">关闭预览</button>
                 </div>
             </section>
+            
+            <!-- 添加标签编辑对话框，包含颜色预览 -->
+            <div class="tag-edit-dialog" id="tagEditDialog">
+                <div class="tag-edit-content">
+                    <div class="tag-edit-header">编辑标签</div>
+                    <div class="tag-edit-form">
+                        <input type="hidden" id="tagTemplateId">
+                        <div class="form-group">
+                            <label for="tagName">标签名称：</label>
+                            <input type="text" id="tagName" class="form-control tag-name-input" placeholder="请输入标签名称">
+                            <small class="tag-color-hint">标签颜色会根据名称自动生成，相同名称的标签会有相同颜色</small>
+                        </div>
+                        <div class="tag-edit-actions">
+                            <button type="button" class="tag-edit-cancel" id="cancelTagEdit">取消</button>
+                            <button type="button" class="tag-edit-save" id="saveTagEdit">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
     

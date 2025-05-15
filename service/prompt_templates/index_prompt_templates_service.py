@@ -25,6 +25,7 @@ class PromptTemplateService:
                 "name": "数据异常分析",
                 "description": "用于分析数据异常的提示词模板",
                 "content": '{"system":"你是一位数据分析专家，专注于查找和解释数据中的异常和模式。你擅长识别异常数据点，理解其背后可能的原因，并提供改进建议。","user":"请分析以下数据中的异常情况，并给出可能的原因和解决方案：\\n\\n{数据}"}',
+                "tag": "通用",
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat()
             },
@@ -33,6 +34,7 @@ class PromptTemplateService:
                 "name": "SQL优化建议",
                 "description": "用于获取SQL优化建议的提示词模板",
                 "content": '{"system":"你是一位SQL优化专家，精通各类数据库的性能调优。你熟悉索引优化、查询改写、执行计划分析等技术。","user":"请分析以下SQL语句，并给出具体的优化建议：\\n\\n```sql\\n{sql}\\n```"}',
+                "tag": "通用",
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat()
             },
@@ -41,6 +43,7 @@ class PromptTemplateService:
                 "name": "Excel公式生成",
                 "description": "帮助生成复杂的Excel公式",
                 "content": '{"system":"你是一位Excel和电子表格专家，精通各种函数和公式。请提供清晰的说明并考虑到可能的数据类型问题。","user":"我需要一个Excel公式来{任务描述}。我的数据在{单元格范围}，格式是{数据格式}。"}',
+                "tag": "通用",
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat()
             }
@@ -114,6 +117,7 @@ class PromptTemplateService:
             "name": name,
             "description": description or '',
             "content": content,
+            "tag": "通用",
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat()
         }
@@ -123,7 +127,7 @@ class PromptTemplateService:
         
         return True, "创建模板成功", new_template
     
-    def update_template(self, template_id, name, description, content):
+    def update_template(self, template_id, name, description, content, tag=None):
         """更新模板"""
         if not name:
             return False, "模板名称不能为空", None
@@ -141,9 +145,33 @@ class PromptTemplateService:
         template['name'] = name
         template['description'] = description or ''
         template['content'] = content
+        if tag is not None:
+            template['tag'] = tag
+        elif 'tag' not in template:
+            template['tag'] = "通用"
         template['updated_at'] = datetime.now().isoformat()
         
         # 保存到文件
         self.save_template_to_file(template)
         
         return True, "更新模板成功", template
+
+    def update_template_tag(self, template_id, tag):
+        """更新模板标签"""
+        if not tag:
+            return False, "标签名称不能为空", None
+        
+        # 查找模板
+        template = self.load_template_from_file(template_id)
+        
+        if not template:
+            return False, f"未找到ID为 {template_id} 的模板", None
+        
+        # 更新标签
+        template['tag'] = tag
+        template['updated_at'] = datetime.now().isoformat()
+        
+        # 保存到文件
+        self.save_template_to_file(template)
+        
+        return True, "更新标签成功", template

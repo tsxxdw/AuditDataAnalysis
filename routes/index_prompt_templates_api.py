@@ -93,6 +93,38 @@ def create_template():
             "message": f"创建模板失败: {str(e)}"
         }), 500
 
+@index_prompt_templates_bp.route('/<template_id>/tag', methods=['PUT'])
+def update_template_tag(template_id):
+    """更新模板标签"""
+    app_logger.info(f"更新提示词模板标签 ID: {template_id}")
+    
+    try:
+        data = request.json
+        tag = data.get('tag')
+        
+        success, message, template = template_service.update_template_tag(
+            template_id=template_id,
+            tag=tag
+        )
+        
+        if not success:
+            return jsonify({
+                "success": False,
+                "message": message
+            }), 404 if "未找到" in message else 400
+        
+        return jsonify({
+            "success": True,
+            "message": message,
+            "template": template
+        })
+    except Exception as e:
+        app_logger.error(f"更新模板标签失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"更新模板标签失败: {str(e)}"
+        }), 500
+
 @index_prompt_templates_bp.route('/<template_id>', methods=['PUT'])
 def update_template(template_id):
     """更新模板"""
@@ -105,7 +137,8 @@ def update_template(template_id):
             template_id=template_id,
             name=data.get('name'),
             description=data.get('description', ''),
-            content=data.get('content')
+            content=data.get('content'),
+            tag=data.get('tag')
         )
         
         if not success:
