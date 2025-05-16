@@ -1,0 +1,48 @@
+<!-- 模板提示词区域组件 -->
+<section class="card template-prompts" id="templatePromptsContainer">
+    <h2 class="section-title">模板提示词区域</h2>
+    <div class="form-group">
+        <label for="templateDropdown">模板名称：</label>
+        <!-- 使用SearchableDropdown组件 -->
+        <div id="templateDropdown"></div>
+        <!-- 隐藏的实际Select元素，用于存储选中的值 -->
+        <select id="promptTemplate" style="display: none;">
+            <option value="">请选择提示词模板</option>
+        </select>
+        <button type="button" class="btn btn-info" id="viewTemplateDetails" disabled>查看详情</button>
+    </div>
+</section>
+
+<!-- 模板详情模态对话框 -->
+<div id="templateDetailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 class="modal-title">模板详情</h3>
+        
+        <div class="template-details">
+            <!-- 模板名称 -->
+            <div class="template-name-container">
+                <h4>模板名称</h4>
+                <div class="template-name-text"></div>
+            </div>
+            
+            <!-- 模板描述 -->
+            <div class="template-description-container">
+                <h4>模板描述</h4>
+                <div class="template-description-text"></div>
+            </div>
+            
+            <!-- 系统提示词 -->
+            <div class="system-prompt-container">
+                <h4>系统提示词</h4>
+                <div class="system-prompt-text"></div>
+            </div>
+            
+            <!-- 用户提示词 -->
+            <div class="user-prompt-container">
+                <h4>用户提示词</h4>
+                <div class="user-prompt-text"></div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -14,8 +14,16 @@ $(document).ready(function() {
             // 根据选择显示对应内容
             if (selectedFunction === 'table') {
                 $('#tableCreateContent').show().removeClass('hidden');
+                // 隐藏模板提示词区域
+                if (window.templatePromptsComponent) {
+                    window.templatePromptsComponent.hide();
+                }
             } else if (selectedFunction === 'index') {
                 $('#indexManageContent').show().removeClass('hidden');
+                // 显示模板提示词区域
+                if (window.templatePromptsComponent) {
+                    window.templatePromptsComponent.show();
+                }
             }
         }, 300); // 等待淡出动画完成
     });
@@ -25,6 +33,12 @@ $(document).ready(function() {
     $('#functionType').val('table');
     $('#tableCreateContent').show().removeClass('hidden');
     $('#indexManageContent').hide();
+    // 初始状态隐藏模板提示词区域（因为默认是表创建）
+    if (window.templatePromptsComponent) {
+        window.templatePromptsComponent.hide();
+    } else {
+        $('.template-prompts').hide();
+    }
     
     // 初始化文件选择器
     initializeFileSelector();
@@ -304,16 +318,13 @@ $(document).ready(function() {
         // 获取选择的模板ID
         let templateId = null;
         
-        // 先从组件实例获取
-        if (window.templateDropdown && window.templateDropdown.getValue) {
-            templateId = window.templateDropdown.getValue();
-            console.log('从组件实例获取模板ID:', templateId);
-        }
-        
-        // 如果没有，则从隐藏select获取
-        if (!templateId) {
-            templateId = $('#promptTemplate').val();
-            console.log('从隐藏select获取模板ID:', templateId);
+        if (window.templatePromptsComponent) {
+            templateId = window.templatePromptsComponent.getSelectedTemplateId();
+        } else {
+            // 如果没有，则从隐藏select获取
+            if (!templateId) {
+                templateId = $('#promptTemplate').val();
+            }
         }
         
         // 验证模板ID是否存在

@@ -165,14 +165,15 @@ select.form-control {
     max-width: 100%;
 }
 
-/* 模板提示词区域样式 */
-.prompt-templates-section .form-group {
-    display: flex;
-    align-items: center;
+/* 系统提示词和用户提示词不同的底色 */
+.system-prompt-text {
+    background-color: #f0f7ff;
+    border-color: #c0d7f7;
 }
 
-.prompt-templates-section #viewTemplateDetails {
-    margin-left: 15px;
+.user-prompt-text {
+    background-color: #f0fff0;
+    border-color: #c0f7c0;
 }
 
 /* 模态对话框样式 */
