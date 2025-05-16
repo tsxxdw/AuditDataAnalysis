@@ -17,12 +17,16 @@ $(document).ready(function() {
                 // 隐藏模板提示词区域
                 if (window.templatePromptsComponent) {
                     window.templatePromptsComponent.hide();
+                } else {
+                    $('.template-prompts').hide();
                 }
             } else if (selectedFunction === 'index') {
                 $('#indexManageContent').show().removeClass('hidden');
                 // 显示模板提示词区域
                 if (window.templatePromptsComponent) {
                     window.templatePromptsComponent.show();
+                } else {
+                    $('.template-prompts').show();
                 }
             }
         }, 300); // 等待淡出动画完成
@@ -48,6 +52,33 @@ $(document).ready(function() {
     
     // 加载提示词模板列表
     loadPromptTemplates();
+    
+    // 确保模板组件已经存在
+    let checkTemplateComponentInterval = setInterval(function() {
+        if (window.templatePromptsComponent) {
+            clearInterval(checkTemplateComponentInterval);
+            console.log('模板提示词组件已加载');
+        } else {
+            console.log('等待模板提示词组件加载...');
+            // 尝试初始化模板组件
+            if (typeof TemplatePrompts !== 'undefined') {
+                window.templatePromptsComponent = new TemplatePrompts({
+                    onSelect: function(templateId, item) {
+                        console.log('已选择模板:', templateId, item);
+                    }
+                });
+                
+                // 根据当前选择的功能类型设置显示状态
+                if ($('#functionType').val() === 'table') {
+                    window.templatePromptsComponent.hide();
+                } else {
+                    window.templatePromptsComponent.show();
+                }
+                
+                clearInterval(checkTemplateComponentInterval);
+            }
+        }
+    }, 500);
     
     // 读取字段备注按钮点击事件
     $('#readFieldComments').on('click', function() {
@@ -318,18 +349,34 @@ $(document).ready(function() {
         // 获取选择的模板ID
         let templateId = null;
         
+        // 首先检查组件是否存在
         if (window.templatePromptsComponent) {
+            // 尝试从组件获取模板ID
             templateId = window.templatePromptsComponent.getSelectedTemplateId();
-        } else {
-            // 如果没有，则从隐藏select获取
-            if (!templateId) {
-                templateId = $('#promptTemplate').val();
-            }
+            console.log('从templatePromptsComponent获取的模板ID:', templateId);
+        }
+        
+        // 如果组件不存在或未选择模板，尝试从隐藏select获取
+        if (!templateId) {
+            templateId = $('#promptTemplate').val();
+            console.log('从promptTemplate隐藏选择框获取的模板ID:', templateId);
+        }
+        
+        // 如果还是没有，尝试从模板下拉框组件获取
+        if (!templateId && window.templateDropdown && window.templateDropdown.getValue) {
+            templateId = window.templateDropdown.getValue();
+            console.log('从templateDropdown组件获取的模板ID:', templateId);
         }
         
         // 验证模板ID是否存在
         if (!templateId) {
             alert('请选择一个提示词模板');
+            // 确保模板提示词区域可见
+            $('.template-prompts').show();
+            if (window.templatePromptsComponent) {
+                window.templatePromptsComponent.show();
+            }
+            
             // 高亮提示模板选择区域
             $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
                 $(this).removeClass('field-required');
@@ -386,90 +433,6 @@ $(document).ready(function() {
                 
                 // 隐藏中央加载动画
                 $('#loadingOverlay').hide();
-            }
-        });
-    });
-    
-    // 创建索引按钮点击事件
-    $('#createIndex').on('click', function() {
-        const tableName = $('#indexTableName').val();
-        const fieldName = $('#fieldName').val();
-        
-        if(!tableName) {
-            alert('请选择表名');
-            return;
-        }
-        
-        if(!fieldName) {
-            alert('请选择字段名');
-            return;
-        }
-        
-        // 调用后端API创建索引
-        $.ajax({
-            url: '/api/table_structure/create_index',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                tableName: tableName,
-                fieldName: fieldName
-            }),
-            success: function(response) {
-                if (response.success) {
-                    alert('创建索引成功');
-                    // 显示生成的SQL
-                    $('#sqlContent').val(response.sql);
-                } else {
-                    alert(response.message || '创建索引失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('创建索引请求失败:', xhr);
-                alert('创建索引请求失败，请查看控制台日志');
-            }
-        });
-    });
-    
-    // 删除索引按钮点击事件
-    $('#deleteIndex').on('click', function() {
-        const tableName = $('#indexTableName').val();
-        const fieldName = $('#fieldName').val();
-        
-        if(!tableName) {
-            alert('请选择表名');
-            return;
-        }
-        
-        if(!fieldName) {
-            alert('请选择字段名');
-            return;
-        }
-        
-        if(!confirm(`确定要删除表 ${tableName} 中字段 ${fieldName} 的索引吗？`)) {
-            return;
-        }
-        
-        // 调用后端API删除索引
-        $.ajax({
-            url: '/api/table_structure/delete_index',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                tableName: tableName,
-                fieldName: fieldName
-            }),
-            success: function(response) {
-                if (response.success) {
-                    alert('删除索引成功');
-                    // 显示生成的SQL
-                    $('#sqlContent').val(response.sql);
-                } else {
-                    alert(response.message || '删除索引失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('删除索引请求失败:', xhr);
-                alert('删除索引请求失败，请查看控制台日志');
             }
         });
     });
