@@ -74,35 +74,6 @@ def generate_field_name(column_index, comment):
         # 返回安全的默认名称
         return f"t_{adjusted_index}_field"
 
-@index_table_structure_bp.route('/tables', methods=['GET'])
-def get_tables():
-    """获取表列表"""
-    app_logger.info("获取表列表")
-    
-    try:
-        # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
-        
-        if not db_config:
-            return jsonify({"success": False, "message": "获取数据库配置失败", "tables": []}), 500
-        
-        # 使用数据库服务获取表列表
-        tables = db_service.get_database_tables(db_type, db_config)
-        
-        return jsonify({
-            "success": True,
-            "message": "获取表列表成功", 
-            "tables": tables
-        })
-    except Exception as e:
-        app_logger.error(f"获取表列表失败: {str(e)}")
-        return jsonify({
-            "success": False,
-            "message": f"获取表列表失败: {str(e)}",
-            "tables": []
-        }), 500
-
 @index_table_structure_bp.route('/create_table', methods=['POST'])
 def create_table():
     """创建表"""
@@ -229,35 +200,6 @@ def create_table():
     except Exception as e:
         app_logger.error(f"创建表失败: {str(e)}")
         return jsonify({"success": False, "message": f"创建表失败: {str(e)}"}), 500
-
-@index_table_structure_bp.route('/fields/<table_name>', methods=['GET'])
-def get_fields(table_name):
-    """获取表字段"""
-    app_logger.info(f"获取表 {table_name} 的字段")
-    
-    try:
-        # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
-        
-        if not db_config:
-            return jsonify({"success": False, "message": "获取数据库配置失败", "fields": []}), 500
-        
-        # 使用数据库服务获取表字段
-        fields = db_service.get_table_field_info(db_type, db_config, table_name)
-        
-        return jsonify({
-            "success": True,
-            "message": f"获取表 {table_name} 字段成功", 
-            "fields": fields
-        })
-    except Exception as e:
-        app_logger.error(f"获取表字段失败: {str(e)}")
-        return jsonify({
-            "success": False, 
-            "message": f"获取表 {table_name} 字段失败: {str(e)}", 
-            "fields": []
-        }), 500
 
 @index_table_structure_bp.route('/create_index', methods=['POST'])
 def create_index():
@@ -799,43 +741,6 @@ def execute_sql():
     except Exception as e:
         app_logger.error(f"执行SQL失败: {str(e)}")
         return jsonify({"success": False, "message": f"执行SQL失败: {str(e)}"}), 500
-
-# 获取当前数据库信息的API
-@index_table_structure_bp.route('/current_info', methods=['GET'])
-def get_current_database_info():
-    """获取当前数据库类型和名称"""
-    app_logger.info("获取当前数据库信息")
-    
-    try:
-        # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
-        
-        if not db_config:
-            return jsonify({
-                "success": False, 
-                "message": "获取数据库配置失败", 
-                "db_type": "未知", 
-                "db_name": "未知"
-            }), 500
-        
-        db_name = db_config.get('database', '未知')
-        
-        return jsonify({
-            "success": True,
-            "message": "获取数据库信息成功", 
-            "db_type": db_type,
-            "db_name": db_name
-        })
-        
-    except Exception as e:
-        app_logger.error(f"获取数据库信息失败: {str(e)}")
-        return jsonify({
-            "success": False, 
-            "message": f"获取数据库信息失败: {str(e)}", 
-            "db_type": "未知", 
-            "db_name": "未知"
-        }), 500
 
 @index_table_structure_bp.route('/read_excel_row', methods=['GET'])
 def read_excel_row():

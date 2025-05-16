@@ -14,10 +14,10 @@ from service.prompt_templates.index_prompt_templates_service import PromptTempla
 from sqlalchemy import text
 from service.exception import AppException
 
-# 导入表结构管理模块以直接调用其相关函数
-from routes.index_table_structure_api import get_fields as table_structure_get_fields
-from routes.index_table_structure_api import get_tables as table_structure_get_tables
-from routes.index_table_structure_api import db_service as table_structure_db_service
+# 从通用数据库API模块导入相关函数
+from routes.common.common_database_api import get_fields as common_get_fields
+from routes.common.common_database_api import get_tables as common_get_tables
+from routes.common.common_database_api import db_service as common_db_service
 
 # 创建蓝图
 index_analysis_bp = Blueprint('index_analysis_api', __name__, url_prefix='/api/analysis')
@@ -30,14 +30,14 @@ template_service = PromptTemplateService()
 
 @index_analysis_bp.route('/get_tables', methods=['GET'])
 def get_tables():
-    """获取数据库中的表列表 - 直接使用表结构管理模块的功能"""
+    """获取数据库中的表列表 - 直接使用通用数据库API模块的功能"""
     app_logger.info("请求获取数据库表列表")
-    # 直接调用表结构管理模块的获取表函数
-    return table_structure_get_tables()
+    # 调用通用数据库API模块的获取表函数
+    return common_get_tables()
 
 @index_analysis_bp.route('/get_table_fields', methods=['GET'])
 def get_table_fields():
-    """获取表的字段列表 - 间接使用表结构管理模块的功能"""
+    """获取表的字段列表 - 间接使用通用数据库API模块的功能"""
     app_logger.info("请求获取表字段列表")
 
     try:
@@ -48,7 +48,7 @@ def get_table_fields():
         if not table_name:
             return jsonify({"success": False, "message": "表名不能为空"}), 400
             
-        # 直接调用表结构管理模块的获取字段函数
+        # 调用通用数据库API模块的获取字段函数
         # 创建一个仿造的请求对象来传递table_name参数
         class MockRequest:
             def __init__(self, table_name):
@@ -63,7 +63,7 @@ def get_table_fields():
         # 手动调用get_fields函数
         from flask import g
         g.request = mock_request
-        result = table_structure_get_fields(table_name)
+        result = common_get_fields(table_name)
         g.request = original_request
         
         return result
