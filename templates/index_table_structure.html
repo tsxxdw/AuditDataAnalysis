@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index_table_structure.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common/database_info.css') }}">
-    <!-- 引入SearchableDropdown组件样式 -->
+    <!-- 引入组件样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/function-switch.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -31,12 +32,9 @@
             <section class="card condition-selection-section">
                 <div class="section-header">
                     <h2 class="section-title">条件选择区域</h2>
-                    <div class="form-group function-switch">
-                        <select class="form-control" id="functionType">
-                            <option value="table">表创建</option>
-                            <option value="index">索引管理</option>
-                        </select>
-                    </div>
+                    {% with select_id='functionType', options=[{'value': 'table', 'text': '表创建'}, {'value': 'index', 'text': '索引管理'}] %}
+                        {% include 'components/function-switch.html' %}
+                    {% endwith %}
                 </div>
                 
                 <!-- 表创建内容区域 -->
@@ -97,10 +95,9 @@
                     
                     <div class="form-group">
                         <label for="indexOperationType">操作类型：</label>
-                        <select class="form-control" id="indexOperationType">
-                            <option value="create">创建索引</option>
-                            <option value="delete">删除索引</option>
-                        </select>
+                        {% with select_id='indexOperationType', options=[{'value': 'create', 'text': '创建索引'}, {'value': 'delete', 'text': '删除索引'}] %}
+                            {% include 'components/function-switch.html' %}
+                        {% endwith %}
                     </div>
                 </div>
             </section>
@@ -181,9 +178,11 @@
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
     
-    <!-- 引入SearchableDropdown组件 -->
+    <!-- 引入组件JS -->
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/function-switch.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/function-switch-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_table_structure.js') }}"></script>

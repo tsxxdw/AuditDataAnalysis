@@ -1,0 +1,8 @@
+<!-- 功能切换组件 -->
+<div class="function-switch">
+    <select id="{{ select_id }}" class="form-control">
+        {% for option in options %}
+        <option value="{{ option.value }}">{{ option.text }}</option>
+        {% endfor %}
+    </select>
+</div> 

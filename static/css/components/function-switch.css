@@ -1,0 +1,85 @@
+/* 功能切换组件样式 */
+.function-switch {
+    margin-bottom: 0;
+}
+
+.function-switch select {
+    min-width: 150px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px 12px;
+    padding-right: 30px;
+    font-size: 14px;
+    color: #333;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23555' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.function-switch select:hover {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+    .function-switch {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .function-switch select {
+        width: 100%;
+    }
+}
+
+/* 功能切换组件增强样式 */
+.function-switch {
+    margin-bottom: 0 !important;
+}
+
+.function-switch label {
+    width: auto;
+    margin-right: 10px;
+}
+
+.function-switch select {
+    min-width: 100px;
+    animation: pulse-select 2s infinite ease-in-out;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    border-color: #3498db;
+    background-color: #f0f7ff;
+    font-weight: bold;
+    color: #2c3e50;
+    border-width: 2px;
+    padding: 8px 30px 8px 15px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.function-switch select:hover {
+    animation: none;
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.6);
+    transform: scale(1.03);
+    background-color: #e6f2ff;
+}
+
+/* 下拉框呼吸光效动画 */
+@keyframes pulse-select {
+    0% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 12px rgba(52, 152, 219, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+} 

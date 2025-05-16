@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common/database_info.css') }}">
     <!-- 引入SearchableDropdown组件样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/function-switch.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -27,15 +28,12 @@
             <h1 class="page-title">数据修复</h1>
             
             <!-- 条件选择区域 -->
-            <section class="card problem-field-section">
+            <section class="card condition-selection-section">
                 <div class="section-header">
                     <h2 class="section-title">条件选择区域</h2>
-                    <div class="form-group function-switch">
-                        <select id="operationType" class="form-control">
-                            <option value="repair_date">字段修复（日期）</option>
-                            <option value="repair_idcard">字段修复（身份证）</option>
-                        </select>
-                    </div>
+                    {% with select_id='operationType', options=[{'value': 'repair_date', 'text': '字段修复（日期）'}, {'value': 'repair_idcard', 'text': '字段修复（身份证）'}] %}
+                        {% include 'components/function-switch.html' %}
+                    {% endwith %}
                 </div>
                 <div class="form-group">
                     <label for="tableName">表名：</label>
@@ -127,9 +125,11 @@
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
 
-    <!-- 引入SearchableDropdown组件 -->
+    <!-- 引入组件JS -->
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/function-switch.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/function-switch-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_repair.js') }}"></script>
