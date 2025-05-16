@@ -624,8 +624,47 @@ select.form-control {
 
 .function-switch select {
     min-width: 100px;
+    animation: pulse-select 2s infinite ease-in-out;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    border-color: #3498db;
+    background-color: #f0f7ff;
+    font-weight: bold;
+    color: #2c3e50;
+    border-width: 2px;
+    padding: 8px 30px 8px 15px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.function-switch select:hover {
+    animation: none;
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.6);
+    transform: scale(1.03);
+    background-color: #e6f2ff;
+}
+
+/* 下拉框呼吸光效动画 */
+@keyframes pulse-select {
+    0% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 12px rgba(52, 152, 219, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
 }
 
 .function-content {
     padding-top: 10px;
-} 
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(0);
+}
+
+.function-content.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+}

@@ -4,19 +4,27 @@ $(document).ready(function() {
     $('#functionType').on('change', function() {
         const selectedFunction = $(this).val();
         
-        if (selectedFunction === 'table') {
-            // 显示表创建内容
-            $('#tableCreateContent').show();
-            $('#indexManageContent').hide();
-        } else if (selectedFunction === 'index') {
-            // 显示索引管理内容
-            $('#tableCreateContent').hide();
-            $('#indexManageContent').show();
-        }
+        // 添加平滑过渡效果
+        $('.function-content').addClass('hidden');
+        
+        setTimeout(function() {
+            // 隐藏所有内容
+            $('.function-content').hide();
+            
+            // 根据选择显示对应内容
+            if (selectedFunction === 'table') {
+                $('#tableCreateContent').show().removeClass('hidden');
+            } else if (selectedFunction === 'index') {
+                $('#indexManageContent').show().removeClass('hidden');
+            }
+        }, 300); // 等待淡出动画完成
     });
     
     // 初始化功能选择（默认显示表创建）
-    $('#functionType').val('table').trigger('change');
+    // 首次加载无需动画
+    $('#functionType').val('table');
+    $('#tableCreateContent').show().removeClass('hidden');
+    $('#indexManageContent').hide();
     
     // 初始化文件选择器
     initializeFileSelector();
