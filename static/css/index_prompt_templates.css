@@ -118,9 +118,17 @@
     background-color: #6c5ce7;
 }
 
+.system-section .prompt-textarea {
+    min-height: 300px; /* 系统提示词区域高度设为原来的3倍 */
+}
+
 /* 用户提示词样式 */
 .user-section .prompt-tag {
     background-color: #00b894;
+}
+
+.user-section .prompt-textarea {
+    min-height: 200px; /* 用户提示词区域高度设为原来的2倍 */
 }
 
 /* 变量部分样式 */

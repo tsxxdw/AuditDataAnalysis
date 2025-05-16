@@ -318,6 +318,14 @@ $(document).ready(function() {
                     
                     // 设置当前编辑的模板ID
                     $('#saveTemplate').data('template-id', templateId);
+                    
+                    // 自动滚动到模板编辑区域
+                    setTimeout(function() {
+                        const editSection = document.querySelector('.template-edit-section');
+                        if (editSection) {
+                            editSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100); // 添加短暂延迟确保DOM已更新
                 } else {
                     console.error('获取模板详情失败:', response.message);
                     alert('获取模板详情失败: ' + response.message);
