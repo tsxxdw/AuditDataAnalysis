@@ -14,12 +14,32 @@ $(document).ready(function() {
             $('#originalField').empty().append('<option value="">请选择参考字段</option>');
             // 清空目标字段下拉框
             $('#newField').empty().append('<option value="">请选择目标字段</option>');
+            // 清空目标字段备注信息
+            $('#targetComment').val('');
         }
     });
     
     // 监听参考字段选择变化
     $('#originalField').on('change', function() {
-        // 不需要任何处理，目标字段已经在选择表时加载
+        // 获取选中的参考字段选项
+        const selectedOption = $(this).find('option:selected');
+        const optionText = selectedOption.text();
+        
+        // 从选项文本中提取备注信息（格式为：字段名 - 备注信息）
+        let comment = '';
+        if (optionText && optionText.includes(' - ')) {
+            comment = optionText.split(' - ')[1];
+            if (comment === '无注释') {
+                comment = '';
+            }
+        }
+        
+        // 将备注信息 + "(修复后)" 赋值给目标字段备注信息输入框
+        if (comment) {
+            $('#targetComment').val(comment + '(修复后)');
+        } else {
+            $('#targetComment').val('');
+        }
     });
     
     // 监听操作类型选择变化
@@ -56,7 +76,8 @@ $(document).ready(function() {
             return;
         }
         
-        // 验证模板ID是否存在
+        // 验证模板ID是否存在（因为已经删除模板区域，所以不再需要这个验证）
+        /*
         if (!templateId) {
             alert('请选择一个提示词模板');
             // 高亮提示模板选择区域
@@ -66,6 +87,7 @@ $(document).ready(function() {
             });
             return;
         }
+        */
         
         // 显示按钮上的加载动画
         const $button = $(this);
@@ -88,7 +110,8 @@ $(document).ready(function() {
                 reference_field: originalField,
                 target_field: newField || '',
                 operation_type: operationType || '',
-                template_id: templateId
+                template_id: templateId || '', // 即使没有templateId也发送空字符串
+                target_comment: $('#targetComment').val() || '' // 添加目标字段备注信息
             }),
             success: function(response) {
                 if (response.success) {

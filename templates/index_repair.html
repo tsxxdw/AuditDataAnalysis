@@ -12,8 +12,6 @@
     <!-- 引入SearchableDropdown组件样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/function-switch.css') }}">
-    <!-- 引入模板提示词组件样式 -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/template-prompts.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -55,10 +53,11 @@
                         <option value="">请选择目标字段</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="targetComment">目标字段备注信息：</label>
+                    <input type="text" id="targetComment" class="form-control" placeholder="将根据参考字段自动生成">
+                </div>
             </section>
-            
-            <!-- 引入模板提示词组件 -->
-            {% include 'components/template-prompts.html' %}
             
             <!-- SQL执行区域 -->
             <section class="card sql-execute-section">
@@ -86,9 +85,6 @@
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/function-switch.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/function-switch-init.js') }}"></script>
-    <!-- 引入模板提示词组件 -->
-    <script src="{{ url_for('static', filename='js/components/template-prompts.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/components/template-prompts-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_repair.js') }}"></script>
