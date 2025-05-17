@@ -3,6 +3,157 @@ $(document).ready(function() {
     // 加载表列表
     loadTableList();
     
+    // 添加自定义弹框到DOM
+    $('body').append(`
+        <div id="customModal" class="custom-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">消息提示</h3>
+                    <span class="close-button">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p id="modalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button id="modalConfirmBtn" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    `);
+    
+    // 添加弹框样式
+    $('<style>')
+        .prop('type', 'text/css')
+        .html(`
+            .custom-modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                animation: fadeIn 0.3s ease;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideIn {
+                from { transform: translateY(-20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            
+            .modal-content {
+                background-color: #fff;
+                margin: 15% auto;
+                padding: 0;
+                border-radius: 5px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                width: 50%;
+                max-width: 500px;
+                position: relative;
+                animation: slideIn 0.3s ease;
+            }
+            
+            .modal-header {
+                padding: 15px 20px;
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .modal-header h3 {
+                margin: 0;
+                color: #333;
+            }
+            
+            .close-button {
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            
+            .close-button:hover {
+                color: #333;
+            }
+            
+            .modal-body {
+                padding: 20px;
+                color: #212529;
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+            
+            .modal-footer {
+                padding: 15px 20px;
+                background-color: #f8f9fa;
+                border-top: 1px solid #e9ecef;
+                border-bottom-left-radius: 5px;
+                border-bottom-right-radius: 5px;
+                text-align: right;
+            }
+            
+            .success-icon, .error-icon, .info-icon {
+                font-size: 20px;
+                margin-right: 10px;
+            }
+            
+            .success-icon {
+                color: #28a745;
+            }
+            
+            .error-icon {
+                color: #dc3545;
+            }
+            
+            .info-icon {
+                color: #17a2b8;
+            }
+        `)
+        .appendTo('head');
+    
+    // 自定义弹框显示函数
+    window.showModal = function(message, title, type) {
+        // 设置标题
+        $('#modalTitle').text(title || '消息提示');
+        
+        // 设置图标和消息
+        let icon = '';
+        if (type === 'success') {
+            icon = '<span class="success-icon">✓</span>';
+        } else if (type === 'error') {
+            icon = '<span class="error-icon">✗</span>';
+        } else {
+            icon = '<span class="info-icon">ℹ</span>';
+        }
+        
+        $('#modalMessage').html(icon + message);
+        
+        // 显示弹框
+        $('#customModal').css('display', 'block');
+        
+        // 处理关闭事件
+        $('.close-button, #modalConfirmBtn').off('click').on('click', function() {
+            $('#customModal').css('display', 'none');
+        });
+        
+        // 点击弹框外部区域关闭弹框
+        $('#customModal').off('click').on('click', function(event) {
+            if (event.target === this) {
+                $(this).css('display', 'none');
+            }
+        });
+    };
+    
     // 监听表名选择变化
     $('#tableName').on('change', function() {
         const selectedTable = $(this).val();
@@ -53,41 +204,25 @@ $(document).ready(function() {
         const originalField = $('#originalField').val();
         const newField = $('#newField').val();
         const operationType = $('#operationType').val();
+        const targetComment = $('#targetComment').val() || '';
         
-        // 使用组件API获取模板ID
-        let templateId = null;
+        // 使用组件API获取模板ID - 现在不再需要强制要求
+        let templateId = '';
         
         if (window.templatePromptsComponent) {
-            templateId = window.templatePromptsComponent.getSelectedTemplateId();
-        } else {
-            // 兼容方式，旧版选择器
-            if (window.templateDropdown && window.templateDropdown.getValue) {
-                templateId = window.templateDropdown.getValue();
-            }
-            
-            if (!templateId) {
-                templateId = $('#promptTemplate').val();
-            }
+            templateId = window.templatePromptsComponent.getSelectedTemplateId() || '';
+        } else if (window.templateDropdown && window.templateDropdown.getValue) {
+            templateId = window.templateDropdown.getValue() || '';
+        } else if ($('#promptTemplate').length) {
+            templateId = $('#promptTemplate').val() || '';
         }
         
         // 验证必填项
         if(!tableName || !originalField) {
-            alert('请至少选择表名和参考字段');
+            // 使用自定义弹框替代alert
+            showModal('请至少选择表名和参考字段', '提示', 'info');
             return;
         }
-        
-        // 验证模板ID是否存在（因为已经删除模板区域，所以不再需要这个验证）
-        /*
-        if (!templateId) {
-            alert('请选择一个提示词模板');
-            // 高亮提示模板选择区域
-            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
-                $(this).removeClass('field-required');
-                next();
-            });
-            return;
-        }
-        */
         
         // 显示按钮上的加载动画
         const $button = $(this);
@@ -100,7 +235,10 @@ $(document).ready(function() {
             $('#loadingOverlay').css('display', 'flex');
         }
         
-        // 使用模板调用API生成SQL
+        // 判断是否使用API方式生成SQL
+        const useApi = true;  // 默认使用API方式
+        
+        // 调用API生成SQL
         $.ajax({
             url: '/api/repair/generate_sql',
             type: 'POST',
@@ -110,37 +248,34 @@ $(document).ready(function() {
                 reference_field: originalField,
                 target_field: newField || '',
                 operation_type: operationType || '',
-                template_id: templateId || '', // 即使没有templateId也发送空字符串
-                target_comment: $('#targetComment').val() || '' // 添加目标字段备注信息
+                template_id: templateId,  // 保留此字段以兼容旧代码，但后端不再要求
+                target_comment: targetComment,
+                use_api: useApi  // 控制是否使用API方式
             }),
             success: function(response) {
                 if (response.success) {
                     // 显示生成的SQL
                     $('#sqlContent').val(response.sql);
                     
-                    // 如果是从大模型生成的，显示信息
-                    if (response.from_llm) {
-                        console.log('SQL由大模型生成');
-                        // 添加一个UI提示，如临时变更按钮颜色等
-                        $button.addClass('ai-generated').delay(2000).queue(function(next){
-                            $(this).removeClass('ai-generated');
-                            next();
-                        });
-                    } else {
-                        console.log('SQL由系统默认逻辑生成');
-                    }
+                    // 使用自定义弹框提示生成成功
+                    showModal('SQL生成成功，请点击"执行SQL"按钮执行', '生成成功', 'success');
+                    
+                    // 如果是从大模型生成的，显示信息 - 现在不再从大模型生成
+                    console.log('SQL由系统生成');
                 } else {
-                    alert('生成SQL失败: ' + (response.message || '未知错误'));
+                    // 使用自定义弹框替代alert
+                    showModal('生成SQL失败: ' + (response.message || '未知错误'), '生成失败', 'error');
                     console.error('生成SQL失败:', response.message);
                 }
             },
             error: function(xhr) {
                 const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
                 console.error('生成SQL请求失败:', xhr, errorMsg);
-                alert('生成SQL请求失败: ' + errorMsg);
+                // 使用自定义弹框替代alert
+                showModal('生成SQL请求失败: ' + errorMsg, '请求错误', 'error');
                 
-                // 如果API调用失败，使用本地逻辑生成基本SQL
-                generateLocalSql(tableName, originalField, newField, operationType);
+                // 不再使用本地生成SQL作为备选
+                $('#sqlContent').val('');
             },
             complete: function() {
                 // 恢复按钮状态
@@ -155,55 +290,24 @@ $(document).ready(function() {
         });
     });
     
-    // 备用的本地SQL生成函数
-    function generateLocalSql(tableName, originalField, newField, operationType) {
-        let sql = '';
-        
-        if(operationType === 'repair_date') {
-            sql = `-- 日期类型修复\n`;
-            sql += `UPDATE ${tableName} SET ${originalField} = \n`;
-            sql += `  CASE \n`;
-            sql += `    WHEN LENGTH(${originalField}) = 8 THEN \n`;
-            sql += `      SUBSTR(${originalField}, 1, 4) || '-' || SUBSTR(${originalField}, 5, 2) || '-' || SUBSTR(${originalField}, 7, 2) \n`;
-            sql += `    WHEN LENGTH(${originalField}) = 10 AND INSTR(${originalField}, '/') > 0 THEN \n`;
-            sql += `      REPLACE(${originalField}, '/', '-') \n`;
-            sql += `    ELSE ${originalField} \n`;
-            sql += `  END \n`;
-            sql += `WHERE ${originalField} IS NOT NULL;`;
-        } 
-        else if(operationType === 'repair_idcard') {
-            sql = `-- 身份证修复\n`;
-            sql += `UPDATE ${tableName} SET ${originalField} = \n`;
-            sql += `  CASE \n`;
-            sql += `    WHEN LENGTH(${originalField}) = 15 THEN \n`;
-            sql += `      -- 15位转18位身份证算法\n`;
-            sql += `      CONCAT(SUBSTR(${originalField}, 1, 6), '19', SUBSTR(${originalField}, 7, 9)) \n`;
-            sql += `    WHEN LENGTH(${originalField}) = 18 THEN ${originalField} \n`;
-            sql += `    ELSE ${originalField} \n`;
-            sql += `  END \n`;
-            sql += `WHERE ${originalField} IS NOT NULL;`;
-        }
-        else {
-            // 默认生成一个查询sql
-            sql = `SELECT * FROM ${tableName} WHERE ${originalField} IS NOT NULL LIMIT 10;`;
-        }
-        
-        // 显示生成的SQL
-        $('#sqlContent').val(sql);
-    }
-    
     // 执行SQL按钮点击事件
     $('#executeSql').on('click', function() {
         const sql = $('#sqlContent').val();
         
         if(!sql || sql.trim() === '') {
-            alert('请先生成SQL语句');
+            // 使用自定义弹框替代alert
+            showModal('请先生成SQL语句', '提示', 'info');
             return;
         }
         
         // 显示按钮上的加载动画
         const $button = $(this);
         $button.prop('disabled', true);
+        
+        // 显示中央加载动画（如果存在）
+        if ($('#loadingOverlay').length) {
+            $('#loadingOverlay').css('display', 'flex');
+        }
         
         // 调用API执行SQL
         $.ajax({
@@ -221,34 +325,47 @@ $(document).ready(function() {
                     if (response.is_query) {
                         // 查询类语句的结果显示
                         displayQueryResults(response);
+                        // 使用自定义弹框替代alert
+                        showModal(
+                            `查询执行成功！<br><br>执行了 ${response.executed_count}/${response.total_count} 条SQL语句<br>返回了 ${response.row_count} 条记录。`,
+                            '查询成功',
+                            'success'
+                        );
                     } else {
                         // 非查询类语句的结果显示
                         displayNonQueryResults(response);
+                        // 使用自定义弹框替代alert
+                        showModal(
+                            `SQL执行成功！<br><br>执行了 ${response.executed_count}/${response.total_count} 条SQL语句<br>影响了 ${response.affected_rows} 行记录。`,
+                            '执行成功',
+                            'success'
+                        );
                     }
                 } else {
-                    alert('执行SQL失败: ' + (response.message || '未知错误'));
-                    $('#resultContainer').html(`
-                        <div class="validation-error">
-                            <h3>执行错误</h3>
-                            <p>${response.message || '发生未知错误'}</p>
-                        </div>
-                    `);
+                    // 使用自定义弹框替代alert
+                    showModal('执行SQL失败: ' + (response.message || '未知错误'), '执行失败', 'error');
+                    displayErrorResult(response);
                 }
             },
             error: function(xhr) {
                 const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
                 console.error('执行SQL请求失败:', xhr, errorMsg);
-                alert('执行SQL请求失败: ' + errorMsg);
-                $('#resultContainer').html(`
-                    <div class="validation-error">
-                        <h3>执行错误</h3>
-                        <p>${errorMsg}</p>
-                    </div>
-                `);
+                // 使用自定义弹框替代alert
+                showModal('执行SQL请求失败: ' + errorMsg, '请求错误', 'error');
+                
+                // 显示错误信息
+                displayErrorResult(xhr.responseJSON || {
+                    message: errorMsg
+                });
             },
             complete: function() {
                 // 恢复按钮状态
                 $button.prop('disabled', false);
+                
+                // 隐藏中央加载动画（如果存在）
+                if ($('#loadingOverlay').length) {
+                    $('#loadingOverlay').hide();
+                }
             }
         });
     });
@@ -258,11 +375,13 @@ $(document).ready(function() {
         const headers = response.headers || [];
         const rows = response.rows || [];
         const rowCount = response.row_count || 0;
+        const executedCount = response.executed_count || 1;
+        const totalCount = response.total_count || 1;
         
         let html = `
             <div class="validation-summary">
                 <h3>查询结果</h3>
-                <p>返回了 ${rowCount} 条记录</p>
+                <p>执行了 ${executedCount}/${totalCount} 条SQL语句，返回了 ${rowCount} 条记录</p>
             </div>
         `;
         
@@ -313,13 +432,43 @@ $(document).ready(function() {
     // 显示非查询类语句的结果
     function displayNonQueryResults(response) {
         const affectedRows = response.affected_rows || 0;
+        const executedCount = response.executed_count || 1;
+        const totalCount = response.total_count || 1;
         
         let html = `
             <div class="validation-summary">
                 <h3>执行结果</h3>
-                <p>操作成功完成，影响了 ${affectedRows} 行记录</p>
+                <p>操作成功完成，执行了 ${executedCount}/${totalCount} 条SQL语句，影响了 ${affectedRows} 行记录</p>
             </div>
         `;
+        
+        $('#resultContainer').html(html);
+    }
+    
+    // 显示SQL执行错误
+    function displayErrorResult(response) {
+        const message = response.message || '执行SQL语句时发生未知错误';
+        const executedCount = response.executed_count || 0;
+        const totalCount = response.total_count || 0;
+        const totalAffectedRows = response.total_affected_rows || 0;
+        
+        let html = `
+            <div class="validation-error">
+                <h3>执行错误</h3>
+                <p>${message}</p>
+        `;
+        
+        // 如果有执行统计信息，显示已执行的SQL语句数量
+        if (executedCount > 0 || totalCount > 0) {
+            html += `
+                <div class="execution-stats">
+                    <p>已成功执行 ${executedCount}/${totalCount} 条SQL语句</p>
+                    ${totalAffectedRows > 0 ? `<p>影响了 ${totalAffectedRows} 行记录</p>` : ''}
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
         
         $('#resultContainer').html(html);
     }

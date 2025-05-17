@@ -9,6 +9,7 @@ from service.log.logger import app_logger
 from service.prompt_templates.index_prompt_templates_service import PromptTemplateService
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
+from service.common.dify_common_service import dify_service
 import json
 
 # 创建蓝图
@@ -43,7 +44,7 @@ def generate_sql():
     - reference_field: 参考字段
     - target_field: 目标字段 (可选)
     - operation_type: 操作类型 (可选)
-    - template_id: 模板ID
+    - template_id: 模板ID (不再需要)
     """
     try:
         # 获取请求参数
@@ -57,125 +58,79 @@ def generate_sql():
         if 'reference_field' not in data or not data['reference_field']:
             return jsonify({'success': False, 'message': '参考字段不能为空'}), 400
         
-        if 'template_id' not in data or not data['template_id']:
-            return jsonify({'success': False, 'message': '模板ID不能为空'}), 400
-
         # 参数准备
         table_name = data['table_name']
         reference_field = data['reference_field']
         target_field = data.get('target_field', '')
         operation_type = data.get('operation_type', '')
-        template_id = data['template_id']
+        target_comment = data.get('target_comment', '')
         
         # 获取当前数据库类型
         db_type = DatabaseConfigUtil.get_default_db_type()
 
-        # 调用默认模型服务生成SQL
+        # 调用dify服务生成SQL
         try:
-            # 导入模型服务
-            from service.common.model_common_service import model_service
-            
-            # 获取默认模型信息
-            default_model = model_service.get_default_model()
-            if not default_model:
-                app_logger.error("没有找到默认模型配置")
-                raise Exception("没有找到默认模型配置，请先设置默认模型")
-            
-            # 获取模型服务提供商ID和模型ID
-            provider_id = default_model.get('provider_id')
-            model_id = default_model.get('id')
-            model_name = default_model.get('name', '').lower()
-            
-            app_logger.info(f"使用默认模型生成修复SQL: 提供商 {provider_id}, 模型 {model_id}")
-            
-            # 获取提示词模板
-            system_prompt = ""
-            user_prompt_template = ""
-            
-            try:
-                # 使用模板服务获取模板内容
-                template = template_service.load_template_from_file(template_id)
-                
-                if not template:
-                    error_msg = f"未找到ID为 {template_id} 的模板"
-                    app_logger.error(error_msg)
-                    return jsonify({"success": False, "message": error_msg}), 404
-                
-                # 解析模板内容
-                import json
-                template_content = json.loads(template.get('content', '{}'))
-                
-                system_prompt = template_content.get('system', '')
-                user_prompt_template = template_content.get('user', '')
-                
-            except Exception as e:
-                error_msg = f"获取提示词模板失败: {str(e)}"
-                app_logger.error(error_msg)
-                return jsonify({"success": False, "message": error_msg}), 500
-            
-            # 组装新的用户提示词
-            base_prompt = f"{user_prompt_template}\n\n表名：{table_name}\n参考字段：{reference_field}\n数据库类型：{db_type}"
-            
-            # 添加可选参数
-            if target_field:
-                base_prompt += f"\n目标字段：{target_field}"
-            if operation_type:
-                base_prompt += f"\n操作类型：{operation_type}"
-            
-            # 判断是否为Qwen3模型，如果是则添加/no_think
-            if 'qwen3' in model_id.lower() or 'qwen3' in model_name:
-                user_prompt = f"{base_prompt} /no_think"
-                app_logger.info("检测到Qwen3模型，添加/no_think指令")
-            else:
-                user_prompt = base_prompt
-                app_logger.info(f"非Qwen3模型({model_id})，不添加/no_think指令")
-
-            # 准备消息格式
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-            
-            # 参数
-            options = {
-                "temperature": 0.1
+            # 准备dify服务的参数
+            dify_params = {
+                'operation_type': operation_type,
+                'table_name': table_name,
+                'reference_field': reference_field,
+                'target_field': target_field,
+                'database_type': db_type,
+                'target_field_remark': target_comment
             }
             
-            # 调用模型
-            result = model_service.chat_completion(provider_id, model_id, messages, options)
+            app_logger.info(f"调用dify服务生成修复SQL: {dify_params}")
+            
+            # 根据用户请求参数选择不同的生成方法
+            if data.get('use_api', True):  # 默认使用API方式
+                # 使用API方式生成SQL
+                app_logger.info("使用API方式生成SQL")
+                result = dify_service.generate_repair_sql_via_api(dify_params)
+                
+                # API调用失败时直接返回错误，不使用本地生成作为备选
+                if not result.get('success'):
+                    app_logger.error(f"DIFY API调用失败: {result.get('message')}")
+                    return jsonify({
+                        'success': False,
+                        'message': f"DIFY API调用失败: {result.get('message')}",
+                    }), 500
+            else:
+                # 使用本地方式生成SQL
+                app_logger.info("使用本地方式生成SQL")
+                result = dify_service.generate_repair_sql(dify_params)
             
             # 检查是否有错误
-            if "error" in result:
-                app_logger.error(f"模型生成SQL失败: {result.get('error')}")
-                raise Exception(f"模型生成SQL失败: {result.get('error')}")
+            if not result.get('success'):
+                app_logger.error(f"dify服务生成SQL失败: {result.get('message')}")
+                return jsonify({
+                    'success': False,
+                    'message': f"生成SQL失败: {result.get('message')}",
+                }), 500
             
             # 提取生成的内容
-            generated_sql = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            generated_sql = result.get('sql', '')
             
             if generated_sql:
                 return jsonify({
                     "success": True,
                     "message": "生成SQL成功",
                     "sql": generated_sql,
-                    "from_llm": True
+                    "from_llm": False  # 不再是从大模型生成
                 })
             else:
-                app_logger.error("模型返回的SQL内容为空")
-                raise Exception("模型返回的SQL内容为空")
+                app_logger.error("dify服务返回的SQL内容为空")
+                return jsonify({
+                    'success': False,
+                    'message': "生成的SQL内容为空",
+                }), 500
                 
         except Exception as e:
-            app_logger.error(f"调用默认模型失败: {str(e)}")
-            
-            # 尝试使用预定义的SQL作为后备方案
-            app_logger.info("使用预定义SQL作为后备方案")
-            basic_sql = generate_basic_sql(table_name, reference_field, target_field, operation_type)
-            
+            app_logger.error(f"调用dify服务失败: {str(e)}")
             return jsonify({
-                'success': True,
-                'sql': basic_sql,
-                'from_llm': False,
-                'fallback_reason': str(e)
-            })
+                'success': False,
+                'message': f"调用dify服务失败: {str(e)}",
+            }), 500
 
     except Exception as e:
         app_logger.error(f"生成数据修复SQL失败: {e}")
@@ -205,9 +160,42 @@ def execute_sql():
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败"}), 500
         
-        # 执行SQL
-        from sqlalchemy import text
-        result = db_service.execute_sql(db_type, db_config, text(sql))
+        # 分割多条SQL语句（以分号作为分隔符，忽略注释中的分号）
+        sql_statements = split_sql_statements(sql)
+        app_logger.info(f"SQL语句拆分为 {len(sql_statements)} 条语句")
+        
+        # 逐条执行SQL语句
+        executed_count = 0
+        total_count = len(sql_statements)
+        total_affected_rows = 0
+        last_result = None
+        error_message = None
+        
+        for i, statement in enumerate(sql_statements):
+            statement = statement.strip()
+            if not statement:  # 跳过空语句
+                continue
+                
+            app_logger.info(f"执行第 {i+1}/{total_count} 条SQL语句: {statement[:100]}...")
+            
+            try:
+                # 执行单条SQL
+                from sqlalchemy import text
+                result = db_service.execute_sql(db_type, db_config, text(statement))
+                
+                # 更新统计信息
+                executed_count += 1
+                if not result.get('is_query', False):
+                    total_affected_rows += result.get('affected_rows', 0)
+                
+                # 保存最后一条执行成功的结果
+                last_result = result
+                
+            except Exception as e:
+                # 记录错误并停止执行
+                error_message = f"执行第 {i+1} 条SQL语句时出错: {str(e)}"
+                app_logger.error(error_message)
+                break
         
         # 判断操作类型
         operation_type = ""
@@ -217,74 +205,120 @@ def execute_sql():
             operation_type = "repair_idcard"
         
         # 构造执行结果
-        if result.get('is_query', False):
-            # 查询语句，使用实际查询结果
-            rows = result.get('rows', [])
-            # 将行转换为列表
+        if error_message:
+            # 有错误发生
+            return jsonify({
+                'success': False,
+                'message': error_message,
+                'executed_count': executed_count,
+                'total_count': total_count,
+                'total_affected_rows': total_affected_rows
+            }), 500
+        elif last_result and last_result.get('is_query', False):
+            # 最后执行的是查询语句，返回查询结果
+            rows = last_result.get('rows', [])
             data = []
             for row in rows:
                 data.append(list(row))
             
             app_logger.info(f"查询结果行数: {len(data)}")
             
-            # 获取表头
-            headers = result.get('headers', [])
-            
-            # 返回查询结果
             return jsonify({
                 'success': True,
                 'is_query': True,
-                'headers': headers,
+                'headers': last_result.get('headers', []),
                 'rows': data,
                 'row_count': len(data),
-                'execution_time': result.get('execution_time', '')
+                'execution_time': last_result.get('execution_time', ''),
+                'executed_count': executed_count,
+                'total_count': total_count
             })
         else:
-            # 非查询语句，返回影响行数
-            affected_rows = result.get('affected_rows', 0)
-            
+            # 非查询语句，或混合语句，返回影响行数
             return jsonify({
                 'success': True,
                 'is_query': False,
-                'affected_rows': affected_rows,
-                'message': f'操作成功完成，影响了 {affected_rows} 行数据',
+                'affected_rows': total_affected_rows,
+                'message': f'操作成功完成，执行了 {executed_count}/{total_count} 条SQL语句，影响了 {total_affected_rows} 行数据',
                 'operation_type': operation_type,
-                'execution_time': result.get('execution_time', '')
+                'execution_time': last_result.get('execution_time', '') if last_result else '',
+                'executed_count': executed_count,
+                'total_count': total_count
             })
     except Exception as e:
         app_logger.error(f"执行SQL失败: {e}")
         return jsonify({'success': False, 'message': f'执行SQL失败: {str(e)}'}), 500
 
-def generate_basic_sql(table_name, reference_field, target_field, operation_type):
+def split_sql_statements(sql_text):
     """
-    根据参数生成基本的SQL语句（当大模型调用失败时使用）
+    将包含多个SQL语句的文本拆分为单独的SQL语句列表
+    处理SQL中的注释和字符串，避免错误拆分
+    
+    Args:
+        sql_text: 包含一个或多个SQL语句的文本
+        
+    Returns:
+        list: SQL语句列表
     """
-    sql = ''
+    if not sql_text:
+        return []
     
-    if operation_type == 'repair_date':
-        sql = f"-- 日期类型修复\n"
-        sql += f"UPDATE {table_name} SET {reference_field} = \n"
-        sql += f"  CASE \n"
-        sql += f"    WHEN LENGTH({reference_field}) = 8 THEN \n"
-        sql += f"      SUBSTR({reference_field}, 1, 4) || '-' || SUBSTR({reference_field}, 5, 2) || '-' || SUBSTR({reference_field}, 7, 2) \n"
-        sql += f"    WHEN LENGTH({reference_field}) = 10 AND INSTR({reference_field}, '/') > 0 THEN \n"
-        sql += f"      REPLACE({reference_field}, '/', '-') \n"
-        sql += f"    ELSE {reference_field} \n"
-        sql += f"  END \n"
-        sql += f"WHERE {reference_field} IS NOT NULL;"
-    elif operation_type == 'repair_idcard':
-        sql = f"-- 身份证修复\n"
-        sql += f"UPDATE {table_name} SET {reference_field} = \n"
-        sql += f"  CASE \n"
-        sql += f"    WHEN LENGTH({reference_field}) = 15 THEN \n"
-        sql += f"      -- 15位转18位身份证算法\n"
-        sql += f"      CONCAT(SUBSTR({reference_field}, 1, 6), '19', SUBSTR({reference_field}, 7, 9)) \n"
-        sql += f"    WHEN LENGTH({reference_field}) = 18 THEN {reference_field} \n"
-        sql += f"    ELSE {reference_field} \n"
-        sql += f"  END \n"
-        sql += f"WHERE {reference_field} IS NOT NULL;"
-    else:
-        # 默认生成一个查询sql
-        sql = f"SELECT * FROM {table_name} WHERE {reference_field} IS NOT NULL LIMIT 10;"
+    # 简单的SQL拆分，以分号为界
+    # 注意：这个实现比较简单，无法处理所有特殊情况（如字符串中的分号、存储过程等）
+    # 如果需要更复杂的处理，应考虑使用专业的SQL解析器
     
-    return sql 
+    statements = []
+    current_statement = ""
+    in_single_quote = False
+    in_double_quote = False
+    in_comment = False
+    i = 0
+    
+    while i < len(sql_text):
+        char = sql_text[i]
+        next_char = sql_text[i+1] if i+1 < len(sql_text) else ""
+        
+        # 处理注释
+        if char == '-' and next_char == '-' and not in_single_quote and not in_double_quote:
+            in_comment = True
+            current_statement += char
+            i += 1
+            continue
+        
+        # 处理行注释结束
+        if in_comment and (char == '\n' or char == '\r'):
+            in_comment = False
+            current_statement += char
+            i += 1
+            continue
+        
+        # 处理引号
+        if char == "'" and not in_comment and not in_double_quote:
+            in_single_quote = not in_single_quote
+            current_statement += char
+            i += 1
+            continue
+            
+        if char == '"' and not in_comment and not in_single_quote:
+            in_double_quote = not in_double_quote
+            current_statement += char
+            i += 1
+            continue
+        
+        # 处理分号 - 只有在不在引号和注释中时才视为分隔符
+        if char == ';' and not in_single_quote and not in_double_quote and not in_comment:
+            current_statement += char
+            statements.append(current_statement.strip())
+            current_statement = ""
+            i += 1
+            continue
+        
+        # 添加当前字符
+        current_statement += char
+        i += 1
+    
+    # 处理最后一个语句（如果没有分号结尾）
+    if current_statement.strip():
+        statements.append(current_statement.strip())
+    
+    return statements 
