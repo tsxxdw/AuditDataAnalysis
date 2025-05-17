@@ -99,6 +99,11 @@ $(document).ready(function() {
                     // 存储加载的Excel信息
                     loadedExcelInfo = response.filesInfo;
                     
+                    // 为每个文件添加读取行信息，使用校验选项中的读取行值
+                    loadedExcelInfo.forEach(fileInfo => {
+                        fileInfo.readRow = $readRowSelect.val();
+                    });
+                    
                     // 显示Excel信息
                     displayExcelInfo(loadedExcelInfo);
                     
@@ -170,11 +175,11 @@ $(document).ready(function() {
                         <div class="form-group">
                             <label>读取的行:</label>
                             <select class="row-select form-select">
-                                <option value="1" selected>1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
+                                <option value="1" ${$readRowSelect.val() === "1" ? 'selected' : ''}>1</option>
+                                <option value="2" ${$readRowSelect.val() === "2" ? 'selected' : ''}>2</option>
+                                <option value="3" ${$readRowSelect.val() === "3" ? 'selected' : ''}>3</option>
+                                <option value="4" ${$readRowSelect.val() === "4" ? 'selected' : ''}>4</option>
+                                <option value="5" ${$readRowSelect.val() === "5" ? 'selected' : ''}>5</option>
                             </select>
                         </div>
                     </div>
@@ -269,7 +274,7 @@ $(document).ready(function() {
             // 查找对应的文件卡片 - 改为使用索引而不是选择器
             let foundCard = false;
             let sheetValue = null;
-            let rowValue = "1";
+            let rowValue = $readRowSelect.val();
             
             // 遍历所有卡片找到匹配的
             fileCards.each(function() {
@@ -283,7 +288,7 @@ $(document).ready(function() {
                     
                     sheetValue = sheetSelect.val();
                     if (rowSelect.length > 0) {
-                        rowValue = rowSelect.val() || "1";
+                        rowValue = rowSelect.val() || $readRowSelect.val();
                     }
                     
                     console.log(`找到文件卡片: ${fileInfo.fileName}, 工作表值: ${sheetValue}, 读取行: ${rowValue}`);
@@ -332,7 +337,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({
                 filesInfo: validFiles,  // 只传递有效的文件
-                readRow: "1",  // 这个值不再使用，每个文件都有自己的readRow
+                readRow: $readRowSelect.val(),  // 使用校验选项中选择的readRow值
                 validationType: validationType
             }),
             success: function(response) {
