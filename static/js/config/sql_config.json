@@ -195,6 +195,15 @@
       "sql": {
         "mysql": "ALTER TABLE t_table_n ADD INDEX idx_t_n (t_n);"
       }
+    },
+    {
+      "title": "修改字段名和类型",
+      "desc": "将字段改名并修改为datetime类型",
+      "dbType": "mysql",
+      "verified": true,
+      "sql": {
+        "mysql": "alter table t_test change column t_6_csrq t_6_csrq_fixed datetime comment '修正后的出生日期';"
+      }
     }
   ]
 } 
