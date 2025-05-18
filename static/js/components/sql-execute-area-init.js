@@ -7,7 +7,7 @@ $(document).ready(function() {
         // 创建组件实例
         window.sqlExecuteArea = new SqlExecuteArea({
             // 可以在这里传入自定义配置
-            apiEndpoint: '/api/table_structure/execute_sql',
+            apiEndpoint: '/api/common/execute_sql',
             onGenerateSQL: function(e) {
                 // 这个回调函数会被各页面覆盖
                 console.log('生成SQL按钮被点击');

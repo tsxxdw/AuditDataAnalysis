@@ -462,64 +462,6 @@ def generate_index_sql():
         app_logger.error(f"生成索引SQL失败: {str(e)}")
         return jsonify({"success": False, "message": f"生成索引SQL失败: {str(e)}"}), 500
 
-@index_table_structure_bp.route('/execute_sql', methods=['POST'])
-def execute_sql():
-    """执行SQL语句"""
-    app_logger.info("执行SQL请求")
-    
-    try:
-        # 获取请求参数
-        data = request.json
-        sql = data.get('sql')
-        
-        # 参数验证
-        if not sql:
-            return jsonify({"success": False, "message": "SQL语句不能为空"}), 400
-        
-        # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
-        
-        if not db_config:
-            return jsonify({"success": False, "message": "获取数据库配置失败"}), 500
-        
-        # 暂时仅打印SQL，模拟执行
-        app_logger.info(f"将要执行的SQL: {sql}")
-        
-        # 实际执行SQL
-        result = db_service.execute_sql(db_type, db_config, text(sql))
-        
-        # 根据结果类型返回不同的消息
-        if result.get('is_query', False):
-            # 查询语句，返回查询结果
-            rows = result.get('rows', [])
-            # 将行转换为列表
-            data = []
-            for row in rows:
-                data.append(list(row))
-            
-            return jsonify({
-                "success": True,
-                "message": "SQL执行成功",
-                "is_query": True,
-                "data": data,
-                "row_count": len(data)
-            })
-        else:
-            # 非查询语句，返回影响的行数
-            affected_rows = result.get('affected_rows', 0)
-            
-            return jsonify({
-                "success": True,
-                "message": "SQL执行成功",
-                "is_query": False,
-                "affected_rows": affected_rows
-            })
-    
-    except Exception as e:
-        app_logger.error(f"执行SQL失败: {str(e)}")
-        return jsonify({"success": False, "message": f"执行SQL失败: {str(e)}"}), 500
-
 @index_table_structure_bp.route('/read_excel_row', methods=['GET'])
 def read_excel_row():
     """读取Excel文件的指定行

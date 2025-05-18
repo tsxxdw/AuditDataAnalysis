@@ -13,7 +13,7 @@ class SqlExecuteArea {
      */
     constructor(options = {}) {
         this.options = $.extend({
-            apiEndpoint: '/api/table_structure/execute_sql', // 默认API端点
+            apiEndpoint: '/api/common/execute_sql', // 默认API端点
             onGenerateSQL: null,
             onSuccess: null,
             onError: null
