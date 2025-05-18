@@ -198,8 +198,42 @@ $(document).ready(function() {
         // 不需要处理，因为字段类型选项已移除
     });
     
+    // 配置SQL执行区域组件
+    if (window.sqlExecuteArea) {
+        // 覆盖生成SQL按钮的点击处理
+        window.sqlExecuteArea.options.onGenerateSQL = function(e) {
+            // 直接调用生成SQL的逻辑而不是触发按钮点击
+            generateSqlLogic();
+        };
+        
+        // 覆盖SQL执行成功的回调
+        window.sqlExecuteArea.options.onSuccess = function(response) {
+            console.log('SQL执行成功:', response);
+            
+            if (response.success) {
+                // 刷新表列表等操作可以在这里进行
+                if (response.error_occurred) {
+                    showModal('部分SQL执行成功，但有错误发生', '部分成功', 'info');
+                } else {
+                    showModal('SQL执行成功！', '执行成功', 'success');
+                }
+            }
+        };
+        
+        // 覆盖SQL执行错误的回调
+        window.sqlExecuteArea.options.onError = function(error) {
+            console.error('SQL执行失败:', error);
+            showModal('执行SQL失败，请查看控制台日志', '执行失败', 'error');
+        };
+    }
+    
     // 生成SQL按钮点击事件
     $('#generateSql').on('click', function() {
+        generateSqlLogic();
+    });
+    
+    // 抽取生成SQL的逻辑到单独的函数中
+    function generateSqlLogic() {
         const tableName = $('#tableName').val();
         const originalField = $('#originalField').val();
         const newField = $('#newField').val();
@@ -225,7 +259,7 @@ $(document).ready(function() {
         }
         
         // 显示按钮上的加载动画
-        const $button = $(this);
+        const $button = $('#generateSql');
         const $spinner = $button.find('.spinner-border');
         $button.prop('disabled', true);
         $spinner.removeClass('d-none');
@@ -254,11 +288,12 @@ $(document).ready(function() {
             }),
             success: function(response) {
                 if (response.success) {
-                    // 显示生成的SQL
-                    $('#sqlContent').val(response.sql);
-                    
-                    // 使用自定义弹框提示生成成功
-                    showModal('SQL生成成功，请点击"执行SQL"按钮执行', '生成成功', 'success');
+                    // 使用SQL执行区域组件设置SQL
+                    if (window.sqlExecuteArea) {
+                        window.sqlExecuteArea.setSQL(response.sql);
+                    } else {
+                        $('#sqlContent').val(response.sql);
+                    }
                     
                     // 如果是从大模型生成的，显示信息 - 现在不再从大模型生成
                     console.log('SQL由系统生成');
@@ -288,189 +323,6 @@ $(document).ready(function() {
                 }
             }
         });
-    });
-    
-    // 执行SQL按钮点击事件
-    $('#executeSql').on('click', function() {
-        const sql = $('#sqlContent').val();
-        
-        if(!sql || sql.trim() === '') {
-            // 使用自定义弹框替代alert
-            showModal('请先生成SQL语句', '提示', 'info');
-            return;
-        }
-        
-        // 显示按钮上的加载动画
-        const $button = $(this);
-        $button.prop('disabled', true);
-        
-        // 显示中央加载动画（如果存在）
-        if ($('#loadingOverlay').length) {
-            $('#loadingOverlay').css('display', 'flex');
-        }
-        
-        // 调用API执行SQL
-        $.ajax({
-            url: '/api/repair/execute_sql',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                sql: sql
-            }),
-            success: function(response) {
-                if (response.success) {
-                    // 清空结果区域
-                    $('#resultContainer').empty();
-                    
-                    if (response.is_query) {
-                        // 查询类语句的结果显示
-                        displayQueryResults(response);
-                        // 使用自定义弹框替代alert
-                        showModal(
-                            `查询执行成功！<br><br>执行了 ${response.executed_count}/${response.total_count} 条SQL语句<br>返回了 ${response.row_count} 条记录。`,
-                            '查询成功',
-                            'success'
-                        );
-                    } else {
-                        // 非查询类语句的结果显示
-                        displayNonQueryResults(response);
-                        // 使用自定义弹框替代alert
-                        showModal(
-                            `SQL执行成功！<br><br>执行了 ${response.executed_count}/${response.total_count} 条SQL语句<br>影响了 ${response.affected_rows} 行记录。`,
-                            '执行成功',
-                            'success'
-                        );
-                    }
-                } else {
-                    // 使用自定义弹框替代alert
-                    showModal('执行SQL失败: ' + (response.message || '未知错误'), '执行失败', 'error');
-                    displayErrorResult(response);
-                }
-            },
-            error: function(xhr) {
-                const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
-                console.error('执行SQL请求失败:', xhr, errorMsg);
-                // 使用自定义弹框替代alert
-                showModal('执行SQL请求失败: ' + errorMsg, '请求错误', 'error');
-                
-                // 显示错误信息
-                displayErrorResult(xhr.responseJSON || {
-                    message: errorMsg
-                });
-            },
-            complete: function() {
-                // 恢复按钮状态
-                $button.prop('disabled', false);
-                
-                // 隐藏中央加载动画（如果存在）
-                if ($('#loadingOverlay').length) {
-                    $('#loadingOverlay').hide();
-                }
-            }
-        });
-    });
-    
-    // 显示查询类语句的结果
-    function displayQueryResults(response) {
-        const headers = response.headers || [];
-        const rows = response.rows || [];
-        const rowCount = response.row_count || 0;
-        const executedCount = response.executed_count || 1;
-        const totalCount = response.total_count || 1;
-        
-        let html = `
-            <div class="validation-summary">
-                <h3>查询结果</h3>
-                <p>执行了 ${executedCount}/${totalCount} 条SQL语句，返回了 ${rowCount} 条记录</p>
-            </div>
-        `;
-        
-        // 如果有数据，显示表格
-        if (rowCount > 0) {
-            html += `
-                <div class="validation-details">
-                    <h3>数据详情</h3>
-                    <div class="table-responsive">
-                        <table class="validation-table">
-                            <thead>
-                                <tr>
-            `;
-            
-            // 表头
-            headers.forEach(header => {
-                html += `<th>${header}</th>`;
-            });
-            
-            html += `
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
-            
-            // 表格数据
-            rows.forEach(row => {
-                html += `<tr>`;
-                row.forEach(cell => {
-                    html += `<td>${cell !== null ? cell : '<em>NULL</em>'}</td>`;
-                });
-                html += `</tr>`;
-            });
-            
-            html += `
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        } else {
-            html += `<p>查询没有返回任何记录</p>`;
-        }
-        
-        $('#resultContainer').html(html);
-    }
-    
-    // 显示非查询类语句的结果
-    function displayNonQueryResults(response) {
-        const affectedRows = response.affected_rows || 0;
-        const executedCount = response.executed_count || 1;
-        const totalCount = response.total_count || 1;
-        
-        let html = `
-            <div class="validation-summary">
-                <h3>执行结果</h3>
-                <p>操作成功完成，执行了 ${executedCount}/${totalCount} 条SQL语句，影响了 ${affectedRows} 行记录</p>
-            </div>
-        `;
-        
-        $('#resultContainer').html(html);
-    }
-    
-    // 显示SQL执行错误
-    function displayErrorResult(response) {
-        const message = response.message || '执行SQL语句时发生未知错误';
-        const executedCount = response.executed_count || 0;
-        const totalCount = response.total_count || 0;
-        const totalAffectedRows = response.total_affected_rows || 0;
-        
-        let html = `
-            <div class="validation-error">
-                <h3>执行错误</h3>
-                <p>${message}</p>
-        `;
-        
-        // 如果有执行统计信息，显示已执行的SQL语句数量
-        if (executedCount > 0 || totalCount > 0) {
-            html += `
-                <div class="execution-stats">
-                    <p>已成功执行 ${executedCount}/${totalCount} 条SQL语句</p>
-                    ${totalAffectedRows > 0 ? `<p>影响了 ${totalAffectedRows} 行记录</p>` : ''}
-                </div>
-            `;
-        }
-        
-        html += `</div>`;
-        
-        $('#resultContainer').html(html);
     }
     
     // 加载表列表的函数

@@ -12,6 +12,8 @@
     <!-- 引入SearchableDropdown组件样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/function-switch.css') }}">
+    <!-- 引入SQL执行区域组件样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sql-execute-area.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -59,21 +61,10 @@
                 </div>
             </section>
             
-            <!-- SQL执行区域 -->
-            <section class="card sql-execute-section">
-                <h2 class="section-title">SQL执行区域</h2>
-                <div class="form-group">
-                    <label for="sqlContent">要执行的SQL：</label>
-                    <textarea id="sqlContent" class="form-control sql-textarea" placeholder="此处将显示生成的SQL语句"></textarea>
-                </div>
-                <div class="button-group">
-                    <button id="generateSql" class="btn btn-primary">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        生成SQL
-                    </button>
-                    <button id="executeSql" class="btn btn-success">执行SQL</button>
-                </div>
-            </section>
+            <!-- 引入SQL执行区域组件 -->
+            {% with title="SQL执行区域" %}
+                {% include 'components/sql-execute-area.html' %}
+            {% endwith %}
         </div>
     </main>
     
@@ -87,6 +78,9 @@
     <script src="{{ url_for('static', filename='js/components/function-switch-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
+    <!-- 引入SQL执行区域组件JS -->
+    <script src="{{ url_for('static', filename='js/components/sql-execute-area.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/sql-execute-area-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_repair.js') }}"></script>
 </body>
 </html> 
