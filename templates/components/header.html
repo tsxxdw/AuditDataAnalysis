@@ -4,7 +4,7 @@
         <!-- 左侧返回按钮 -->
         <div class="left-nav">
             {% if request.path != '/' %}
-                <a href="{{ url_for('pages.index') }}" class="back-btn">返回首页</a>
+                <a href="{{ url_for('pages.index') }}" class="back-btn" target="_blank">返回首页</a>
             {% endif %}
         </div>
         
@@ -15,7 +15,7 @@
         
         <!-- 右侧设置按钮 -->
         <div class="right-nav">
-            <a href="{{ url_for('pages.settings') }}" class="settings-btn">设置</a>
+            <a href="{{ url_for('pages.settings') }}" class="settings-btn" target="_blank">设置</a>
         </div>
         
         <!-- 移动端菜单按钮 -->
