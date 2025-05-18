@@ -111,16 +111,16 @@ def get_fields(table_name):
 
 @common_api_bp.route('/execute_sql', methods=['POST'])
 def execute_sql():
-    """执行SQL语句"""
+    """执行SQL语句，支持多条SQL（以分号分隔）"""
     app_logger.info("执行SQL请求")
     
     try:
         # 获取请求参数
         data = request.json
-        sql = data.get('sql')
+        sql_input = data.get('sql')
         
         # 参数验证
-        if not sql:
+        if not sql_input:
             return jsonify({"success": False, "message": "SQL语句不能为空"}), 400
         
         # 获取当前数据库连接信息
@@ -130,39 +130,113 @@ def execute_sql():
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败"}), 500
         
-        # 记录将要执行的SQL
-        app_logger.info(f"将要执行的SQL: {sql}")
+        # 分割多条SQL语句（排除空行和纯注释行）
+        sql_statements = []
+        for sql in sql_input.split(';'):
+            sql = sql.strip()
+            if sql and not sql.startswith('--') and not sql.startswith('#'):
+                sql_statements.append(sql)
         
-        # 实际执行SQL
-        result = db_service.execute_sql(db_type, db_config, text(sql))
+        # 如果没有有效的SQL语句
+        if not sql_statements:
+            return jsonify({"success": False, "message": "未发现有效的SQL语句"}), 400
+            
+        # 存储每条SQL的执行结果
+        results = []
+        any_success = False
+        error_occurred = False
         
-        # 根据结果类型返回不同的消息
-        if result.get('is_query', False):
-            # 查询语句，返回查询结果
-            rows = result.get('rows', [])
-            # 将行转换为列表
-            data = []
-            for row in rows:
-                data.append(list(row))
+        # 逐条执行SQL语句
+        for i, sql in enumerate(sql_statements):
+            sql_index = i + 1
+            app_logger.info(f"执行SQL #{sql_index}: {sql}")
             
-            return jsonify({
-                "success": True,
-                "message": "SQL执行成功",
-                "is_query": True,
-                "data": data,
-                "row_count": len(data)
-            })
-        else:
-            # 非查询语句，返回影响的行数
-            affected_rows = result.get('affected_rows', 0)
+            # 如果已经发生错误，将剩余SQL标记为未执行
+            if error_occurred:
+                app_logger.info(f"SQL #{sql_index} 未执行，因为前面的SQL执行失败")
+                results.append({
+                    "sql_index": sql_index,
+                    "sql": sql,
+                    "success": False,
+                    "is_query": False,
+                    "message": "SQL未执行，因为前面的SQL执行失败",
+                    "not_executed": True
+                })
+                continue
             
-            return jsonify({
-                "success": True,
-                "message": "SQL执行成功",
-                "is_query": False,
-                "affected_rows": affected_rows
-            })
+            try:
+                # 执行当前SQL
+                result = db_service.execute_sql(db_type, db_config, text(sql))
+                
+                # 构建基础结果信息
+                sql_result = {
+                    "sql_index": sql_index,
+                    "sql": sql,
+                    "success": True,
+                    "message": "SQL执行成功"
+                }
+                
+                # 根据结果类型添加不同信息
+                if result.get('is_query', False):
+                    # 查询语句，返回查询结果（限制最多1000条）
+                    rows = result.get('rows', [])
+                    # 将行转换为列表
+                    data = []
+                    for idx, row in enumerate(rows):
+                        if idx >= 1000:  # 限制最多1000条数据
+                            break
+                        data.append(list(row))
+                    
+                    # 添加查询结果信息
+                    sql_result.update({
+                        "is_query": True,
+                        "data": data,
+                        "row_count": len(data),
+                        "total_count": len(rows),
+                        "limited": len(rows) > 1000
+                    })
+                else:
+                    # 非查询语句，返回影响的行数
+                    affected_rows = result.get('affected_rows', 0)
+                    sql_result.update({
+                        "is_query": False,
+                        "affected_rows": affected_rows
+                    })
+                
+                # 添加到结果集
+                results.append(sql_result)
+                any_success = True
+                
+            except Exception as e:
+                error_message = str(e)
+                app_logger.error(f"执行SQL #{sql_index} 失败: {error_message}")
+                
+                # 添加错误信息到结果集
+                results.append({
+                    "sql_index": sql_index,
+                    "sql": sql,
+                    "success": False,
+                    "is_query": False,
+                    "message": f"SQL执行失败: {error_message}",
+                    "error_detail": error_message
+                })
+                
+                # 标记错误发生，后续SQL不会执行但会添加到结果中
+                error_occurred = True
+        
+        # 返回所有SQL的执行结果
+        return jsonify({
+            "success": any_success,  # 只要有一条SQL执行成功，就算整体成功
+            "message": "SQL执行完成" if not error_occurred else "部分SQL执行失败",
+            "error_occurred": error_occurred,
+            "results": results
+        })
     
     except Exception as e:
-        app_logger.error(f"执行SQL失败: {str(e)}")
-        return jsonify({"success": False, "message": f"执行SQL失败: {str(e)}"}), 500 
+        error_message = str(e)
+        app_logger.error(f"执行SQL失败: {error_message}")
+        return jsonify({
+            "success": False, 
+            "message": f"执行SQL失败: {error_message}",
+            "error_detail": error_message
+        }), 500 

@@ -1,5 +1,8 @@
 // 数据库表结构管理页面JS文件(index_table_structure)
 $(document).ready(function() {
+    // 确保中央加载动画是隐藏的
+    $('#loadingOverlay').hide();
+    
     // 功能切换逻辑
     $('#functionType').on('change', function() {
         const selectedFunction = $(this).val();
