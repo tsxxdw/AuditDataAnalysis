@@ -23,8 +23,8 @@ $(document).ready(function() {
                 } else {
                     $('.template-prompts').hide();
                 }
-            } else if (selectedFunction === 'index') {
-                $('#indexManageContent').show().removeClass('hidden');
+            } else if (selectedFunction === 'create_index' || selectedFunction === 'drop_index') {
+                $('#indexContent').show().removeClass('hidden');
                 // 显示模板提示词区域
                 if (window.templatePromptsComponent) {
                     window.templatePromptsComponent.show();
@@ -39,7 +39,7 @@ $(document).ready(function() {
     // 首次加载无需动画
     $('#functionType').val('table');
     $('#tableCreateContent').show().removeClass('hidden');
-    $('#indexManageContent').hide();
+    $('#indexContent').hide();
     // 初始状态隐藏模板提示词区域（因为默认是表创建）
     if (window.templatePromptsComponent) {
         window.templatePromptsComponent.hide();
@@ -185,9 +185,12 @@ $(document).ready(function() {
             if (selectedFunction === 'table') {
                 // 表创建功能的SQL生成
                 generateTableSQL(e);
-            } else if (selectedFunction === 'index') {
-                // 索引管理功能的SQL生成
-                generateIndexSQL(e);
+            } else if (selectedFunction === 'create_index') {
+                // 新增索引功能的SQL生成
+                generateIndexSQL(e, 'create');
+            } else if (selectedFunction === 'drop_index') {
+                // 删除索引功能的SQL生成
+                generateIndexSQL(e, 'drop');
             }
         };
         
@@ -262,7 +265,7 @@ $(document).ready(function() {
     }
     
     // 生成索引SQL
-    function generateIndexSQL(e) {
+    function generateIndexSQL(e, operation) {
         const tableName = $('#indexTableName').val();
         const fieldName = $('#fieldName').val();
         const operationType = $('#indexOperationType').val();
@@ -328,7 +331,8 @@ $(document).ready(function() {
                 tableName: tableName,
                 fieldName: fieldName,
                 operationType: operationType,
-                templateId: templateId
+                templateId: templateId,
+                operation: operation
             }),
             success: function(response) {
                 if (response.success) {

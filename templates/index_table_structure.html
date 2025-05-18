@@ -35,7 +35,7 @@
             <section class="card condition-selection-section">
                 <div class="section-header">
                     <h2 class="section-title">条件选择区域</h2>
-                    {% with select_id='functionType', options=[{'value': 'table', 'text': '表创建'}, {'value': 'index', 'text': '索引管理'}] %}
+                    {% with select_id='functionType', options=[{'value': 'table', 'text': '表创建'}, {'value': 'create_index', 'text': '新增索引'}, {'value': 'drop_index', 'text': '删除索引'}] %}
                         {% include 'components/function-switch.html' %}
                     {% endwith %}
                 </div>
@@ -80,8 +80,8 @@
                     </div>
                 </div>
                 
-                <!-- 索引管理内容区域 -->
-                <div id="indexManageContent" class="function-content" style="display: none;">
+                <!-- 索引操作内容区域 -->
+                <div id="indexContent" class="function-content" style="display: none;">
                     <div class="form-group">
                         <label for="indexTableName">表名：</label>
                         <select class="form-control" id="indexTableName">

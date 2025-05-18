@@ -327,7 +327,8 @@ def generate_index_sql():
         table_name = data.get('tableName')
         field_name = data.get('fieldName')
         operation_type = data.get('operationType')  # create 或 delete
-        template_id = data.get('templateId')  # 新增模板ID参数
+        template_id = data.get('templateId')  # 模板ID参数
+        operation = data.get('operation', 'create')  # 新增或删除索引，默认为create
         
         # 参数验证
         if not table_name:
@@ -362,7 +363,7 @@ def generate_index_sql():
             model_id = default_model.get('id')
             model_name = default_model.get('name', '').lower()
             
-            app_logger.info(f"使用默认模型生成索引SQL: 提供商 {provider_id}, 模型 {model_id}")
+            app_logger.info(f"使用默认模型生成索引SQL: 提供商 {provider_id}, 模型 {model_id}, 操作: {operation}")
             
             # 3. 获取提示词模板
             system_prompt = ""
@@ -393,6 +394,7 @@ def generate_index_sql():
 表名：{table_name}
 字段名：{field_name}
 操作类型：{operation_type}（create表示创建索引，delete表示删除索引）
+索引操作：{operation}（create_index表示新增索引，drop_index表示删除索引）
 数据库类型：{db_type}
 
 请仅返回SQL语句，不要包含任何其他文字说明。"""
@@ -403,7 +405,7 @@ def generate_index_sql():
                     return jsonify({"success": False, "message": error_msg}), 500
             
             # 组装新的用户提示词
-            base_prompt = f"{user_prompt_template}\n\n表名：{table_name}\n字段名：{field_name}\n操作类型：{operation_type}\n数据库类型：{db_type}"
+            base_prompt = f"{user_prompt_template}\n\n表名：{table_name}\n字段名：{field_name}\n操作类型：{operation_type}\n索引操作：{operation}\n数据库类型：{db_type}"
             
             # 判断是否为Qwen3模型，如果是则添加/no_think
             if 'qwen3' in model_id.lower() or 'qwen3' in model_name:
