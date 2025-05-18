@@ -122,6 +122,76 @@ select.form-control {
     width: 100%;
 }
 
+/* 执行结果区域样式 */
+.sql-result-section {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.result-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #34495e;
+    font-weight: 600;
+}
+
+.result-content {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 15px;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.success-message {
+    color: #28a745;
+    padding: 10px;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+}
+
+.error-message {
+    color: #dc3545;
+    padding: 10px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.no-result-message {
+    color: #6c757d;
+    padding: 10px;
+    font-style: italic;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.result-table th, 
+.result-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.result-table th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.result-table tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+.result-table tr:hover {
+    background-color: #f0f0f0;
+}
+
 /* 按钮样式 */
 .button-group {
     display: flex;

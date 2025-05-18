@@ -1,0 +1,117 @@
+/* SQL执行区域组件样式 */
+
+/* 调整SQL区域布局 */
+.sql-execute-section .form-group {
+    display: block;
+}
+
+.sql-execute-section label {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.sql-execute-section .sql-textarea {
+    width: 100%;
+    height: 180px;
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+    margin-top: 10px;
+    padding: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    max-width: 100%;
+}
+
+/* 按钮组样式 */
+.button-group {
+    display: flex;
+    justify-content: flex-start;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* 清空SQL按钮样式 */
+#clearSql {
+    background-color: #95a5a6;
+    color: white;
+}
+
+#clearSql:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 执行结果区域样式 */
+.sql-result-section {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.result-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #34495e;
+    font-weight: 600;
+}
+
+.result-content {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 15px;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.success-message {
+    color: #28a745;
+    padding: 10px;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+}
+
+.error-message {
+    color: #dc3545;
+    padding: 10px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.no-result-message {
+    color: #6c757d;
+    padding: 10px;
+    font-style: italic;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.result-table th, 
+.result-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.result-table th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.result-table tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+.result-table tr:hover {
+    background-color: #f0f0f0;
+} 
