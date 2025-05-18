@@ -1,5 +1,8 @@
 // 数据校验页面JS文件(index_validation)
 $(document).ready(function() {
+    // 确保加载动画是隐藏的
+    $('#loadingOverlay').hide();
+    
     // 加载表列表
     loadTableList();
     
@@ -18,8 +21,43 @@ $(document).ready(function() {
         }
     });
     
+    // 配置SQL执行区域组件
+    if (window.sqlExecuteArea) {
+        // 确保使用通用API
+        window.sqlExecuteArea.options.apiEndpoint = '/api/common/execute_sql';
+        
+        // 覆盖生成SQL按钮的点击处理
+        window.sqlExecuteArea.options.onGenerateSQL = function(e) {
+            // 直接调用生成SQL的逻辑函数
+            generateSqlLogic();
+        };
+        
+        // 覆盖SQL执行成功的回调
+        window.sqlExecuteArea.options.onSuccess = function(response) {
+            console.log('SQL执行成功:', response);
+            
+            // 不再处理校验结果显示
+            if (response.error_occurred) {
+                alert('部分SQL执行成功，但有错误发生');
+            } else {
+                console.log('SQL执行成功:', response);
+            }
+        };
+        
+        // 覆盖SQL执行错误的回调
+        window.sqlExecuteArea.options.onError = function(error) {
+            console.error('SQL执行失败:', error);
+            alert('执行SQL失败: ' + (error.message || '未知错误'));
+        };
+    }
+    
     // 生成SQL按钮点击事件
     $('#generateSql').on('click', function() {
+        generateSqlLogic();
+    });
+    
+    // 抽取生成SQL的逻辑到单独的函数中
+    function generateSqlLogic() {
         const tableName = $('#tableName').val();
         const fieldName = $('#fieldName').val();
         const validationType = $('#validationType').val();
@@ -61,7 +99,7 @@ $(document).ready(function() {
         }
         
         // 显示按钮上的加载动画
-        const $button = $(this);
+        const $button = $('#generateSql');
         const $spinner = $button.find('.spinner-border');
         $button.prop('disabled', true);
         $spinner.removeClass('d-none');
@@ -82,8 +120,12 @@ $(document).ready(function() {
             }),
             success: function(response) {
                 if (response.success) {
-        // 显示生成的SQL
-                    $('#sqlContent').val(response.sql);
+                    // 使用SQL执行区域组件设置SQL
+                    if (window.sqlExecuteArea) {
+                        window.sqlExecuteArea.setSQL(response.sql);
+                    } else {
+                        $('#sqlContent').val(response.sql);
+                    }
                     
                     // 如果是从LLM生成的，可以添加一些提示
                     if (response.from_llm) {
@@ -112,89 +154,7 @@ $(document).ready(function() {
                 $('#loadingOverlay').hide();
             }
         });
-    });
-    
-    // 执行SQL按钮点击事件
-    $('#executeSql').on('click', function() {
-        const sql = $('#sqlContent').val();
-        
-        if(!sql || sql.trim() === '') {
-            alert('请先生成SQL语句');
-            return;
-        }
-        
-        // 显示加载提示
-        $('.empty-result').text('执行中，请稍候...');
-        $('.validation-results').hide();
-        
-        // 调用API执行SQL
-        $.ajax({
-            url: '/api/validation/execute_sql',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                sql: sql
-            }),
-            success: function(response) {
-                // 隐藏提示文字
-            $('.empty-result').hide();
-            
-                if (response.success) {
-                    const results = response.results;
-            const tableName = $('#tableName').val();
-            const fieldName = $('#fieldName').val();
-            const validationType = $('#validationType').val();
-            
-                    // 生成校验结果HTML
-            let resultsHtml = '<div class="validation-summary">';
-            resultsHtml += '<h3>校验完成</h3>';
-            resultsHtml += '<p>表名: ' + tableName + '</p>';
-            resultsHtml += '<p>字段名: ' + fieldName + '</p>';
-            resultsHtml += '<p>校验类型: ' + (validationType === 'idcard' ? '身份证校验' : '日期格式错误校验') + '</p>';
-                    resultsHtml += '<p>校验时间: ' + (results.execution_time || new Date().toLocaleString()) + '</p>';
-            resultsHtml += '</div>';
-            
-            resultsHtml += '<div class="validation-details">';
-            resultsHtml += '<h3>校验详情</h3>';
-            
-                    // 如果有详情数据
-                    if (results.details && results.details.length > 0) {
-                resultsHtml += '<table class="validation-table">';
-                resultsHtml += '<thead><tr><th>错误类型</th><th>记录数</th><th>错误率</th><th>示例值</th></tr></thead>';
-                resultsHtml += '<tbody>';
-                        
-                        results.details.forEach(function(detail) {
-                            resultsHtml += '<tr>';
-                            resultsHtml += '<td>' + detail.error_type + '</td>';
-                            resultsHtml += '<td>' + detail.count + '</td>';
-                            resultsHtml += '<td>' + detail.error_rate + '</td>';
-                            resultsHtml += '<td>' + detail.examples + '</td>';
-                            resultsHtml += '</tr>';
-                        });
-                        
-                resultsHtml += '</tbody></table>';
-                    } else {
-                        resultsHtml += '<p>未发现错误数据</p>';
-            }
-            
-            resultsHtml += '</div>';
-            
-            // 显示校验结果
-            $('.validation-results').html(resultsHtml).show();
-                } else {
-                    $('.empty-result').text(response.message || '执行SQL失败').show();
-                }
-            },
-            error: function(xhr) {
-                const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
-                console.error('执行SQL请求失败:', xhr, errorMsg);
-                $('.empty-result').text('执行SQL请求失败: ' + errorMsg).show();
-            }
-        });
-    });
-    
-    // 模板详情按钮点击事件
-    // $('#viewTemplateDetails').on('click', function() {...});
+    }
     
     // 模态对话框关闭按钮事件
     $('.close-modal').on('click', function() {

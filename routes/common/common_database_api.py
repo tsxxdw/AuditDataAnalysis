@@ -180,9 +180,11 @@ def execute_sql():
                 if result.get('is_query', False):
                     # 查询语句，返回查询结果（限制最多1000条）
                     rows = result.get('rows', [])
-                    # 将行转换为列表
+                    # 将结果转换为列表，以便计算总行数
+                    all_rows = list(rows)
+                    # 将行转换为列表（最多1000条）
                     data = []
-                    for idx, row in enumerate(rows):
+                    for idx, row in enumerate(all_rows):
                         if idx >= 1000:  # 限制最多1000条数据
                             break
                         data.append(list(row))
@@ -192,8 +194,8 @@ def execute_sql():
                         "is_query": True,
                         "data": data,
                         "row_count": len(data),
-                        "total_count": len(rows),
-                        "limited": len(rows) > 1000
+                        "total_count": len(all_rows),
+                        "limited": len(all_rows) > 1000
                     })
                 else:
                     # 非查询语句，返回影响的行数
