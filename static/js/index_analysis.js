@@ -5,11 +5,37 @@ $(document).ready(function() {
     let currentFieldsTable = null;  // 当前操作的字段表ID
     let selectedFields = {};  // 存储已选择的字段 {tableId: [{field}, {field}...]}
     
+    // 确保加载动画是隐藏的
+    $('#loadingOverlay').hide();
+    
     // 初始化页面
     initPage();
     
     // 初始化表下拉选择器
     loadTableList();
+    
+    // 配置SQL执行区域组件
+    if (window.sqlExecuteArea) {
+        // 设置API端点
+        window.sqlExecuteArea.options.apiEndpoint = '/api/common/execute_sql';
+        
+        // 覆盖生成SQL按钮的点击处理
+        window.sqlExecuteArea.options.onGenerateSQL = function(e) {
+            // 调用生成SQL的逻辑
+            generateSqlLogic();
+        };
+        
+        // 覆盖SQL执行成功的回调
+        window.sqlExecuteArea.options.onSuccess = function(response) {
+            console.log('SQL执行成功:', response);
+        };
+        
+        // 覆盖SQL执行错误的回调
+        window.sqlExecuteArea.options.onError = function(error) {
+            console.error('SQL执行失败:', error);
+            alert('执行SQL失败: ' + (error.message || '未知错误'));
+        };
+    }
     
     // 添加表按钮点击事件
     $('#addTable').on('click', function() {
@@ -139,8 +165,8 @@ $(document).ready(function() {
         }
     });
     
-    // 生成SQL按钮点击事件
-    $('#generateSQL').on('click', function() {
+    // 生成SQL逻辑函数
+    function generateSqlLogic() {
         // 检查是否已选择表和字段
         if (Object.keys(selectedFields).length === 0) {
             alert('请先选择至少一个表和字段');
@@ -189,12 +215,6 @@ $(document).ready(function() {
             }
         }
         
-        // 显示按钮上的加载动画
-        const $button = $(this);
-        const $spinner = $button.find('.spinner-border');
-        $button.prop('disabled', true);
-        $spinner.removeClass('d-none');
-        
         // 显示中央加载动画
         $('#loadingOverlay').css('display', 'flex');
         
@@ -206,7 +226,12 @@ $(document).ready(function() {
             data: JSON.stringify(requestData),
             success: function(response) {
                 if (response.success) {
-                    $('#sqlContent').val(response.sql);
+                    // 使用组件API设置SQL
+                    if (window.sqlExecuteArea) {
+                        window.sqlExecuteArea.setSQL(response.sql);
+                    } else {
+                        $('#sqlContent').val(response.sql);
+                    }
                 } else {
                     alert(response.message || '生成SQL失败');
                 }
@@ -216,70 +241,16 @@ $(document).ready(function() {
                 alert('生成SQL请求失败，请查看控制台日志');
             },
             complete: function() {
-                // 隐藏按钮上的加载动画
-                $button.prop('disabled', false);
-                $spinner.addClass('d-none');
-                
                 // 隐藏中央加载动画
                 $('#loadingOverlay').hide();
             }
         });
-    });
-    
-    // 清空SQL按钮点击事件
-    $('#clearSQL').on('click', function() {
-        $('#sqlContent').val('');
-        
-        // 隐藏查询结果区域
-        $('#queryResultsContainer').hide();
-    });
-    
-    // 执行SQL按钮点击事件
-    $('#executeSQL').on('click', function() {
-        const sql = $('#sqlContent').val();
-        
-        if (!sql || sql.trim() === '') {
-            alert('请先生成SQL语句');
-            return;
-        }
-        
-        // 显示加载动画
-        $('#loadingOverlay').css('display', 'flex');
-        
-        // 调用后端API执行SQL
-        $.ajax({
-            url: '/api/analysis/execute_sql',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                sql: sql
-            }),
-            success: function(response) {
-                if (response.success) {
-                    // 显示查询结果
-                    displayQueryResults(response.data);
-                } else {
-                    alert(response.message || '执行SQL失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('执行SQL请求失败:', xhr);
-                alert('执行SQL请求失败，请查看控制台日志');
-            },
-            complete: function() {
-                // 隐藏加载动画
-                $('#loadingOverlay').hide();
-            }
-        });
-    });
+    }
     
     // 初始化页面
     function initPage() {
         // 初始设置模板详情按钮为禁用
         $('#viewTemplateDetails').prop('disabled', true);
-        
-        // 隐藏查询结果区域
-        $('#queryResultsContainer').hide();
     }
     
     // 添加新的表选择行
@@ -403,6 +374,7 @@ $(document).ready(function() {
                 const fieldTag = `
                     <span class="selected-field-tag">
                         <div class="field-name">${field.name}</div>
+                        <div class="field-type">${field.type || '未知类型'}</div>
                         <div class="field-comment">${field.comment || '无备注'}</div>
                         <span class="remove-field" data-table-id="${tableId}" data-field-index="${index}">×</span>
                     </span>
@@ -413,47 +385,5 @@ $(document).ready(function() {
         } else {
             $container.html('<div class="no-fields-selected">未选择字段</div>');
         }
-    }
-    
-    // 显示查询结果
-    function displayQueryResults(data) {
-        const $container = $('#queryResults');
-        $container.empty();
-        
-        if (!data || !data.columns || !data.rows) {
-            $container.html('<div class="no-results">无查询结果</div>');
-            $('#queryResultsContainer').show();
-            return;
-        }
-        
-        // 创建表格
-        let tableHtml = '<table class="result-table">';
-        
-        // 表头
-        tableHtml += '<thead><tr>';
-        data.columns.forEach(column => {
-            tableHtml += `<th>${column}</th>`;
-        });
-        tableHtml += '</tr></thead>';
-        
-        // 表体
-        tableHtml += '<tbody>';
-        if (data.rows.length > 0) {
-            data.rows.forEach(row => {
-                tableHtml += '<tr>';
-                row.forEach(cell => {
-                    tableHtml += `<td>${cell !== null ? cell : 'NULL'}</td>`;
-                });
-                tableHtml += '</tr>';
-            });
-        } else {
-            // 空结果
-            tableHtml += `<tr><td colspan="${data.columns.length}" class="no-data">无数据</td></tr>`;
-        }
-        tableHtml += '</tbody></table>';
-        
-        // 显示结果
-        $container.html(tableHtml);
-        $('#queryResultsContainer').show();
     }
 }); 

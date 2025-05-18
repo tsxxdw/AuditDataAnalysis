@@ -248,30 +248,39 @@ select.form-control {
     border: 1px solid #90caf9;
     color: #1976d2;
     border-radius: 8px;
-    padding: 6px 12px;
     margin: 5px;
-    font-size: 13px;
+    padding: 5px 30px 5px 10px;
     position: relative;
-    vertical-align: top;
-    min-width: 120px;
+    font-size: 13px;
     max-width: 250px;
 }
 
 .selected-field-tag .field-name {
     font-weight: 600;
-    padding-right: 16px; /* 为删除按钮留出空间 */
-    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-field-tag .field-type {
+    font-size: 11px;
+    color: #5c6bc0;
+    margin-top: 2px;
+    font-weight: 500;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .selected-field-tag .field-comment {
     font-size: 11px;
-    color: #5c6bc0;
-    margin-top: 3px;
+    color: #555;
+    margin-top: 2px;
     font-style: italic;
-    opacity: 0.8;
-    padding-right: 16px; /* 为删除按钮留出空间 */
-    white-space: normal;
-    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .remove-field {

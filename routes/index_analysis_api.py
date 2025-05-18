@@ -185,13 +185,14 @@ def generate_sql():
                     fields_info = []
                     for field in fields:
                         field_name = field.get('name', '')
-                        field_type = field.get('type', '')
+                        field_type = field.get('type', '').lower()
                         field_comment = field.get('comment', '')
                         
                         if field_name:
-                            field_info = f"{field_name}"
+                            # 包含字段名、类型和注释信息
+                            field_info = f"{field_name} ({field_type})"
                             if field_comment:
-                                field_info += f" ({field_comment})"
+                                field_info += f" - {field_comment}"
                             fields_info.append(field_info)
                     
                     tables_info.append(f"表{i+1}: {table_name}\n字段: {', '.join(fields_info)}")
@@ -208,10 +209,6 @@ def generate_sql():
             else:
                 user_prompt = base_prompt
                 app_logger.info(f"非Qwen3模型({model_id})，不添加/no_think指令")
-            
-            # 如果系统提示词为空，使用默认系统提示词
-            if not system_prompt:
-                system_prompt = "你是一位专业的数据库专家，精通各种数据库系统（MySQL、SQL Server、Oracle等）的SQL语法。请根据用户的需求生成准确无误的SQL查询语句，仅返回SQL代码，不要包含任何多余的解释。"
             
             # 准备消息格式
             messages = [
@@ -370,24 +367,33 @@ def generate_sample_sql(context):
     
     # 构建字段列表
     field_list = []
+    date_fields = []  # 用于保存日期类型字段
     for field in fields:
         field_name = field.get('name', '')
+        field_type = field.get('type', '').lower()
+        
         if field_name:
             field_list.append(f"{table_name}.{field_name}")
+            
+            # 识别日期类型字段用于示例
+            if 'date' in field_type or 'time' in field_type:
+                date_fields.append(field_name)
     
     field_str = ", ".join(field_list) if field_list else "*"
     
     # 添加日期对比方式相关的注释
     date_format_comment = f"-- 使用的日期对比方式: {date_compare_type}\n"
     
-    # 根据日期对比方式添加示例SQL注释
+    # 根据日期对比方式添加示例SQL注释，优先使用实际的日期字段
     date_example = ""
-    if date_compare_type == 'year':
-        date_example = "-- 例如: YEAR(date_column) = 2023"
-    elif date_compare_type == 'month':
-        date_example = "-- 例如: DATE_FORMAT(date_column, '%Y-%m') = '2023-06'"
-    elif date_compare_type == 'day':
-        date_example = "-- 例如: DATE(date_column) = '2023-06-15'"
+    date_column = date_fields[0] if date_fields else "date_column"
+    
+    if date_compare_type == '年':
+        date_example = f"-- 例如: YEAR({table_name}.{date_column}) = 2023"
+    elif date_compare_type == '年月':
+        date_example = f"-- 例如: DATE_FORMAT({table_name}.{date_column}, '%Y-%m') = '2023-06'"
+    elif date_compare_type == '年月日':
+        date_example = f"-- 例如: DATE({table_name}.{date_column}) = '2023-06-15'"
     
     # 根据表的数量生成不同类型的SQL
     if len(tables) == 1:

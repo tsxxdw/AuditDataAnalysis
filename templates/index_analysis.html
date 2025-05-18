@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <!-- 引入模板提示词组件样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/template-prompts.css') }}">
+    <!-- 引入SQL执行区域组件样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sql-execute-area.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -24,7 +26,7 @@
             <h1 class="page-title">数据分析</h1>
             
             <!-- 中央加载动画 -->
-            <div id="loadingOverlay" class="loading-overlay">
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
                 <div class="loading-spinner"></div>
                 <div class="loading-text">生成SQL中...</div>
             </div>
@@ -70,29 +72,11 @@
             <!-- 引入模板提示词组件 -->
             {% include 'components/template-prompts.html' %}
             
-            <!-- SQL执行区域 -->
-            <section class="card sql-execute-section">
-                <h2 class="section-title">SQL执行区域</h2>
-                <div class="form-group">
-                    <label for="sqlContent">要执行的SQL：</label>
-                    <textarea class="form-control sql-textarea" id="sqlContent" rows="5" placeholder="SQL语句将显示在这里"></textarea>
-                </div>
-                
-                <div class="button-group">
-                    <button id="generateSQL" class="btn btn-primary">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        生成SQL
-                    </button>
-                    <button id="clearSQL" class="btn btn-secondary">清空SQL</button>
-                    <button id="executeSQL" class="btn btn-success" style="margin-left: auto;">执行SQL</button>
-                </div>
-                
-                <!-- 查询结果区域 -->
-                <div id="queryResultsContainer" class="query-results-container" style="display: none;">
-                    <h3>查询结果</h3>
-                    <div id="queryResults" class="query-results"></div>
-                </div>
-            </section>
+            <!-- 引入SQL执行区域组件 -->
+            {% with title="SQL执行区域" %}
+                {% include 'components/sql-execute-area.html' %}
+            {% endwith %}
+            
         </div>
     </main>
     
@@ -130,6 +114,9 @@
     <!-- 引入SearchableDropdown组件 -->
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
+    <!-- 引入SQL执行区域组件JS -->
+    <script src="{{ url_for('static', filename='js/components/sql-execute-area.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/sql-execute-area-init.js') }}"></script>
     <!-- 引入模板提示词组件 -->
     <script src="{{ url_for('static', filename='js/components/template-prompts.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/template-prompts-init.js') }}"></script>
