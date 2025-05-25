@@ -1,25 +1,28 @@
 # 基础Flask依赖
-Flask==2.3.3
-Werkzeug==2.3.7
-Jinja2==3.1.2
+Flask
+Werkzeug
+Jinja2
 
 # 数据库ORM和连接池
-SQLAlchemy==2.0.20
-sqlalchemy-utils==0.41.1
+SQLAlchemy
+sqlalchemy-utils
 
 # 数据库驱动
-pymysql==1.1.0        # MySQL驱动
-pyodbc==4.0.39        # SQL Server驱动
-cx-Oracle==8.3.0      # Oracle驱动
+pymysql        # MySQL驱动
+pyodbc         # SQL Server驱动
+cx-Oracle      # Oracle驱动
 
 # 工具库
-python-dotenv==1.0.0
-requests==2.31.0
-marshmallow==3.20.1
-pandas==2.1.0
-numpy==1.25.2
-xlrd==2.0.1           # 支持.xls文件读取
-openpyxl==3.1.2       # 支持.xlsx文件读取
+python-dotenv
+requests
+pandas
+numpy
+xlrd           # 支持.xls文件读取
+openpyxl       # 支持.xlsx文件读取
 
 # 日志
-loguru==0.7.0
+loguru
+
+pypinyin
+cryptography
+ollama
