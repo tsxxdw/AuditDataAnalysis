@@ -4,7 +4,7 @@
         "mysql": {
             "host": "localhost",
             "port": "3306",
-            "database": "test_database",
+            "database": "yb_2025",
             "username": "root",
             "password": "123456"
         },
