@@ -87,95 +87,11 @@
       "enabled": true,
       "models": [
         {
-          "id": "qwen3:30b-a3b",
-          "name": "qwen3:30b-a3b",
-          "visible": false,
-          "category": "qwen3",
-          "description": "通义千问3 30B大模型"
-        },
-        {
-          "id": "qwen3:1.7b",
-          "name": "qwen3:1.7b",
-          "visible": false,
-          "category": "qwen3",
-          "description": "通义千问3 1.7B大模型"
-        },
-        {
-          "id": "deepseek-r1:1.5b",
-          "name": "deepseek-r1:1.5b",
-          "category": "Ollama本地",
-          "description": "Ollama本地模型 deepseek-r1:1.5b",
-          "visible": true
-        },
-        {
-          "id": "bge-m3:latest",
-          "name": "bge-m3:latest",
-          "category": "本地模型",
-          "description": "Ollama本地模型 bge-m3:latest",
-          "visible": false
-        },
-        {
-          "id": "nomic-embed-text:latest",
-          "name": "nomic-embed-text:latest",
-          "category": "本地模型",
-          "description": "Ollama本地模型 nomic-embed-text:latest",
-          "visible": false
-        },
-        {
           "id": "gemma3:12b",
           "name": "gemma3:12b",
           "category": "本地模型",
           "description": "Ollama本地模型 gemma3:12b",
           "visible": true
-        },
-        {
-          "id": "gemma3:latest",
-          "name": "gemma3:latest",
-          "category": "本地模型",
-          "description": "Ollama本地模型 gemma3:latest",
-          "visible": true
-        },
-        {
-          "id": "gemma3:1b",
-          "name": "gemma3:1b",
-          "category": "本地模型",
-          "description": "Ollama本地模型 gemma3:1b",
-          "visible": true
-        },
-        {
-          "id": "gemma3:4b",
-          "name": "gemma3:4b",
-          "category": "本地模型",
-          "description": "Ollama本地模型 gemma3:4b",
-          "visible": true
-        },
-        {
-          "id": "deepseek-r1:14b",
-          "name": "deepseek-r1:14b",
-          "category": "本地模型",
-          "description": "Ollama本地模型 deepseek-r1:14b",
-          "visible": true
-        },
-        {
-          "id": "deepseek-r1:7b",
-          "name": "deepseek-r1:7b",
-          "category": "本地模型",
-          "description": "Ollama本地模型 deepseek-r1:7b",
-          "visible": true
-        },
-        {
-          "id": "deepseek-r1:32b",
-          "name": "deepseek-r1:32b",
-          "category": "本地模型",
-          "description": "Ollama本地模型 deepseek-r1:32b",
-          "visible": true
-        },
-        {
-          "id": "qwen3:0.6b",
-          "name": "qwen3:0.6b",
-          "category": "Ollama本地",
-          "description": "Ollama本地模型 qwen3:0.6b",
-          "visible": false
         }
       ]
     }
