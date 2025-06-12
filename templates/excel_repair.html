@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXCEL修复 - 数据分析系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/excel_repair.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
+    
+    <main>
+        <div class="repair-container">
+            <h2 class="page-title">EXCEL修复工具</h2>
+            
+            <!-- EXCEL选择区域 -->
+            <div class="repair-section">
+                <h3 class="section-title">EXCEL选择</h3>
+                
+                <div class="form-group">
+                    <label for="excel-file-select">要修复的EXCEL文件:</label>
+                    <select id="excel-file-select" class="select-input">
+                        <option value="" disabled selected>请选择Excel文件</option>
+                        <!-- Excel文件选项将通过JS动态加载 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sheet-select">要选择的sheet:</label>
+                    <select id="sheet-select" class="select-input">
+                        <option value="" disabled selected>请先选择Excel文件</option>
+                        <!-- 工作表选项将通过JS动态加载 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="start-row-select">数据开始行:</label>
+                    <select id="start-row-select" class="select-input">
+                        <option value="1" selected>第1行</option>
+                        <option value="2">第2行</option>
+                        <option value="3">第3行</option>
+                        <option value="4">第4行</option>
+                        <option value="5">第5行</option>
+                        <option value="6">第6行</option>
+                        <option value="7">第7行</option>
+                        <option value="8">第8行</option>
+                        <option value="9">第9行</option>
+                        <option value="10">第10行</option>
+                    </select>
+                    <small class="form-text">指定从哪一行开始处理数据，默认从第1行开始</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button id="open-excel-btn" class="action-button open-excel-btn">打开EXCEL</button>
+                </div>
+                
+                <p class="file-info">支持的格式: .xlsx, .xls</p>
+            </div>
+            
+            <!-- 操作类型区域 -->
+            <div class="repair-section">
+                <h3 class="section-title">操作类型</h3>
+                <div class="form-group">
+                    <label for="operation-type">选择操作类型:</label>
+                    <select id="operation-type" class="select-input">
+                        <option value="" disabled selected>请选择要执行的操作</option>
+                        <option value="remove_blank_rows">去除空白行</option>
+                        <option value="remove_duplicates">字段去重</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 字段列选择区域，仅在选择"字段去重"时显示 -->
+            <div id="columns-selection-section" class="repair-section" style="display: none;">
+                <h3 class="section-title">字段列选择</h3>
+                <div class="form-group">
+                    <label for="columns-select">选择用于去重的列:</label>
+                    <select id="columns-select" class="select-input">
+                        <option value="" disabled selected>请选择列</option>
+                        <!-- 列选项将通过JS动态加载 -->
+                    </select>
+                    <div id="selected-columns-container" class="selected-columns-container">
+                        <!-- 已选列标签将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 操作按钮区域 -->
+            <div class="repair-section">
+                <div class="repair-actions">
+                    <button id="repair-btn" class="action-button repair-btn">开始修复</button>
+                </div>
+            </div>
+            
+            <!-- 操作状态和进度 -->
+            <div class="repair-status" style="display: none;">
+                <h3 class="section-title">修复进度</h3>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">0%</div>
+                </div>
+                <p class="status-text">准备修复...</p>
+            </div>
+            
+            <!-- 修复结果摘要 -->
+            <div class="repair-result" style="display: none;">
+                <h3 class="section-title">修复结果</h3>
+                <div class="result-summary">
+                    <div class="result-item">
+                        <span class="result-label">原始行数:</span>
+                        <span class="result-value" id="original-rows">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">处理后行数:</span>
+                        <span class="result-value" id="processed-rows">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">移除行数:</span>
+                        <span class="result-value" id="removed-rows">0</span>
+                    </div>
+                </div>
+                <div class="download-area">
+                    <button id="download-btn" class="action-button download-btn">下载修复后的文件</button>
+                </div>
+            </div>
+            
+            <!-- 日志查看区域 -->
+            <div class="repair-section">
+                <h3 class="section-title">实时日志</h3>
+                <div class="log-container">
+                    <div class="log-content" id="repair-log">
+                        <!-- 日志内容将通过JS动态添加 -->
+                        <div class="log-entry">系统准备就绪，等待修复操作...</div>
+                    </div>
+                    <div class="log-actions">
+                        <button id="clear-log-btn" class="log-button">清空日志</button>
+                        <button id="export-log-btn" class="log-button">导出日志</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
+
+    <!-- 修复确认对话框 -->
+    <div id="repair-confirm-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>修复确认</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>请确认以下修复信息:</p>
+                <div class="confirm-info-container">
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">Excel文件:</span>
+                        <span id="confirm-excel" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">工作表:</span>
+                        <span id="confirm-sheet" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">数据开始行:</span>
+                        <span id="confirm-start-row" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item">
+                        <span class="confirm-label">操作类型:</span>
+                        <span id="confirm-operation" class="confirm-value"></span>
+                    </div>
+                    <div class="confirm-info-item" id="confirm-columns-container" style="display: none;">
+                        <span class="confirm-label">字段列:</span>
+                        <span id="confirm-columns" class="confirm-value"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-repair-btn" class="action-button repair-btn">确认修复</button>
+                <button id="cancel-repair-btn" class="action-button cancel-btn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 引入脚本文件 -->
+    <script src="{{ url_for('static', filename='js/excel_repair.js') }}"></script>
+</body>
+</html> 

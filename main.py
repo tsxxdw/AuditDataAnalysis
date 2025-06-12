@@ -15,6 +15,7 @@ from routes.index_prompt_templates_api import index_prompt_templates_bp
 from routes.index_excel_validation_api import excel_validation_bp
 from routes.index_validation_api import index_validation_bp  # 导入数据校验API蓝图
 from routes.pages import pages_bp
+from routes.excel_repair_api import excel_repair_api  # 导入EXCEL修复API蓝图
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
@@ -46,6 +47,7 @@ app.register_blueprint(pages_bp)  # 注册页面路由蓝图
 app.register_blueprint(model_api)  # 注册模型服务API路由
 app.register_blueprint(model_settings_api)  # 注册模型设置API路由
 app.register_blueprint(index_repair_bp)  # 注册数据修复API路由
+app.register_blueprint(excel_repair_api)  # 注册EXCEL修复API路由
 
 # 初始化中间件
 init_log_middleware(app)

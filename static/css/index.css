@@ -84,6 +84,11 @@
     content: "📊";
 }
 
+/* EXCEL修复按钮图标 */
+.excel-repair-btn:before {
+    content: "🔧";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);

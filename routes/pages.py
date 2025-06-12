@@ -76,6 +76,12 @@ def index_prompt_templates():
     app_logger.info("访问提示词模板页面")
     return render_template('index_prompt_templates.html', page_title='提示词模板')
 
+@pages_bp.route('/excel_repair')
+def excel_repair():
+    """EXCEL修复页面"""
+    app_logger.info("访问EXCEL修复页面")
+    return render_template('excel_repair.html', page_title='EXCEL修复')
+
 @pages_bp.route('/settings')
 def settings():
     """系统设置页面"""
