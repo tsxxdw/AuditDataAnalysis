@@ -1,0 +1,498 @@
+/* 本地知识库页面样式 */
+
+/* 主容器样式 */
+.knowledge-base-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 标题区域样式 */
+.section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-title h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.section-title p {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* 标签页样式 */
+.knowledge-base-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1.5rem;
+}
+
+.tab {
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab:hover {
+    background-color: #f5f5f5;
+}
+
+.tab.active {
+    border-bottom-color: #3498db;
+    color: #3498db;
+}
+
+/* 标签内容区域 */
+.tab-content {
+    display: none;
+    padding: 1rem 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 文件上传区域样式 */
+.upload-area {
+    padding: 1rem;
+}
+
+.upload-info {
+    margin-bottom: 1.5rem;
+}
+
+.upload-info h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.upload-info p {
+    color: #666;
+}
+
+.dropzone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background-color: #f9f9f9;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+    border-color: #3498db;
+    background-color: #f0f8ff;
+}
+
+.dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.upload-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+}
+
+.dropzone p {
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+#file-input {
+    display: none;
+}
+
+.browse-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.browse-btn:hover {
+    background-color: #2980b9;
+}
+
+.selected-files-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.selected-files-container h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+#selected-files-list {
+    list-style: none;
+    padding: 0;
+}
+
+#selected-files-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+}
+
+.file-icon {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.file-name {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.file-size {
+    font-size: 0.8rem;
+    color: #666;
+    margin-left: 0.5rem;
+}
+
+.remove-file {
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.upload-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.upload-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    flex: 1;
+}
+
+.upload-btn:hover {
+    background-color: #2980b9;
+}
+
+.clear-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.clear-btn:hover {
+    background-color: #c0392b;
+}
+
+/* 文本录入区域样式 */
+.text-input-area {
+    padding: 1rem;
+}
+
+.text-input-info {
+    margin-bottom: 1.5rem;
+}
+
+.text-input-info h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.text-input-info p {
+    color: #666;
+}
+
+.text-input-form {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+.text-input-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.save-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    flex: 1;
+}
+
+.save-btn:hover {
+    background-color: #2980b9;
+}
+
+.clear-text-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.clear-text-btn:hover {
+    background-color: #c0392b;
+}
+
+/* 知识库列表区域样式 */
+.knowledge-list-area {
+    padding: 1rem;
+}
+
+.knowledge-list-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.search-container {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    max-width: 500px;
+}
+
+.search-container input {
+    flex: 1;
+    padding: 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.search-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #2980b9;
+}
+
+.filter-container select {
+    padding: 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background-color: white;
+    min-width: 150px;
+}
+
+.knowledge-items-container {
+    min-height: 300px;
+}
+
+.empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.empty-state p {
+    color: #888;
+    font-size: 1.1rem;
+}
+
+/* 知识库列表项样式 */
+.knowledge-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.knowledge-item:hover {
+    background-color: #e9f7fe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.knowledge-item-info {
+    flex: 1;
+}
+
+.knowledge-item-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.knowledge-item-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.knowledge-item-type {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.knowledge-item-date {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.knowledge-item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.knowledge-tag {
+    background-color: #e1f0fa;
+    color: #3498db;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.knowledge-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.knowledge-action-btn {
+    background-color: transparent;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.knowledge-action-btn:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.delete-btn {
+    color: #e74c3c;
+}
+
+.delete-btn:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .knowledge-base-tabs {
+        flex-direction: column;
+        border-bottom: none;
+    }
+    
+    .tab {
+        border-bottom: 1px solid #ddd;
+        border-left: 3px solid transparent;
+    }
+    
+    .tab.active {
+        border-left-color: #3498db;
+        border-bottom-color: #ddd;
+    }
+    
+    .knowledge-list-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .search-container {
+        max-width: none;
+    }
+    
+    .upload-actions,
+    .text-input-actions {
+        flex-direction: column;
+    }
+} 

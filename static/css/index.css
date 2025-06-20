@@ -89,6 +89,11 @@
     content: "🔧";
 }
 
+/* 本地知识库按钮图标 */
+.knowledge-base-btn:before {
+    content: "📚";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);

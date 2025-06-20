@@ -86,4 +86,10 @@ def excel_repair():
 def settings():
     """系统设置页面"""
     app_logger.info("访问系统设置页面")
-    return render_template('settings.html', page_title='系统设置') 
+    return render_template('settings.html', page_title='系统设置')
+
+@pages_bp.route('/index_knowledge_base')
+def index_knowledge_base():
+    """本地知识库页面"""
+    app_logger.info("访问本地知识库页面")
+    return render_template('index_knowledge_base.html', page_title='本地知识库') 
