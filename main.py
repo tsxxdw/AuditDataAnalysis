@@ -5,7 +5,7 @@ import threading
 import time
 from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
-from routes.index_file_upload_api import file_upload_bp
+from routes.index_file_upload_api import file_upload_bp, ensure_dir_exists, UPLOAD_FOLDER
 from routes.index_import_api import import_api_bp
 from routes.index_one_to_one_import_api import index_one_to_one_import_bp
 from routes.index_table_structure_api import index_table_structure_bp
@@ -28,6 +28,10 @@ from routes.index_repair_api import index_repair_bp  # 注册数据修复API路�
 # 初始化项目根路径（全局配置）
 project_root = init_project_root()
 app_logger.info(f"项目根路径: {project_root}")
+
+# 确保文件上传目录存在
+ensure_dir_exists(UPLOAD_FOLDER)
+app_logger.info(f"确保文件上传目录存在: {os.path.abspath(UPLOAD_FOLDER)}")
 
 app = Flask(__name__)
 

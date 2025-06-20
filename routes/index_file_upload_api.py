@@ -16,7 +16,7 @@ from werkzeug.utils import secure_filename
 file_upload_bp = Blueprint('file_upload', __name__)
 
 # 文件上传目录
-UPLOAD_FOLDER = 'static/uploads'
+UPLOAD_FOLDER = 'file/upload'
 
 # 确保上传目录存在
 def ensure_dir_exists(directory):
@@ -34,7 +34,15 @@ def get_date_dir():
 def get_file_url(folder, filename):
     path = os.path.join(folder, filename)
     relative_path = path.replace('\\', '/') # 兼容Windows路径
-    return url_for('static', filename=relative_path.replace('static/', ''), _external=True)
+    # 使用file路径而不是static
+    return f"/file/serve/{folder}/{filename}"
+
+# 添加新的路由来提供文件访问
+@file_upload_bp.route('/file/serve/<folder>/<filename>')
+def serve_file(folder, filename):
+    """提供文件访问的路由，允许用户查看或下载上传的文件"""
+    directory = os.path.join(UPLOAD_FOLDER, folder)
+    return send_from_directory(directory, filename)
 
 @file_upload_bp.route('/api/files/upload', methods=['POST'])
 def upload_file():
