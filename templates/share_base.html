@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>股票基本信息 - AI量化系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 10000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}?v={{ range(1, 10000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}?v={{ range(1, 10000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/loading-spinner.css') }}?v={{ range(1, 10000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/share_base.css') }}?v={{ range(1, 10000) | random }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}?v={{ range(1, 10000) | random }}"></script>
+</head>
+<body>
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
+    
+    <main>
+        <div class="share-container">
+            <div class="filters-container">
+                <h2>股票筛选</h2>
+                <div class="filter-group">
+                    <label for="market-filter">市场：</label>
+                    <select id="market-filter" class="filter-select">
+                        <option value="all">全部</option>
+                        <option value="sh">上海</option>
+                        <option value="sz">深圳</option>
+                        <option value="cy">创业板</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="st-filter">ST状态：</label>
+                    <select id="st-filter" class="filter-select">
+                        <option value="all">全部</option>
+                        <option value="star-st">*ST</option>
+                        <option value="st">ST</option>
+                        <option value="not-st">非ST</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="max-change-filter">最大涨幅：</label>
+                    <select id="max-change-filter" class="filter-select">
+                        <option value="all">全部</option>
+                        <option value="5">5%</option>
+                        <option value="10">10%</option>
+                        <option value="20">20%</option>
+                        <option value="30">30%</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="keyword-filter">关键词：</label>
+                    <input type="text" id="keyword-filter" class="filter-input" placeholder="股票代码或名称">
+                </div>
+                
+                <div class="button-group">
+                    <button id="search-btn" class="action-btn search-btn">搜索</button>
+                    <button id="update-btn" class="action-btn update-btn">更新数据</button>
+                </div>
+            </div>
+            
+            <div class="results-container">
+                {# 引入加载指示器组件 #}
+                {% with loading_text='加载股票数据...' %}
+                {% include 'components/loading-spinner.html' %}
+                {% endwith %}
+                
+                <div class="stats">
+                    <p>共找到 <span id="total-count">0</span> 条记录</p>
+                </div>
+                
+                <table class="share-table">
+                    <thead>
+                        <tr>
+                            <th>股票代码</th>
+                            <th>股票名称</th>
+                            <th>股票类型</th>
+                        </tr>
+                    </thead>
+                    <tbody id="share-list">
+                        <!-- 股票数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+                
+                <div class="pagination">
+                    <button id="prev-page" class="page-btn" disabled>上一页</button>
+                    <span id="page-info">第 <span id="current-page">1</span> 页，共 <span id="total-pages">1</span> 页</span>
+                    <button id="next-page" class="page-btn" disabled>下一页</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
+    
+    <script src="{{ url_for('static', filename='js/components/loading-spinner.js') }}?v={{ range(1, 10000) | random }}"></script>
+    <script src="{{ url_for('static', filename='js/components/loading-spinner-init.js') }}?v={{ range(1, 10000) | random }}"></script>
+    <script src="{{ url_for('static', filename='js/components/header.js') }}?v={{ range(1, 10000) | random }}"></script>
+    <script src="{{ url_for('static', filename='js/share_base.js') }}?v={{ range(1, 10000) | random }}"></script>
+</body>
+</html> 
