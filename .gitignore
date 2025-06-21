@@ -54,6 +54,7 @@ coverage.xml
 *.csv
 *.xls
 *.xlsx
+
 *.db
 *.sqlite
 
@@ -62,3 +63,5 @@ coverage.xml
 *.txt
 
 *.exe
+
+file/
