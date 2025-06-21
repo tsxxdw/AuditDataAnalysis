@@ -60,17 +60,7 @@
     border-color: #bbb;
 }
 
-/* 文件类型标签 */
-.file-type-badge {
-    display: inline-block;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    padding: 0.1rem 0.4rem;
-    border-radius: 3px;
-    margin-left: 10px;
-    font-size: 0.75rem;
-    font-weight: bold;
-}
+/* 文件类型标签 - 已移至组件CSS中 */
 
 .file-select-actions {
     margin-top: 0.8rem;

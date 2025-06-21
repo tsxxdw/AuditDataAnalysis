@@ -27,14 +27,9 @@
                 
                 <div class="file-selector-container">
                     <!-- 使用SearchableDropdown组件模板 -->
-                    {% with id='fileDropdown', placeholder='输入关键词搜索Excel文件...', multiple=true %}
+                    {% with id='fileDropdown', hidden_select_id='file-select', hidden_select_default_text='请选择Excel文件', placeholder='输入关键词搜索Excel文件...', multiple=true %}
                         {% include 'components/searchable-dropdown.html' %}
                     {% endwith %}
-                    
-                    <!-- 隐藏的原始Select元素，用于保持兼容性 -->
-                    <select id="file-select" multiple="multiple" style="display: none;">
-                        <!-- 选项将通过AJAX从后端加载 -->
-                    </select>
                     
                     <div class="file-select-actions">
                         <button id="select-all-btn" class="select-button">全选文件</button>

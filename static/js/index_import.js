@@ -236,7 +236,9 @@ $(document).ready(function() {
         const dropdownData = files.map(file => ({
             id: file.path,
             text: file.name,
-            date: file.date
+            date: file.date,
+            size: file.size,
+            type: file.name.split('.').pop().toUpperCase()
         }));
         
         // 使用SearchableDropdown模板组件
@@ -249,7 +251,9 @@ $(document).ready(function() {
             itemTemplate: (item) => `
                 <div>
                     <span style="font-weight: bold;">${item.text}</span>
-                    <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date}</span>
+                    <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date || ''}</span>
+                    <span style="color: #555; margin-left: 10px; font-size: 0.85em;">${item.size || ''}</span>
+                    <span class="file-type-badge">${item.type}</span>
                 </div>
             `,
             onChange: (value, item) => {

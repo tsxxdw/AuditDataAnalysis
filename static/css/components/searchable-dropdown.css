@@ -87,6 +87,65 @@
     background: #555;
 }
 
+/* 文件类型标签 */
+.file-type-badge {
+    display: inline-block;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    margin-left: 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* 文件项目中的日期显示 */
+.file-date {
+    color: #777;
+    margin-left: 10px;
+    font-size: 0.85em;
+}
+
+/* 文件大小显示 */
+.file-size {
+    color: #555;
+    margin-left: 10px;
+    font-size: 0.85em;
+}
+
+/* 已选文件标签样式 */
+.selected-file-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background-color: #e1f5fe;
+    border-radius: 20px;
+    font-size: 0.9em;
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: background-color 0.2s;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.selected-file-tag:hover {
+    background-color: #b3e5fc;
+}
+
+.selected-file-tag .remove-file {
+    margin-left: 8px;
+    color: #f44336;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.selected-file-tag .remove-file:hover {
+    transform: scale(1.2);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .searchable-dropdown-list {
