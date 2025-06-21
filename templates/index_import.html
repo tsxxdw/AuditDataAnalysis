@@ -26,8 +26,10 @@
                 <h3 class="section-title">EXCEL选择</h3>
                 
                 <div class="file-selector-container">
-                    <!-- 使用SearchableDropdown组件 -->
-                    <div id="fileDropdown" class="file-dropdown"></div>
+                    <!-- 使用SearchableDropdown组件模板 -->
+                    {% with id='fileDropdown', placeholder='输入关键词搜索Excel文件...' %}
+                        {% include 'components/searchable-dropdown.html' %}
+                    {% endwith %}
                     
                     <!-- 隐藏的原始Select元素，用于保持兼容性 -->
                     <select id="file-select" multiple="multiple" style="display: none;">
@@ -353,6 +355,7 @@
     
     <!-- 引入脚本文件 -->
     <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common/database_info.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index_import.js') }}"></script>
 </body>

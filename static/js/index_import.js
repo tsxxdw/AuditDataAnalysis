@@ -239,10 +239,8 @@ $(document).ready(function() {
             date: file.date
         }));
         
-        // 创建文件下拉选择器
-        const fileDropdown = new SearchableDropdown({
-            element: '#fileDropdown',
-            data: dropdownData,
+        // 使用SearchableDropdown模板组件
+        const fileDropdown = initSearchableDropdownFromTemplate('.searchable-dropdown-container', dropdownData, {
             valueField: 'id',
             textField: 'text',
             searchFields: ['text'],

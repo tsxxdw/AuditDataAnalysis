@@ -64,6 +64,21 @@
 /* 文件选择器容器 */
 .file-selector-container {
     margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 文件下拉框样式 */
+.file-selector-container .searchable-dropdown-container {
+    flex: 1;
+    min-width: 0;
+}
+
+/* 文件选择操作按钮容器 */
+.file-select-actions {
+    margin-left: 10px;
+    white-space: nowrap;
 }
 
 /* Select2自定义样式 */
