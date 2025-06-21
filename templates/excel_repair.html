@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/excel_repair.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/searchable-dropdown.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -23,11 +24,11 @@
                 <h3 class="section-title">EXCEL选择</h3>
                 
                 <div class="form-group">
-                    <label for="excel-file-select">要修复的EXCEL文件:</label>
-                    <select id="excel-file-select" class="select-input">
-                        <option value="" disabled selected>请选择Excel文件</option>
-                        <!-- Excel文件选项将通过JS动态加载 -->
-                    </select>
+                    <label for="excel-file-dropdown">要修复的EXCEL文件:</label>
+                    <!-- 使用SearchableDropdown组件模板 -->
+                    {% with id='excel-file-dropdown', hidden_select_id='excel-file-select', hidden_select_default_text='请选择Excel文件', placeholder='输入关键词搜索Excel文件...' %}
+                        {% include 'components/searchable-dropdown.html' %}
+                    {% endwith %}
                 </div>
                 
                 <div class="form-group">
@@ -191,6 +192,8 @@
     </div>
     
     <!-- 引入脚本文件 -->
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/searchable-dropdown-init.js') }}"></script>
     <script src="{{ url_for('static', filename='js/excel_repair.js') }}"></script>
 </body>
 </html> 

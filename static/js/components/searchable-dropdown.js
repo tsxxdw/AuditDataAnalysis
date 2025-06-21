@@ -17,6 +17,7 @@ class SearchableDropdown {
             onSearch: null,
             onOpen: null,
             onClose: null,
+            isMultiple: false, // 是否支持多选
             ...options
         };
 
@@ -31,6 +32,8 @@ class SearchableDropdown {
         this.isOpen = false;
         this.selectedValue = null;
         this.selectedItem = null;
+        this.selectedValues = []; // 多选模式下的已选值数组
+        this.selectedItems = []; // 多选模式下的已选项数组
         this.filteredData = [];
 
         this.init();
@@ -78,7 +81,21 @@ class SearchableDropdown {
             const item = e.target.closest('.searchable-dropdown-item');
             if (item) {
                 const value = item.dataset.value;
-                this.select(value);
+                
+                if (this.options.isMultiple) {
+                    // 多选模式下，点击已选项会取消选择
+                    if (item.classList.contains('selected')) {
+                        this.deselectValue(value);
+                    } else {
+                        this.selectValue(value);
+                    }
+                    
+                    // 多选模式下点击选项不关闭下拉框
+                    e.stopPropagation();
+                } else {
+                    // 单选模式下正常选择并关闭下拉框
+                    this.select(value);
+                }
             }
         });
     }
@@ -129,7 +146,13 @@ class SearchableDropdown {
                 itemElement.textContent = item[this.options.textField];
             }
             
-            if (this.selectedValue === item[this.options.valueField]) {
+            // 单选模式
+            if (!this.options.isMultiple && this.selectedValue === item[this.options.valueField]) {
+                itemElement.classList.add('selected');
+            }
+            
+            // 多选模式
+            if (this.options.isMultiple && this.selectedValues.includes(item[this.options.valueField])) {
                 itemElement.classList.add('selected');
             }
             
@@ -174,17 +197,80 @@ class SearchableDropdown {
             this.options.onChange(value, item);
         }
     }
+    
+    // 多选模式下选择一个值
+    async selectValue(value) {
+        if (!this.options.isMultiple) {
+            return this.select(value);
+        }
+        
+        const item = this.filteredData.find(item => item[this.options.valueField] === value);
+        if (!item) return;
+        
+        // 如果没有在已选列表中，则添加
+        if (!this.selectedValues.includes(value)) {
+            this.selectedValues.push(value);
+            this.selectedItems.push(item);
+            
+            // 更新显示的选中状态
+            const itemElement = this.dropdown.querySelector(`.searchable-dropdown-item[data-value="${value}"]`);
+            if (itemElement) {
+                itemElement.classList.add('selected');
+            }
+            
+            // 触发onChange回调
+            if (this.options.onChange) {
+                this.options.onChange(value, item);
+            }
+        }
+    }
+    
+    // 多选模式下取消选择一个值
+    async deselectValue(value) {
+        if (!this.options.isMultiple) return;
+        
+        // 从已选列表中移除
+        const index = this.selectedValues.indexOf(value);
+        if (index !== -1) {
+            const item = this.selectedItems[index];
+            this.selectedValues.splice(index, 1);
+            this.selectedItems.splice(index, 1);
+            
+            // 更新显示的选中状态
+            const itemElement = this.dropdown.querySelector(`.searchable-dropdown-item[data-value="${value}"]`);
+            if (itemElement) {
+                itemElement.classList.remove('selected');
+            }
+            
+            // 触发onChange回调
+            if (this.options.onChange) {
+                this.options.onChange(null, {
+                    removed: true,
+                    value: value,
+                    item: item
+                });
+            }
+        }
+    }
 
     setValue(value) {
         this.select(value);
     }
 
     getValue() {
-        return this.selectedValue;
+        return this.options.isMultiple ? this.selectedValues : this.selectedValue;
     }
 
     getText() {
+        if (this.options.isMultiple) {
+            return this.selectedItems.map(item => item[this.options.textField]);
+        }
         return this.selectedItem ? this.selectedItem[this.options.textField] : '';
+    }
+    
+    // 获取所有已选项
+    getSelectedItems() {
+        return this.options.isMultiple ? this.selectedItems : (this.selectedItem ? [this.selectedItem] : []);
     }
 
     async refresh() {

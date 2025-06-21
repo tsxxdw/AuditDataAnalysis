@@ -145,20 +145,42 @@ $(document).ready(function() {
     
     // 更新Excel文件选择下拉框
     function updateExcelFileSelect(files) {
-        var $select = $('#excel-file-select');
-        $select.empty().append('<option value="" disabled selected>请选择Excel文件</option>');
+        // 转换数据结构以适应SearchableDropdown组件
+        const dropdownData = files.map(file => ({
+            id: file.path,
+            text: file.name,
+            date: file.date,
+            size: file.size,
+            type: file.name.split('.').pop().toUpperCase()
+        }));
         
-        // 添加所有Excel文件
-        files.forEach(function(file) {
-            $select.append(`<option value="${file.path}">${file.name}</option>`);
+        // 使用模板初始化下拉框组件
+        const excelDropdown = initSearchableDropdownFromTemplate('.searchable-dropdown-container', dropdownData, {
+            valueField: 'id',
+            textField: 'text',
+            searchFields: ['text'],
+            placeholder: '输入关键词搜索Excel文件...',
+            noResultsText: '没有找到匹配的Excel文件',
+            itemTemplate: (item) => `
+                <div>
+                    <span style="font-weight: bold;">${item.text}</span>
+                    <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date || ''}</span>
+                    <span style="color: #555; margin-left: 10px; font-size: 0.85em;">${item.size || ''}</span>
+                    <span class="file-type-badge">${item.type}</span>
+                </div>
+            `,
+            onChange: function(value, item) {
+                if (value) {
+                    // 触发Excel文件选择事件
+                    $('#excel-file-select').val(value).trigger('change');
+                }
+            }
         });
         
-        // 如果有文件，启用下拉框
+        // 如果有文件，添加日志
         if (files.length > 0) {
-            $select.prop('disabled', false);
             addLog('已加载 ' + files.length + ' 个Excel文件');
         } else {
-            $select.prop('disabled', true);
             addLog('没有找到Excel文件', false, 'error');
         }
     }

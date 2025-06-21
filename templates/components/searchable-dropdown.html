@@ -5,9 +5,11 @@
     hidden_select_id (隐藏的select元素ID, 可选)
     hidden_select_name (隐藏的select元素name属性, 可选)
     hidden_select_default_text (隐藏的select默认选项文本, 可选, 默认为"请选择")
+    multiple (是否允许多选, 可选, 默认为false)
 -->
 {% set placeholder = placeholder|default("搜索...") %}
 {% set hidden_select_default_text = hidden_select_default_text|default("请选择") %}
+{% set multiple = multiple|default(false) %}
 
 <div class="searchable-dropdown-container form-control-container">
     <!-- 可搜索下拉框容器 -->
@@ -15,7 +17,7 @@
     
     <!-- 隐藏的select元素，用于存储选中的值 -->
     {% if hidden_select_id %}
-    <select id="{{ hidden_select_id }}" {% if hidden_select_name %}name="{{ hidden_select_name }}"{% endif %} style="display: none;">
+    <select id="{{ hidden_select_id }}" {% if hidden_select_name %}name="{{ hidden_select_name }}"{% endif %} {% if multiple %}multiple="multiple"{% endif %} style="display: none;">
         <option value="">{{ hidden_select_default_text }}</option>
     </select>
     {% endif %}

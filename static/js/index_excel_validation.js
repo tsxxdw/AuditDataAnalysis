@@ -408,15 +408,21 @@ $(document).ready(function() {
             type: file.name.split('.').pop().toUpperCase()
         }));
         
-        // 创建文件下拉选择器
-        dropdownInstance = new SearchableDropdown({
-            element: '#fileDropdown',
-            data: dropdownData,
+        // 使用模板初始化下拉框组件
+        dropdownInstance = initSearchableDropdownFromTemplate('.searchable-dropdown-container', dropdownData, {
             valueField: 'id',
             textField: 'text',
             searchFields: ['text'],
             placeholder: '输入关键词搜索Excel文件...',
             noResultsText: '没有找到匹配的Excel文件',
+            itemTemplate: (item) => `
+                <div>
+                    <span style="font-weight: bold;">${item.text}</span>
+                    <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date}</span>
+                    <span style="color: #555; margin-left: 10px; font-size: 0.85em;">${item.size}</span>
+                    <span class="file-type-badge">${item.type}</span>
+                </div>
+            `,
             onChange: function(value, item) {
                 if (value) {
                     handleFileSelect(item);
@@ -427,6 +433,15 @@ $(document).ready(function() {
     
     // 处理文件选择
     function handleFileSelect(fileItem) {
+        // 处理多选模式下的特殊情况
+        if (fileItem && fileItem.removed) {
+            // 这是一个取消选择的事件
+            if (fileItem.value) {
+                removeFile(fileItem.value);
+            }
+            return;
+        }
+        
         if (!fileItem) return;
         
         // 检查是否已经选择了该文件

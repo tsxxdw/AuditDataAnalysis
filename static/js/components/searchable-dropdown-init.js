@@ -21,18 +21,30 @@ function initSearchableDropdown(selector, data, options = {}) {
         const hiddenSelect = document.getElementById(options.hiddenSelectId);
         if (hiddenSelect) {
             const originalOnChange = defaultOptions.onChange || function() {};
+            const isMultiple = hiddenSelect.hasAttribute('multiple');
             
             defaultOptions.onChange = function(value, item) {
-                // 更新隐藏的select值
-                hiddenSelect.value = value;
-                
-                // 触发原始onChange事件
-                originalOnChange(value, item);
-                
-                // 触发change事件，以便其他监听器能够响应
-                const event = new Event('change');
-                hiddenSelect.dispatchEvent(event);
+                if (isMultiple) {
+                    // 多选模式下，不直接设置value，而是由外部处理
+                    // 这里只触发原始onChange事件
+                    originalOnChange(value, item);
+                } else {
+                    // 单选模式下，更新隐藏的select值
+                    hiddenSelect.value = value;
+                    
+                    // 触发原始onChange事件
+                    originalOnChange(value, item);
+                    
+                    // 触发change事件，以便其他监听器能够响应
+                    const event = new Event('change');
+                    hiddenSelect.dispatchEvent(event);
+                }
             };
+            
+            // 如果是多选模式，添加多选支持
+            if (isMultiple) {
+                defaultOptions.isMultiple = true;
+            }
         }
     }
 
@@ -60,12 +72,14 @@ function initSearchableDropdownFromTemplate(containerSelector, data, options = {
     // 查找隐藏的select元素
     const hiddenSelect = container.querySelector('select');
     const hiddenSelectId = hiddenSelect ? hiddenSelect.id : null;
+    const isMultiple = hiddenSelect ? hiddenSelect.hasAttribute('multiple') : false;
     
     // 合并选项
     const mergedOptions = {
         ...options,
         element: dropdownElement,
-        hiddenSelectId: hiddenSelectId
+        hiddenSelectId: hiddenSelectId,
+        isMultiple: isMultiple
     };
     
     // 初始化下拉框
