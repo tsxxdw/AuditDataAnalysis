@@ -27,7 +27,7 @@
                 
                 <div class="file-selector-container">
                     <!-- 使用SearchableDropdown组件模板 -->
-                    {% with id='fileDropdown', placeholder='输入关键词搜索Excel文件...' %}
+                    {% with id='fileDropdown', placeholder='输入关键词搜索Excel文件...', multiple=true %}
                         {% include 'components/searchable-dropdown.html' %}
                     {% endwith %}
                     
