@@ -4,6 +4,15 @@
     max-width: 100%;
 }
 
+/* 确保与form-control元素宽度一致的容器样式 */
+.form-control-container {
+    width: 100%;
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
 .searchable-dropdown-input {
     width: 100%;
     padding: 8px 12px;

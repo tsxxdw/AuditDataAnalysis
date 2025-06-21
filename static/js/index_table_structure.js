@@ -361,10 +361,8 @@ $(document).ready(function() {
             date: file.date
         }));
         
-        // 使用SearchableDropdown组件
-        const excelDropdown = new SearchableDropdown({
-            element: '#excelFileDropdown',
-            data: dropdownData,
+        // 使用SearchableDropdown组件（通过模板初始化）
+        const excelDropdown = initSearchableDropdownFromTemplate('.searchable-dropdown-container', dropdownData, {
             valueField: 'id',
             textField: 'text',
             searchFields: ['text'],
@@ -377,9 +375,6 @@ $(document).ready(function() {
                 </div>
             `,
             onChange: (value) => {
-                // 更新隐藏的input值
-                $('#file-select').val(value);
-                
                 // 加载Excel文件的工作表
                 if (value) {
                     loadExcelFileSheets(value);

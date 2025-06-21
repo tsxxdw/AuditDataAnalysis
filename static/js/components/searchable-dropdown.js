@@ -55,6 +55,7 @@ class SearchableDropdown {
         this.input.type = 'text';
         this.input.placeholder = this.options.placeholder;
         this.input.classList.add('searchable-dropdown-input');
+        this.input.classList.add('form-control');
         
         // 创建下拉列表容器
         this.dropdown = document.createElement('div');
