@@ -1,5 +1,6 @@
 /**
  * 功能切换组件初始化
+ * 负责自动实例化页面上的功能切换组件并提供全局调用接口
  */
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已存在FunctionSwitch类

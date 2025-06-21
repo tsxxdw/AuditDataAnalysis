@@ -6,8 +6,24 @@ $(document).ready(function() {
     // 加载表列表
     loadTableList();
     
-    // 加载提示词模板列表
-    // loadPromptTemplates();
+    // 确保模板组件已经存在
+    let checkTemplateComponentInterval = setInterval(function() {
+        if (window.templatePromptsComponent) {
+            clearInterval(checkTemplateComponentInterval);
+            console.log('模板提示词组件已加载');
+        } else {
+            console.log('等待模板提示词组件加载...');
+            // 尝试初始化模板组件
+            if (typeof TemplatePrompts !== 'undefined') {
+                window.templatePromptsComponent = new TemplatePrompts({
+                    onSelect: function(templateId, item) {
+                        console.log('已选择模板:', templateId, item);
+                    }
+                });
+                clearInterval(checkTemplateComponentInterval);
+            }
+        }
+    }, 500);
 
     // 监听表名选择变化
     $('#tableName').on('change', function() {
@@ -74,27 +90,13 @@ $(document).ready(function() {
         if (window.templatePromptsComponent) {
             templateId = window.templatePromptsComponent.getSelectedTemplateId();
         } else {
-            // 先从组件实例获取
-            if (window.templateDropdown && window.templateDropdown.getValue) {
-                templateId = window.templateDropdown.getValue();
-                console.log('从组件实例获取模板ID:', templateId);
-            }
-            
-            // 如果没有，则从隐藏select获取
-            if (!templateId) {
-                templateId = $('#promptTemplate').val();
-                console.log('从隐藏select获取模板ID:', templateId);
-            }
+            alert('模板提示词组件未初始化，请刷新页面重试');
+            return;
         }
         
         // 验证模板ID是否存在
         if (!templateId) {
             alert('请选择一个提示词模板');
-            // 高亮提示模板选择区域
-            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
-                $(this).removeClass('field-required');
-                next();
-            });
             return;
         }
         
@@ -244,10 +246,4 @@ $(document).ready(function() {
             $('#fieldName').append(`<option value="${field.name}">${field.name} - ${field.comment || '无注释'}</option>`);
         });
     }
-    
-    // 加载提示词模板列表
-    // function loadPromptTemplates() {...}
-    
-    // 初始化提示词模板下拉框
-    // function initializeTemplateDropdown(templates) {...}
 }); 

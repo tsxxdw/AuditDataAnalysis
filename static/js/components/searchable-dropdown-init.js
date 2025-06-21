@@ -1,6 +1,6 @@
 /**
  * SearchableDropdown初始化助手
- * 提供简化的初始化方式
+ * 提供简化的初始化方式，支持jQuery插件模式及多种模块化导出
  */
 
 function initSearchableDropdown(selector, data, options = {}) {

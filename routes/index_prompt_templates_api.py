@@ -72,7 +72,8 @@ def create_template():
         success, message, template = template_service.create_template(
             name=data.get('name'),
             description=data.get('description', ''),
-            content=data.get('content')
+            content=data.get('content'),
+            page=data.get('page', '')
         )
         
         if not success:
@@ -138,7 +139,8 @@ def update_template(template_id):
             name=data.get('name'),
             description=data.get('description', ''),
             content=data.get('content'),
-            tag=data.get('tag')
+            tag=data.get('tag'),
+            page=data.get('page', '')
         )
         
         if not success:

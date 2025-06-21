@@ -1,3 +1,7 @@
+/**
+ * 可搜索下拉框组件
+ * 提供带搜索过滤功能的下拉选择框，支持自定义模板和事件回调
+ */
 class SearchableDropdown {
     constructor(options) {
         this.options = {

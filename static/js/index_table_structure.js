@@ -53,9 +53,6 @@ $(document).ready(function() {
     // 加载表列表
     loadTableList();
     
-    // 加载提示词模板列表
-    loadPromptTemplates();
-    
     // 确保模板组件已经存在
     let checkTemplateComponentInterval = setInterval(function() {
         if (window.templatePromptsComponent) {
@@ -267,62 +264,36 @@ $(document).ready(function() {
     // 生成索引SQL
     function generateIndexSQL(e, operation) {
         const tableName = $('#indexTableName').val();
-        const fieldName = $('#fieldName').val();
-        const operationType = $('#indexOperationType').val();
+        const indexName = $('#indexName').val();
+        const indexType = $('#indexType').val();
+        const indexFields = $('#indexFields').val();
         
-        if(!tableName) {
-            alert('请选择表名');
-            return;
-        }
-        
-        if(!fieldName) {
-            alert('请选择字段名');
+        // 验证必填项
+        if(!tableName || !indexName || !indexFields) {
+            alert('请填写表名、索引名和索引字段');
             return;
         }
         
         // 获取选择的模板ID
         let templateId = null;
         
-        // 首先检查组件是否存在
         if (window.templatePromptsComponent) {
-            // 尝试从组件获取模板ID
             templateId = window.templatePromptsComponent.getSelectedTemplateId();
-            console.log('从templatePromptsComponent获取的模板ID:', templateId);
-        }
-        
-        // 如果组件不存在或未选择模板，尝试从隐藏select获取
-        if (!templateId) {
-            templateId = $('#promptTemplate').val();
-            console.log('从promptTemplate隐藏选择框获取的模板ID:', templateId);
-        }
-        
-        // 如果还是没有，尝试从模板下拉框组件获取
-        if (!templateId && window.templateDropdown && window.templateDropdown.getValue) {
-            templateId = window.templateDropdown.getValue();
-            console.log('从templateDropdown组件获取的模板ID:', templateId);
+        } else {
+            alert('模板提示词组件未初始化，请刷新页面重试');
+            return;
         }
         
         // 验证模板ID是否存在
         if (!templateId) {
             alert('请选择一个提示词模板');
-            // 确保模板提示词区域可见
-            $('.template-prompts').show();
-            if (window.templatePromptsComponent) {
-                window.templatePromptsComponent.show();
-            }
-            
-            // 高亮提示模板选择区域
-            $('#templateDropdown').addClass('field-required').delay(2000).queue(function(next){
-                $(this).removeClass('field-required');
-                next();
-            });
             return;
         }
         
         // 显示中央加载动画
         $('#loadingOverlay').css('display', 'flex');
         
-        // 调用后端API生成索引SQL
+        // 调用API生成SQL
         $.ajax({
             url: '/api/table_structure/generate_index_sql',
             type: 'POST',
@@ -342,11 +313,6 @@ $(document).ready(function() {
                     } else {
                         $('#sqlContent').val(response.sql);
                     }
-                    
-                    // 如果是从LLM生成的，可以添加一些提示
-                    if (response.from_llm) {
-                        console.log('SQL由大语言模型生成');
-                    }
                 } else {
                     alert(response.message || '生成SQL失败');
                 }
@@ -361,104 +327,6 @@ $(document).ready(function() {
             }
         });
     }
-    
-    // 查看模板详情按钮点击事件
-    $('#viewTemplateDetails').on('click', function() {
-        console.log('查看模板详情点击事件触发');
-        
-        // 优先从组件实例获取值
-        let templateId = null;
-        
-        // 1. 先从按钮的data属性获取
-        templateId = $(this).data('template-id');
-        console.log('从按钮data属性获取模板ID:', templateId);
-        
-        // 2. 如果没有，从组件实例获取
-        if (!templateId && window.templateDropdown && window.templateDropdown.getValue) {
-            templateId = window.templateDropdown.getValue();
-            console.log('从组件实例获取模板ID:', templateId);
-        }
-        
-        // 3. 如果仍然没有，则从隐藏select获取
-        if (!templateId) {
-            templateId = $('#promptTemplate').val();
-            console.log('从隐藏select获取模板ID:', templateId);
-        }
-        
-        if (!templateId) {
-            console.log('未选择模板，不执行请求');
-            alert('请先选择一个模板');
-            return;
-        }
-        
-        // 获取模板详情
-        $.ajax({
-            url: `/api/prompt_templates/${templateId}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    const template = response.template;
-                    let templateContent;
-                    
-                    try {
-                        templateContent = JSON.parse(template.content);
-                    } catch (e) {
-                        console.error('解析模板内容失败:', e);
-                        alert('模板内容格式错误');
-                        return;
-                    }
-                    
-                    // 清空旧内容
-                    $('.template-name-text, .template-description-text, .system-prompt-text, .user-prompt-text').text('');
-                    
-                    // 显示模板名称
-                    $('.template-name-text').text(template.name);
-                    
-                    // 显示模板描述
-                    if (template.description) {
-                        $('.template-description-text').text(template.description);
-                    } else {
-                        $('.template-description-text').text('无描述');
-                    }
-                    
-                    // 显示系统提示词
-                    if (templateContent.system) {
-                        $('.system-prompt-text').text(templateContent.system);
-                    } else {
-                        $('.system-prompt-text').text('无系统提示词');
-                    }
-                    
-                    // 显示用户提示词
-                    if (templateContent.user) {
-                        $('.user-prompt-text').text(templateContent.user);
-                    } else {
-                        $('.user-prompt-text').text('无用户提示词');
-                    }
-                    
-                    // 显示模态对话框
-                    $('#templateDetailsModal').css('display', 'block');
-                } else {
-                    alert(response.message || '获取模板详情失败');
-                }
-            },
-            error: function(xhr) {
-                console.error('获取模板详情失败:', xhr);
-                alert('获取模板详情失败，请查看控制台日志');
-            }
-        });
-    });
-    
-    // 监听索引表名变化，加载字段
-    $('#indexTableName').on('change', function() {
-        const selectedTable = $(this).val();
-        if(selectedTable) {
-            loadTableFields(selectedTable);
-        } else {
-            // 清空字段下拉框
-            $('#fieldName').empty();
-            $('#fieldName').append('<option value="">请选择字段</option>');
-        }
-    });
     
     // 初始化文件选择器
     function initializeFileSelector() {
@@ -479,12 +347,12 @@ $(document).ready(function() {
                 initializeExcelFileDropdown(excelFiles);
             },
             error: function(xhr) {
-                console.error('获取文件列表失败:', xhr);
+                console.error('获取Excel文件列表请求失败:', xhr);
             }
         });
     }
     
-    // 使用SearchableDropdown组件初始化Excel文件选择器
+    // 初始化Excel文件下拉框
     function initializeExcelFileDropdown(files) {
         // 转换数据结构以适应SearchableDropdown组件
         const dropdownData = files.map(file => ({
@@ -493,7 +361,7 @@ $(document).ready(function() {
             date: file.date
         }));
         
-        // 创建Excel文件下拉选择器
+        // 使用SearchableDropdown组件
         const excelDropdown = new SearchableDropdown({
             element: '#excelFileDropdown',
             data: dropdownData,
@@ -508,17 +376,21 @@ $(document).ready(function() {
                     <span style="color: #777; margin-left: 10px; font-size: 0.85em;">${item.date}</span>
                 </div>
             `,
-            onChange: (value, item) => {
-                // 设置隐藏下拉框的值
+            onChange: (value) => {
+                // 更新隐藏的input值
                 $('#file-select').val(value);
-                console.log('Excel文件已选择，路径已设置:', value);
                 
-                // 加载工作表
-                loadExcelFileSheets(value);
+                // 加载Excel文件的工作表
+                if (value) {
+                    loadExcelFileSheets(value);
+                } else {
+                    // 清空工作表选择
+                    $('#sheet-select').html('<option value="">请选择工作表</option>');
+                }
             }
         });
         
-        // 保存到全局变量，方便后续访问
+        // 保存实例以便后续访问
         window.excelDropdown = excelDropdown;
     }
     
@@ -542,12 +414,12 @@ $(document).ready(function() {
                 if (response.success && response.sheets && response.sheets.length > 0) {
                     updateSheetSelect(response.sheets);
                 } else {
-                    $('#sheet-select').empty().append('<option value="" disabled selected>未找到工作表</option>');
+                    $('#sheet-select').html('<option value="">未找到工作表</option>');
                     console.error('警告: 所选Excel文件中未找到工作表');
                 }
             },
             error: function(xhr, status, error) {
-                $('#sheet-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                $('#sheet-select').html('<option value="">加载失败</option>');
                 console.error('错误: 加载工作表失败 - ' + (xhr.responseJSON?.error || error));
             }
         });
@@ -555,103 +427,29 @@ $(document).ready(function() {
     
     // 更新工作表下拉框
     function updateSheetSelect(sheets) {
-        $('#sheet-select').empty().append('<option value="" disabled selected>请选择工作表</option>');
+        const $sheetSelect = $('#sheet-select');
         
-        $.each(sheets, function(index, sheet) {
-            $('#sheet-select').append(
-                $('<option></option>')
-                    .attr('value', sheet.id)
-                    .text(sheet.name)
-            );
+        // 清空下拉框
+        $sheetSelect.empty();
+        
+        // 添加默认选项
+        $sheetSelect.append('<option value="">请选择工作表</option>');
+        
+        // 添加工作表选项
+        sheets.forEach(function(sheet) {
+            $sheetSelect.append(`<option value="${sheet.id}">${sheet.name}</option>`);
         });
-        
-        if (sheets.length > 0) {
-            console.log('成功加载 ' + sheets.length + ' 个工作表');
-        }
     }
     
     // 加载表列表
     function loadTableList() {
         // 使用通用函数加载表列表
-        loadDatabaseTables('#indexTableName', function(tables) {
-            if (!tables || tables.length === 0) {
-                console.error('获取表列表失败');
-            }
-        });
+        loadDatabaseTables('#indexTableName');
     }
     
     // 加载表字段
     function loadTableFields(tableName) {
         // 使用通用函数加载表字段
-        loadDatabaseTableFields(tableName, '#fieldName', function(fields) {
-            if (!fields || fields.length === 0) {
-                console.error('获取表字段失败');
-                alert('获取表字段失败');
-            }
-        });
-    }
-    
-    // 加载提示词模板列表
-    function loadPromptTemplates() {
-        // 获取所有模板数据
-        $.ajax({
-            url: '/api/prompt_templates/list',
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    // 使用SearchableDropdown组件初始化模板选择器
-                    initializeTemplateDropdown(response.templates);
-                } else {
-                    console.error('加载提示词模板失败:', response.message);
-                }
-            },
-            error: function(xhr) {
-                console.error('请求提示词模板列表失败:', xhr);
-            }
-        });
-    }
-    
-    // 使用SearchableDropdown组件初始化模板选择器
-    function initializeTemplateDropdown(templates) {
-        // 保存模板数据供全局访问
-        window.allTemplates = templates;
-        
-        // 转换数据结构以适应SearchableDropdown组件
-        const dropdownData = templates.map(template => ({
-            id: template.id,
-            text: template.name,
-            description: template.description || ''
-        }));
-        
-        // 创建模板选择下拉框
-        const templateDropdown = new SearchableDropdown({
-            element: '#templateDropdown',
-            data: dropdownData,
-            valueField: 'id',
-            textField: 'text',
-            searchFields: ['text', 'description'],
-            placeholder: '输入关键词搜索模板...',
-            noResultsText: '没有找到匹配的模板',
-            itemTemplate: (item) => `
-                <div>
-                    <span style="font-weight: bold;">${item.text}</span>
-                    ${item.description ? `<span style="color: #777; display: block; font-size: 0.85em;">${item.description}</span>` : ''}
-                </div>
-            `,
-            onChange: (value, item) => {
-                // 设置隐藏下拉框的值
-                $('#promptTemplate').val(value);
-                console.log('已设置隐藏select值:', value, '元素当前值:', $('#promptTemplate').val());
-                
-                // 保存ID到按钮的data属性中
-                $('#viewTemplateDetails').data('template-id', value);
-                
-                // 启用查看详情按钮
-                $('#viewTemplateDetails').prop('disabled', false);
-            }
-        });
-        
-        // 保存实例以便后续访问
-        window.templateDropdown = templateDropdown;
+        loadDatabaseTableFields(tableName, '#indexFields');
     }
 }); 

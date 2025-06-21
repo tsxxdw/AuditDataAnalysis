@@ -107,8 +107,14 @@ class TemplatePrompts {
      * @param {Array} templates 模板数据数组
      */
     initializeTemplateDropdown(templates) {
+        // 获取当前页面标识符
+        const currentPage = this.getCurrentPageIdentifier();
+        
+        // 筛选模板：只显示page字段与当前页面匹配或为空的模板
+        const filteredTemplates = this.filterTemplatesByPage(templates, currentPage);
+        
         // 转换数据结构以适应SearchableDropdown组件
-        const dropdownData = templates.map(template => ({
+        const dropdownData = filteredTemplates.map(template => ({
             id: template.id,
             text: template.name,
             description: template.description || ''
@@ -138,6 +144,51 @@ class TemplatePrompts {
         } else {
             console.error('初始化模板下拉选择器失败：SearchableDropdown组件未定义');
         }
+    }
+    
+    /**
+     * 获取当前页面标识符
+     * @returns {string} 页面标识符，例如 'index_table_structure'
+     */
+    getCurrentPageIdentifier() {
+        // 获取当前URL路径
+        const path = window.location.pathname;
+        
+        // 提取最后一个路径段作为页面标识符
+        const segments = path.split('/').filter(segment => segment);
+        return segments.length > 0 ? segments[segments.length - 1] : '';
+    }
+    
+    /**
+     * 根据当前页面筛选模板
+     * @param {Array} templates 所有模板数组
+     * @param {string} currentPage 当前页面标识符
+     * @returns {Array} 筛选后的模板数组
+     */
+    filterTemplatesByPage(templates, currentPage) {
+        // 如果没有当前页面标识符，返回所有模板
+        if (!currentPage) {
+            return templates;
+        }
+        
+        // 筛选模板：
+        // 1. page字段等于"general"的模板（通用模板）
+        // 2. page字段与当前页面匹配的模板
+        return templates.filter(template => {
+            // 如果模板的page字段等于"general"，视为通用模板
+            if (template.page === 'general') {
+                return true;
+            }
+            
+            // 支持多页面（用逗号分隔的页面列表）
+            if (template.page && template.page.includes(',')) {
+                const pages = template.page.split(',').map(p => p.trim());
+                return pages.includes(currentPage);
+            }
+            
+            // 直接匹配
+            return template.page === currentPage;
+        });
     }
     
     /**

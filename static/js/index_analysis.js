@@ -14,6 +14,25 @@ $(document).ready(function() {
     // 初始化表下拉选择器
     loadTableList();
     
+    // 确保模板组件已经存在
+    let checkTemplateComponentInterval = setInterval(function() {
+        if (window.templatePromptsComponent) {
+            clearInterval(checkTemplateComponentInterval);
+            console.log('模板提示词组件已加载');
+        } else {
+            console.log('等待模板提示词组件加载...');
+            // 尝试初始化模板组件
+            if (typeof TemplatePrompts !== 'undefined') {
+                window.templatePromptsComponent = new TemplatePrompts({
+                    onSelect: function(templateId, item) {
+                        console.log('已选择模板:', templateId, item);
+                    }
+                });
+                clearInterval(checkTemplateComponentInterval);
+            }
+        }
+    }, 500);
+    
     // 配置SQL执行区域组件
     if (window.sqlExecuteArea) {
         // 设置API端点
@@ -179,14 +198,8 @@ $(document).ready(function() {
         if (window.templatePromptsComponent) {
             templateId = window.templatePromptsComponent.getSelectedTemplateId();
         } else {
-            // 兼容方式
-            if (window.templateDropdown && window.templateDropdown.getValue) {
-                templateId = window.templateDropdown.getValue();
-            }
-            
-            if (!templateId) {
-                templateId = $('#promptTemplate').val();
-            }
+            alert('模板提示词组件未初始化，请刷新页面重试');
+            return;
         }
         
         if (!templateId) {
