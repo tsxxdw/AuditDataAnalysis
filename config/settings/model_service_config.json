@@ -1,8 +1,8 @@
 {
   "defaultProvider": "ollama",
   "defaultModel": {
-    "provider_id": "silicon-flow",
-    "model_id": "Qwen/Qwen3-32B"
+    "provider_id": "ollama",
+    "model_id": "qwen3:0.6b"
   },
   "providers": {
     "silicon-flow": {
@@ -91,7 +91,70 @@
           "name": "gemma3:12b",
           "category": "本地模型",
           "description": "Ollama本地模型 gemma3:12b",
+          "visible": false
+        },
+        {
+          "id": "deepseek-r1:8b-0528-qwen3-q4_K_M",
+          "name": "deepseek-r1:8b-0528-qwen3-q4_K_M",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-q4_K_M",
+          "visible": false
+        },
+        {
+          "id": "deepseek-r1:8b-0528-qwen3-fp16",
+          "name": "deepseek-r1:8b-0528-qwen3-fp16",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-fp16",
+          "visible": false
+        },
+        {
+          "id": "deepseek-r1:8b-0528-qwen3-q8_0",
+          "name": "deepseek-r1:8b-0528-qwen3-q8_0",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-q8_0",
+          "visible": false
+        },
+        {
+          "id": "qwen3:4b",
+          "name": "qwen3:4b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:4b",
+          "visible": false
+        },
+        {
+          "id": "qwen3:8b",
+          "name": "qwen3:8b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:8b",
+          "visible": false
+        },
+        {
+          "id": "qwen3:14b",
+          "name": "qwen3:14b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:14b",
+          "visible": false
+        },
+        {
+          "id": "qwen3:0.6b",
+          "name": "qwen3:0.6b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:0.6b",
           "visible": true
+        },
+        {
+          "id": "nomic-embed-text:latest",
+          "name": "nomic-embed-text:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 nomic-embed-text:latest",
+          "visible": false
+        },
+        {
+          "id": "devstral:latest",
+          "name": "devstral:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 devstral:latest",
+          "visible": false
         }
       ]
     }

@@ -8,17 +8,17 @@ SQLAlchemy
 sqlalchemy-utils
 
 # 数据库驱动
-pymysql        # MySQL驱动
-pyodbc         # SQL Server驱动
+pymysql==1.1.1        # MySQL驱动
+pyodbc==5.2.0         # SQL Server驱动
 cx-Oracle      # Oracle驱动
 
 # 工具库
-python-dotenv
-requests
-pandas
-numpy
-xlrd           # 支持.xls文件读取
-openpyxl       # 支持.xlsx文件读取
+python-dotenv==1.1.0
+requests==2.32.3
+pandas==2.2.3
+numpy==2.2.6
+xlrd==2.0.1           # 支持.xls文件读取
+openpyxl==3.1.5       # 支持.xlsx文件读取
 
 # 日志
 loguru
@@ -26,3 +26,14 @@ loguru
 pypinyin
 cryptography
 ollama
+
+# 知识库服务依赖
+jieba
+scikit-learn
+transformers
+docx2txt
+python-docx
+pymilvus
+
+# 新增的依赖项
+dbutils

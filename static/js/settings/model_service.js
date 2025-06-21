@@ -779,8 +779,13 @@ var ModelService = {
                         }
                         
                         // 添加选项，值为 provider_id:model_id 的组合
-                        dropdown.append('<option value="' + model.provider_id + ':' + model.id + '">' + 
-                                        model.name + ' (' + model.category + ')</option>');
+                        // 注意：model_id可能包含冒号，例如 qwen3:4b
+                        var optionValue = model.provider_id + ':' + model.id;
+                        var optionText = model.name + ' (' + model.category + ')';
+                        
+                        // 使用HTML属性data-model-id来存储原始model_id，避免冒号问题
+                        dropdown.append('<option value="' + optionValue + '" data-model-id="' + model.id + '">' + 
+                                        optionText + '</option>');
                     }
                     
                     // 关闭最后一个分组
@@ -802,22 +807,37 @@ var ModelService = {
     
     // 加载默认模型
     loadDefaultModel: function() {
+        console.log('开始加载默认模型设置');
         // 从服务器获取当前默认模型
         $.ajax({
             url: '/api/model/default-model',
             type: 'GET',
             dataType: 'json',
             success: function(response) {
+                console.log('加载默认模型响应:', response);
                 if (response.success && response.model) {
                     var defaultModel = response.model;
+                    console.log('当前默认模型:', defaultModel);
                     // 设置下拉框选中值为 provider_id:model_id 的组合
-                    $('#default-model').val(defaultModel.provider_id + ':' + defaultModel.id);
+                    // 注意：model_id可能包含冒号，例如 qwen3:4b
+                    var selectValue = defaultModel.provider_id + ':' + defaultModel.id;
+                    console.log('设置下拉框选中值:', selectValue);
+                    $('#default-model').val(selectValue);
+                    console.log('下拉框当前选中值:', $('#default-model').val());
+                    
+                    // 如果下拉框没有正确设置值（可能是因为模型不在列表中）
+                    if (!$('#default-model').val()) {
+                        console.warn('下拉框未能选中值，可能模型不在可见列表中');
+                    }
                 } else {
+                    console.log('无默认模型或加载失败');
                     $('#default-model').val('');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('加载默认模型设置失败:', error);
+                console.error('响应状态:', status);
+                console.error('响应内容:', xhr.responseText);
                 $('#default-model').val('');
             }
         });
@@ -825,15 +845,22 @@ var ModelService = {
     
     // 设置默认模型
     setDefaultModel: function(combinedValue) {
-        // combinedValue 格式为 provider_id:model_id
-        var parts = combinedValue.split(':');
-        if (parts.length !== 2) {
-            console.error('模型值格式不正确');
+        console.log('开始设置默认模型:', combinedValue);
+        // combinedValue 格式为 provider_id:model_id，但model_id可能包含冒号
+        // 例如：ollama:qwen3:4b，第一个冒号分隔provider_id和model_id
+        
+        // 找到第一个冒号的位置
+        var firstColonIndex = combinedValue.indexOf(':');
+        if (firstColonIndex === -1) {
+            console.error('模型值格式不正确 (没有冒号):', combinedValue);
             return;
         }
         
-        var providerId = parts[0];
-        var modelId = parts[1];
+        // 分割提供商ID和模型ID
+        var providerId = combinedValue.substring(0, firstColonIndex);
+        var modelId = combinedValue.substring(firstColonIndex + 1);
+        
+        console.log('解析后的提供商ID:', providerId, '模型ID:', modelId);
         
         // 调用API设置默认模型
         $.ajax({
@@ -845,10 +872,16 @@ var ModelService = {
                 model_id: modelId
             }),
             success: function(response) {
+                console.log('设置默认模型响应:', response);
                 if (response.success) {
                     console.log('默认模型设置成功');
                     // 可以添加成功提示
                     alert('默认模型设置成功');
+                    
+                    // 验证设置是否生效
+                    setTimeout(function() {
+                        ModelService.loadDefaultModel();
+                    }, 1000);
                 } else {
                     console.error('保存默认模型设置失败:', response.error);
                     alert('保存默认模型设置失败: ' + response.error);
@@ -856,6 +889,8 @@ var ModelService = {
             },
             error: function(xhr, status, error) {
                 console.error('保存默认模型设置AJAX错误:', error);
+                console.error('响应状态:', status);
+                console.error('响应内容:', xhr.responseText);
                 alert('保存默认模型设置失败: ' + error);
             }
         });
