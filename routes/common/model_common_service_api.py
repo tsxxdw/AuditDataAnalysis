@@ -110,7 +110,9 @@ def get_models(provider_id):
 def get_visible_models():
     """获取所有服务提供商中可见的模型"""
     try:
+        logger.info("API请求: 获取所有可见模型")
         all_visible_models = model_service.get_all_visible_models()
+        logger.info(f"API响应: 获取所有可见模型成功，共 {len(all_visible_models)} 个模型")
         return jsonify({"success": True, "models": all_visible_models})
     except Exception as e:
         logger.error(f"获取所有可见模型时发生错误: {str(e)}")
@@ -120,10 +122,13 @@ def get_visible_models():
 def get_default_model():
     """获取当前默认模型"""
     try:
+        logger.info("API请求: 获取默认模型")
         default_model = model_service.get_default_model()
         if default_model:
+            logger.info(f"API响应: 获取默认模型成功 - {default_model.get('provider_id', 'unknown')}:{default_model.get('id', 'unknown')}")
             return jsonify({"success": True, "model": default_model})
         else:
+            logger.info("API响应: 未找到默认模型")
             return jsonify({"success": True, "model": None})
     except Exception as e:
         logger.error(f"获取默认模型时发生错误: {str(e)}")
@@ -134,19 +139,30 @@ def set_default_model():
     """设置默认模型"""
     try:
         data = request.get_json()
+        logger.info(f"API请求: 设置默认模型 - 请求数据: {data}")
+        
         if not data:
+            logger.error("设置默认模型失败: 请求体为空")
             return jsonify({"success": False, "error": "请求体不能为空"}), 400
             
         provider_id = data.get('provider_id')
         model_id = data.get('model_id')
         
         if not provider_id or not model_id:
+            logger.error(f"设置默认模型失败: 参数不完整 - provider_id: {provider_id}, model_id: {model_id}")
             return jsonify({"success": False, "error": "服务提供商ID和模型ID不能为空"}), 400
-            
+        
+        logger.info(f"设置默认模型 - 提供商ID: {provider_id}, 模型ID: {model_id}")
         result = model_service.set_default_model(provider_id, model_id)
+        
         if result:
+            logger.info("API响应: 默认模型设置成功")
+            # 验证设置是否生效
+            current_default = model_service.get_default_model()
+            logger.info(f"验证默认模型设置 - 当前默认模型: {current_default}")
             return jsonify({"success": True, "message": "默认模型设置成功"})
         else:
+            logger.error("API响应: 设置默认模型失败")
             return jsonify({"success": False, "error": "设置默认模型失败，请确认提供商和模型是否有效"}), 400
     except Exception as e:
         logger.error(f"设置默认模型时发生错误: {str(e)}")

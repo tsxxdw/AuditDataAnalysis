@@ -101,8 +101,28 @@ class ModelService:
     def _load_config(self) -> Dict:
         """加载模型服务配置"""
         try:
+            # 记录当前工作目录和配置文件的绝对路径
+            current_dir = os.getcwd()
+            abs_config_path = os.path.abspath(self.CONFIG_PATH)
+            logger.info(f"加载模型配置 - 当前工作目录: {current_dir}")
+            logger.info(f"加载模型配置 - 配置文件绝对路径: {abs_config_path}")
+            
+            # 检查文件是否存在
+            if not os.path.exists(self.CONFIG_PATH):
+                logger.warning(f"加载模型配置 - 配置文件不存在: {self.CONFIG_PATH}")
+                # 返回默认配置
+                default_config = {"defaultProvider": "ollama", "providers": {}}
+                logger.info(f"加载模型配置 - 返回默认配置: {default_config}")
+                return default_config
+            
             with open(self.CONFIG_PATH, 'r', encoding='utf-8') as f:
                 config = json.load(f)
+                
+                # 记录加载到的默认模型
+                if 'defaultModel' in config:
+                    logger.info(f"加载模型配置 - 读取到的默认模型: {config['defaultModel']}")
+                else:
+                    logger.warning("加载模型配置 - 配置中没有默认模型设置")
                 
                 # 配置文件中的API密钥无需在这里解密
                 # 只有在实际使用时才解密
@@ -111,7 +131,9 @@ class ModelService:
         except Exception as e:
             logger.error(f"加载模型配置文件失败: {str(e)}")
             # 返回默认配置
-            return {"defaultProvider": "ollama", "providers": {}}
+            default_config = {"defaultProvider": "ollama", "providers": {}}
+            logger.info(f"加载模型配置 - 因错误返回默认配置")
+            return default_config
     
     def _validate_ollama_models(self) -> None:
         """验证Ollama模型配置，移除本地不存在的模型记录"""
@@ -183,8 +205,37 @@ class ModelService:
             # 确保目录存在
             os.makedirs(os.path.dirname(self.CONFIG_PATH), exist_ok=True)
             
+            # 添加日志记录当前工作目录和配置文件的绝对路径
+            current_dir = os.getcwd()
+            abs_config_path = os.path.abspath(self.CONFIG_PATH)
+            logger.info(f"保存模型配置 - 当前工作目录: {current_dir}")
+            logger.info(f"保存模型配置 - 配置文件绝对路径: {abs_config_path}")
+            logger.info(f"保存模型配置 - 配置内容: {json.dumps(self.config, ensure_ascii=False)}")
+            
             with open(self.CONFIG_PATH, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=2, ensure_ascii=False)
+            
+            # 验证文件是否成功写入
+            if os.path.exists(self.CONFIG_PATH):
+                file_size = os.path.getsize(self.CONFIG_PATH)
+                logger.info(f"保存模型配置 - 文件已保存，大小: {file_size} 字节")
+                
+                # 读取文件内容进行验证
+                try:
+                    with open(self.CONFIG_PATH, 'r', encoding='utf-8') as f:
+                        saved_config = json.load(f)
+                    logger.info(f"保存模型配置 - 文件内容验证成功")
+                    
+                    # 验证默认模型是否正确保存
+                    if 'defaultModel' in saved_config:
+                        logger.info(f"保存模型配置 - 默认模型已保存: {saved_config['defaultModel']}")
+                    else:
+                        logger.warning("保存模型配置 - 默认模型未在保存的配置中找到")
+                except Exception as e:
+                    logger.error(f"保存模型配置 - 验证文件内容时出错: {str(e)}")
+            else:
+                logger.error(f"保存模型配置 - 文件保存后不存在: {self.CONFIG_PATH}")
+            
             return True
         except Exception as e:
             logger.error(f"保存模型配置文件失败: {str(e)}")
@@ -480,59 +531,204 @@ class ModelService:
             return {"error": error_msg}
     
     def _ollama_chat_completion(self, api_url: str, model_id: str, messages: List[Dict], options: Dict = None) -> Dict:
-        """Ollama特定的聊天API调用"""
+        """Ollama特定的聊天API调用，支持流式和非流式模式"""
         try:
-            # Ollama API格式与OpenAI有所不同
-            url = f"{api_url}/api/chat"
-            app_logger.debug(f"发送Ollama请求到 {url}")
+            # 确定是否使用流式模式，默认为True
+            use_stream = True
+            if options and 'stream' in options:
+                use_stream = options['stream']
             
             # 构建请求体
             request_body = {
                 "model": model_id,
-                "messages": messages
+                "messages": messages,
+                "stream": use_stream
             }
             
             # 添加可选参数
             if options:
                 for key, value in options.items():
-                    request_body[key] = value
+                    if key != 'stream':  # 避免重复添加stream参数
+                        request_body[key] = value
             
-            # 发送请求
-            response = requests.post(url, json=request_body, timeout=60)
+            # 记录请求体
+            app_logger.debug(f"Ollama请求体: {json.dumps(request_body, ensure_ascii=False)}")
             
-            if response.status_code == 200:
-                # 将Ollama响应转换为OpenAI兼容格式
-                ollama_response = response.json()
-                generated_content = ollama_response.get("message", {}).get("content", "")
-                app_logger.info(f"Ollama调用成功 - 模型: {model_id}")
-                app_logger.debug(f"Ollama生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"Ollama生成内容: {generated_content}")
+            # 根据模式选择不同的API端点
+            if use_stream:
+                # 流式模式使用/api/chat
+                url = f"{api_url}/api/chat"
+                app_logger.debug(f"使用流式模式，发送Ollama请求到 {url}")
                 
-                return {
-                    "id": f"ollama-{model_id}",
-                    "object": "chat.completion",
-                    "created": int(import_time()),
-                    "model": model_id,
-                    "choices": [
-                        {
-                            "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": generated_content
-                            },
-                            "finish_reason": "stop"
+                # 发送流式请求
+                response = requests.post(url, json=request_body, stream=True, timeout=60)
+                
+                # 记录响应状态码
+                app_logger.debug(f"Ollama响应状态码: {response.status_code}")
+                app_logger.debug(f"Ollama响应头: {response.headers}")
+                
+                if response.status_code == 200:
+                    # 处理流式响应
+                    full_content = ""
+                    last_response = None
+                    
+                    try:
+                        for line in response.iter_lines():
+                            if line:
+                                try:
+                                    # 解析每行JSON
+                                    data = json.loads(line.decode('utf-8'))
+                                    app_logger.debug(f"收到流式数据: {json.dumps(data, ensure_ascii=False)[:100]}...")
+                                    
+                                    # 提取响应内容
+                                    if 'message' in data and 'content' in data['message']:
+                                        chunk = data['message']['content']
+                                        full_content += chunk
+                                    
+                                    # 保存最后一个完整响应
+                                    last_response = data
+                                    
+                                    # 如果响应完成，记录日志
+                                    if data.get('done', False):
+                                        app_logger.debug("流式响应完成")
+                                        break
+                                        
+                                except json.JSONDecodeError as je:
+                                    app_logger.error(f"解析流式JSON失败: {str(je)}")
+                                    app_logger.error(f"问题行内容: {line.decode('utf-8')}")
+                        
+                        # 使用最后一个响应构建返回结果
+                        if last_response:
+                            app_logger.info(f"Ollama流式调用成功 - 模型: {model_id}")
+                            app_logger.debug(f"Ollama生成内容: {full_content[:200]}..." if len(full_content) > 200 else f"Ollama生成内容: {full_content}")
+                            
+                            return {
+                                "id": f"ollama-{model_id}",
+                                "object": "chat.completion",
+                                "created": int(import_time()),
+                                "model": model_id,
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "message": {
+                                            "role": "assistant",
+                                            "content": full_content
+                                        },
+                                        "finish_reason": "stop"
+                                    }
+                                ]
+                            }
+                        else:
+                            error_msg = "未收到有效的流式响应"
+                            app_logger.error(f"Ollama调用失败 - {error_msg}")
+                            return {"error": error_msg}
+                            
+                    except Exception as e:
+                        error_msg = f"处理流式响应时发生错误: {str(e)}"
+                        app_logger.error(f"Ollama调用失败 - {error_msg}")
+                        import traceback
+                        app_logger.error(f"异常堆栈: {traceback.format_exc()}")
+                        return {"error": error_msg}
+                else:
+                    error_msg = f"Ollama API调用失败，状态码: {response.status_code}"
+                    app_logger.error(f"Ollama调用失败 - {error_msg}")
+                    try:
+                        response_text = response.text
+                        app_logger.error(f"响应内容: {response_text}")
+                        return {
+                            "error": error_msg,
+                            "details": response_text
                         }
-                    ]
-                }
+                    except:
+                        return {"error": error_msg}
             else:
-                error_msg = f"Ollama API调用失败，状态码: {response.status_code}"
-                app_logger.error(f"Ollama调用失败 - {error_msg}\n响应: {response.text}")
-                return {
-                    "error": error_msg,
-                    "details": response.text
+                # 非流式模式使用/api/generate
+                url = f"{api_url}/api/generate"
+                app_logger.debug(f"使用非流式模式，发送Ollama请求到 {url}")
+                
+                # 将messages转换为prompt格式
+                prompt = ""
+                for msg in messages:
+                    role = msg.get('role', '')
+                    content = msg.get('content', '')
+                    
+                    if role == 'system':
+                        prompt += f"System: {content}\n\n"
+                    elif role == 'user':
+                        prompt += f"User: {content}\n\n"
+                    elif role == 'assistant':
+                        prompt += f"Assistant: {content}\n\n"
+                
+                # 构建非流式请求体
+                generate_body = {
+                    "model": model_id,
+                    "prompt": prompt.strip(),
+                    "stream": False
                 }
+                
+                # 添加options参数
+                if options and 'options' in options:
+                    generate_body["options"] = options['options']
+                elif options:
+                    generate_body["options"] = {}
+                    for key, value in options.items():
+                        if key not in ['stream', 'messages', 'model']:
+                            generate_body["options"][key] = value
+                
+                app_logger.debug(f"非流式请求体: {json.dumps(generate_body, ensure_ascii=False)}")
+                
+                # 发送非流式请求
+                response = requests.post(url, json=generate_body, timeout=60)
+                
+                # 记录原始响应
+                app_logger.debug(f"Ollama响应状态码: {response.status_code}")
+                app_logger.debug(f"Ollama响应头: {response.headers}")
+                app_logger.debug(f"Ollama原始响应内容: {response.text[:500]}..." if len(response.text) > 500 else f"Ollama原始响应内容: {response.text}")
+                
+                if response.status_code == 200:
+                    try:
+                        # 解析JSON响应
+                        ollama_response = response.json()
+                        generated_content = ollama_response.get("response", "")
+                        
+                        app_logger.info(f"Ollama非流式调用成功 - 模型: {model_id}")
+                        app_logger.debug(f"Ollama生成内容: {generated_content[:200]}..." if len(generated_content) > 200 else f"Ollama生成内容: {generated_content}")
+                        
+                        # 返回OpenAI兼容格式
+                        return {
+                            "id": f"ollama-{model_id}",
+                            "object": "chat.completion",
+                            "created": int(import_time()),
+                            "model": model_id,
+                            "choices": [
+                                {
+                                    "index": 0,
+                                    "message": {
+                                        "role": "assistant",
+                                        "content": generated_content
+                                    },
+                                    "finish_reason": "stop"
+                                }
+                            ]
+                        }
+                    except json.JSONDecodeError as je:
+                        error_msg = f"解析Ollama响应JSON失败: {str(je)}"
+                        app_logger.error(f"Ollama调用失败 - {error_msg}")
+                        app_logger.error(f"JSON解析错误位置: 行 {je.lineno}, 列 {je.colno}, 字符位置 {je.pos}")
+                        app_logger.error(f"JSON文档片段: '{response.text[max(0, je.pos-20):je.pos]}' >>> '{response.text[je.pos:min(len(response.text), je.pos+20)]}'")
+                        return {"error": error_msg}
+                else:
+                    error_msg = f"Ollama API调用失败，状态码: {response.status_code}"
+                    app_logger.error(f"Ollama调用失败 - {error_msg}\n响应: {response.text}")
+                    return {
+                        "error": error_msg,
+                        "details": response.text
+                    }
         except Exception as e:
             error_msg = f"调用Ollama模型时发生错误: {str(e)}"
             app_logger.error(f"Ollama调用失败 - {error_msg}")
+            import traceback
+            app_logger.error(f"异常堆栈: {traceback.format_exc()}")
             return {"error": error_msg}
     
     def get_all_visible_models(self) -> List[Dict]:
@@ -582,28 +778,41 @@ class ModelService:
     
     def set_default_model(self, provider_id: str, model_id: str) -> bool:
         """设置默认模型"""
+        logger.info(f"设置默认模型 - 提供商ID: {provider_id}, 模型ID: {model_id}")
+        
         # 验证提供商和模型是否存在且可用
         provider = self.config.get('providers', {}).get(provider_id)
         if not provider or not provider.get('enabled', False):
+            logger.error(f"设置默认模型 - 提供商不存在或未启用: {provider_id}")
             return False
             
         model_exists = False
         for model in provider.get('models', []):
             if model.get('id') == model_id and model.get('visible', True):
                 model_exists = True
+                logger.info(f"设置默认模型 - 找到匹配的模型: {model_id}")
                 break
                 
         if not model_exists:
+            logger.error(f"设置默认模型 - 未找到匹配的模型: {model_id}")
             return False
             
+        # 记录之前的默认模型（如果有）
+        old_default = self.config.get('defaultModel', {})
+        logger.info(f"设置默认模型 - 之前的默认模型: {old_default}")
+        
         # 设置默认模型
         self.config['defaultModel'] = {
             'provider_id': provider_id,
             'model_id': model_id
         }
         
+        logger.info(f"设置默认模型 - 新的默认模型设置为: {self.config['defaultModel']}")
+        
         # 保存配置
-        return self._save_config()
+        save_result = self._save_config()
+        logger.info(f"设置默认模型 - 配置保存结果: {'成功' if save_result else '失败'}")
+        return save_result
 
 # 创建全局单例实例
 model_service = ModelService()

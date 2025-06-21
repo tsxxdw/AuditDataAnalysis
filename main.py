@@ -5,7 +5,7 @@ import threading
 import time
 from routes.settings.settings_database_api import settings_database_bp
 from routes.settings.log_settings_api import log_settings_bp
-from routes.index_file_upload_api import file_upload_bp
+from routes.index_file_upload_api import file_upload_bp, ensure_dir_exists, UPLOAD_FOLDER
 from routes.index_import_api import import_api_bp
 from routes.index_one_to_one_import_api import index_one_to_one_import_bp
 from routes.index_table_structure_api import index_table_structure_bp
@@ -16,10 +16,12 @@ from routes.index_excel_validation_api import excel_validation_bp
 from routes.index_validation_api import index_validation_bp  # 导入数据校验API蓝图
 from routes.pages import pages_bp
 from routes.excel_repair_api import excel_repair_api  # 导入EXCEL修复API蓝图
+from routes.knowledge_base_api import knowledge_base_api  # 导入知识库API蓝图
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.exception import register_error_handlers
 from service.database.db_pool_manager import DatabasePoolManager
+from service.knowledge_base import init_knowledge_base  # 导入知识库初始化函数
 from config.global_config import init_project_root
 from routes.common.model_common_service_api import model_api  # 导入模型服务API蓝图
 from routes.settings.model_service_api import model_settings_api  # 导入模型设置API蓝图
@@ -29,6 +31,10 @@ from routes.share_base_api import share_base_api_bp  # 导入股票基本信息A
 # 初始化项目根路径（全局配置）
 project_root = init_project_root()
 app_logger.info(f"项目根路径: {project_root}")
+
+# 确保文件上传目录存在
+ensure_dir_exists(UPLOAD_FOLDER)
+app_logger.info(f"确保文件上传目录存在: {os.path.abspath(UPLOAD_FOLDER)}")
 
 app = Flask(__name__)
 
@@ -49,12 +55,17 @@ app.register_blueprint(model_api)  # 注册模型服务API路由
 app.register_blueprint(model_settings_api)  # 注册模型设置API路由
 app.register_blueprint(index_repair_bp)  # 注册数据修复API路由
 app.register_blueprint(excel_repair_api)  # 注册EXCEL修复API路由
+app.register_blueprint(knowledge_base_api)  # 注册知识库API路由
+
 app.register_blueprint(share_base_api_bp, url_prefix='/api/share_base')  # 注册股票基本信息API路由
 # 初始化中间件
 init_log_middleware(app)
 
 # 注册异常处理器
 register_error_handlers(app)
+
+# 初始化知识库服务
+init_knowledge_base()
 
 # 在应用关闭时关闭所有连接池
 @app.teardown_appcontext

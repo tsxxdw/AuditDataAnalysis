@@ -93,3 +93,10 @@ def share_base():
     """股票基本信息页面"""
     app_logger.info("访问股票基本信息页面")
     return render_template('share_base.html', page_title='股票基本信息')
+    return render_template('settings.html', page_title='系统设置')
+
+@pages_bp.route('/index_knowledge_base')
+def index_knowledge_base():
+    """本地知识库页面"""
+    app_logger.info("访问本地知识库页面")
+    return render_template('index_knowledge_base.html', page_title='本地知识库')
