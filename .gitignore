@@ -49,7 +49,9 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-
+file/
+*.docx
+*.doc
 # 数据文件
 *.csv
 *.xls
