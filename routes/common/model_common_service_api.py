@@ -18,59 +18,6 @@ OLLAMA_MODEL = "qwen3:1.7b"
 # 创建蓝图
 model_api = Blueprint('model_api', __name__)
 
-@model_api.route('/api/model/chat', methods=['POST'])
-def chat_completion():
-    """
-    大模型对话接口
-    ---
-    请求体:
-    {
-        "provider_id": "ollama",  // 服务提供商ID
-        "model_id": "qwen3:1.7b", // 模型ID
-        "messages": [             // 对话历史消息
-            {"role": "user", "content": "你好"}
-        ],
-        "options": {              // 可选参数
-            "temperature": 0.7,
-            "max_tokens": 1000,
-            ...
-        }
-    }
-    """
-    try:
-        data = request.get_json()
-        
-        # 参数验证
-        if not data:
-            return jsonify({"error": "请求体不能为空"}), 400
-        
-        provider_id = data.get('provider_id')
-        model_id = data.get('model_id')
-        messages = data.get('messages', [])
-        options = data.get('options', {})
-        
-        if not provider_id:
-            return jsonify({"error": "服务提供商ID不能为空"}), 400
-        
-        if not model_id:
-            return jsonify({"error": "模型ID不能为空"}), 400
-        
-        if not messages or not isinstance(messages, list):
-            return jsonify({"error": "消息格式不正确"}), 400
-        
-        # 调用模型服务
-        result = model_service.chat_completion(provider_id, model_id, messages, options)
-        
-        # 检查是否有错误
-        if "error" in result:
-            return jsonify(result), 400
-        
-        return jsonify(result)
-    
-    except Exception as e:
-        logger.error(f"处理对话请求时发生错误: {str(e)}")
-        return jsonify({"error": f"服务器错误: {str(e)}"}), 500
-
 @model_api.route('/api/model/default-model', methods=['GET'])
 def get_default_model():
     """获取当前默认模型"""
