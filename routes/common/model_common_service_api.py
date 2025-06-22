@@ -71,19 +71,6 @@ def chat_completion():
         logger.error(f"处理对话请求时发生错误: {str(e)}")
         return jsonify({"error": f"服务器错误: {str(e)}"}), 500
 
-# 添加默认模型相关的API端点
-@model_api.route('/api/model/visible-models', methods=['GET'])
-def get_visible_models():
-    """获取所有服务提供商中可见的模型"""
-    try:
-        logger.info("API请求: 获取所有可见模型")
-        all_visible_models = model_service.get_all_visible_models()
-        logger.info(f"API响应: 获取所有可见模型成功，共 {len(all_visible_models)} 个模型")
-        return jsonify({"success": True, "models": all_visible_models})
-    except Exception as e:
-        logger.error(f"获取所有可见模型时发生错误: {str(e)}")
-        return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
-
 @model_api.route('/api/model/default-model', methods=['GET'])
 def get_default_model():
     """获取当前默认模型"""

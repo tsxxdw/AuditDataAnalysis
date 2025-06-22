@@ -574,7 +574,7 @@ var ModelService = {
     updateDefaultModelDropdown: function(models) {
         // 直接获取所有服务提供商的可见模型
         $.ajax({
-            url: '/api/model/visible-models',
+            url: '/api/settings/model/visible-models',
             type: 'GET',
             dataType: 'json',
             success: function(response) {
