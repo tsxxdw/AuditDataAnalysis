@@ -3,6 +3,7 @@
 
 from flask import Blueprint, request, jsonify
 from service.common.model_common_service import model_service
+from utils.settings.model_config_util import modelConfigUtil
 import logging
 import os
 import json
@@ -19,7 +20,20 @@ model_settings_api = Blueprint('model_settings_api', __name__)
 def get_providers():
     """获取所有服务提供商"""
     try:
-        providers = model_service.get_providers()
+        providers_dict = modelConfigUtil.get_all_providers()
+        
+        # 转换为前端所需格式
+        providers = []
+        for key, provider in providers_dict.items():
+            provider_info = {
+                'id': key,
+                'name': provider.get('name', key),
+                'apiUrl': provider.get('apiUrl', ''),
+                'enabled': provider.get('enabled', False),
+                'hasApiKey': bool(provider.get('apiKey', ''))
+            }
+            providers.append(provider_info)
+            
         return jsonify({"success": True, "providers": providers})
     except Exception as e:
         logger.error(f"获取服务提供商列表时发生错误: {str(e)}")
@@ -29,11 +43,23 @@ def get_providers():
 def get_provider(provider_id):
     """获取指定服务提供商信息"""
     try:
-        provider = model_service.get_provider(provider_id)
+        providers = modelConfigUtil.get_all_providers()
+        provider = providers.get(provider_id)
+        
         if not provider:
             return jsonify({"success": False, "message": "未找到指定的服务提供商"}), 404
         
-        return jsonify({"success": True, "provider": provider})
+        # 创建提供商信息的副本，去除敏感信息
+        provider_info = {
+            'id': provider_id,
+            'name': provider.get('name', provider_id),
+            'apiUrl': provider.get('apiUrl', ''),
+            'apiVersion': provider.get('apiVersion', 'v1'),
+            'enabled': provider.get('enabled', False),
+            'hasApiKey': bool(provider.get('apiKey', ''))
+        }
+        
+        return jsonify({"success": True, "provider": provider_info})
     except Exception as e:
         logger.error(f"获取服务提供商信息时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
@@ -46,6 +72,7 @@ def update_provider(provider_id):
         if not data:
             return jsonify({"success": False, "message": "请求体不能为空"}), 400
         
+        # 由于modelConfigUtil没有直接更新提供商的方法，这里仍使用model_service
         # 更新提供商信息
         success = model_service.update_provider(provider_id, data)
         if not success:
@@ -79,7 +106,7 @@ def get_models(provider_id):
     """获取服务提供商的所有模型"""
     try:
         # 获取所有模型，包括不可见的
-        models = model_service.get_models(provider_id)
+        models = modelConfigUtil.get_provider_models(provider_id)
         return jsonify({"success": True, "models": models})
     except Exception as e:
         logger.error(f"获取模型列表时发生错误: {str(e)}")
@@ -89,8 +116,18 @@ def get_models(provider_id):
 def get_models_by_category(provider_id):
     """按类别获取模型列表"""
     try:
-        models_by_category = model_service.get_models_by_category(provider_id)
-        return jsonify({"success": True, "categories": models_by_category})
+        # 获取所有可见模型
+        models = modelConfigUtil.get_provider_models(provider_id, only_visible=True)
+        
+        # 按类别分组
+        categorized = {}
+        for model in models:
+            category = model.get('category', '其他')
+            if category not in categorized:
+                categorized[category] = []
+            categorized[category].append(model)
+            
+        return jsonify({"success": True, "categories": categorized})
     except Exception as e:
         logger.error(f"获取分类模型列表时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
@@ -104,7 +141,7 @@ def add_model(provider_id):
             return jsonify({"success": False, "message": "请求体不能为空"}), 400
         
         # 添加模型
-        success = model_service.add_model(provider_id, data)
+        success = modelConfigUtil.add_model(provider_id, data)
         if not success:
             return jsonify({"success": False, "message": "添加模型失败，请检查模型ID是否已存在"}), 400
         
@@ -165,7 +202,7 @@ def toggle_model_visibility(provider_id):
         visible = data.get('visible')
         
         # 切换可见性
-        success = model_service.toggle_model_visibility(provider_id, model_id, visible)
+        success = modelConfigUtil.update_model_visibility(provider_id, model_id, visible)
         if not success:
             return jsonify({"success": False, "message": "更新模型可见性失败"}), 400
         
@@ -178,21 +215,11 @@ def toggle_model_visibility(provider_id):
 def get_available_models(provider_id):
     """获取服务提供商的所有可用预设模型"""
     try:
-        # 从配置文件中读取预设模型
-        config_path = os.path.join('config', 'settings', 'model_service_config.json')
-        
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        
-        # 检查提供商是否存在
-        if provider_id not in config.get('providers', {}):
-            return jsonify({"success": False, "message": "未找到指定的服务提供商"}), 404
-            
-        # 获取预设模型列表
-        provider_config = config['providers'][provider_id]
+        # 直接从modelConfigUtil获取模型列表
+        models = modelConfigUtil.get_provider_models(provider_id)
         
         # 为Ollama特殊处理，如果没有预设模型，则使用通用模型
-        if provider_id == 'ollama' and not provider_config.get('models'):
+        if provider_id == 'ollama' and not models:
             models = [
                 {
                     "id": "llama2",
@@ -216,8 +243,6 @@ def get_available_models(provider_id):
                     "visible": True
                 }
             ]
-        else:
-            models = provider_config.get('models', [])
             
         return jsonify({"success": True, "models": models})
     except Exception as e:

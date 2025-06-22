@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ModelService:
     """大模型服务类，负责与各种AI模型API交互"""
     
-    CONFIG_PATH = os.path.join('config', 'settings', 'model_service_config.json')
+    CONFIG_PATH = os.path.join('config', 'settings', 'model_config.json')
     
     def __init__(self):
         """初始化模型服务"""
