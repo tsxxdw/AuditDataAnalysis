@@ -1,13 +1,13 @@
 {
   "defaultProvider": "ollama",
   "defaultModel": {
-    "provider_id": "ollama",
-    "model_id": "qwen3:0.6b"
+    "provider_id": "silicon-flow",
+    "model_id": "Qwen/Qwen3-32B"
   },
   "providers": {
     "silicon-flow": {
       "name": "硅基流动",
-      "apiKey": "Z0FBQUFBQm9IWEdYMVlHaEZzWE9JajAyWlhqLU1LZjBWZTFDUGwtRWN4SEFxbzB4SkxWakVvU0pqVjlTaXJraW95SnhzRDRaRldrUXNrQXdBX1pBb29LM1JuTEFLX0VQU0U3QWtCYzEzSUs3QTV2Q1l3aVlvcDVzZ1Y4NnB5dDhNTkYzSnZmY09zTEVXREtVVVVaa1pWcGlXQ1Bic0MtWnBnPT0=",
+      "apiKey": "Z0FBQUFBQm9WMldFXzd1aXo5YkZDSUVyOUU2WkN0MWlISUZPaXV1eTdDZ0pvQnplcGt0VTZnV2RROHpwam0zTWRBbFFYZkIwLVZBLTlhb01jUUJGWE5KOERpMGpXZGtxUktqTk9ocGp5dkE3eEJtQnRVcUdUYnl0bWZObzlQa0RFRktlTXFwYXEwelA3NDF5bmFndWVKUUxFaGRTMUpxN1ZRPT0=",
       "apiUrl": "https://api.siliconflow.cn",
       "apiVersion": "v1",
       "enabled": true,

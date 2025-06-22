@@ -264,13 +264,12 @@ $(document).ready(function() {
     // 生成索引SQL
     function generateIndexSQL(e, operation) {
         const tableName = $('#indexTableName').val();
-        const indexName = $('#indexName').val();
-        const indexType = $('#indexType').val();
-        const indexFields = $('#indexFields').val();
+        const fieldName = $('#fieldName').val();
+        const operationType = $('#indexOperationType').val();
         
         // 验证必填项
-        if(!tableName || !indexName || !indexFields) {
-            alert('请填写表名、索引名和索引字段');
+        if(!tableName || !fieldName) {
+            alert('请填写表名和字段名');
             return;
         }
         
@@ -449,6 +448,13 @@ $(document).ready(function() {
     // 加载表字段
     function loadTableFields(tableName) {
         // 使用通用函数加载表字段
-        loadDatabaseTableFields(tableName, '#indexFields');
+        loadDatabaseTableFields(tableName, '#fieldName');
     }
+
+    // 添加表名选择事件监听
+    $(document).on('change', '#indexTableName', function() {
+        const selectedTable = $(this).val();
+        // 当选择了表名时，加载该表的字段
+        loadTableFields(selectedTable);
+    });
 }); 
