@@ -433,8 +433,7 @@
 
 /* 操作按钮样式美化 */
 .action-btn, 
-.show-model-btn, 
-.enable-model-btn {
+.show-model-btn {
     padding: 5px 10px;
     background-color: #3498db;
     color: white;
@@ -445,8 +444,7 @@
 }
 
 .action-btn:hover, 
-.show-model-btn:hover, 
-.enable-model-btn:hover {
+.show-model-btn:hover {
     background-color: #2980b9;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

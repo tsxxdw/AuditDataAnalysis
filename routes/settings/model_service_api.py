@@ -130,44 +130,6 @@ def get_provider_models_grouped_by_category(provider_id):
         logger.error(f"获取分类模型列表时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
-@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/add', methods=['POST'])
-def add_model(provider_id):
-    """添加模型"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "message": "请求体不能为空"}), 400
-        
-        # 添加模型
-        success = modelConfigUtil.add_model(provider_id, data)
-        if not success:
-            return jsonify({"success": False, "message": "添加模型失败，请检查模型ID是否已存在"}), 400
-        
-        return jsonify({"success": True, "message": "模型添加成功"})
-    except Exception as e:
-        logger.error(f"添加模型时发生错误: {str(e)}")
-        return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
-
-@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/delete', methods=['DELETE'])
-def delete_model(provider_id):
-    """删除指定的模型"""
-    try:
-        # 从查询参数获取模型ID
-        model_id = request.args.get('modelId')
-        if not model_id:
-            return jsonify({"success": False, "message": "请提供模型ID参数"}), 400
-        
-        # 删除模型
-        success = model_service.delete_model(provider_id, model_id)
-        
-        if success:
-            return jsonify({"success": True, "message": "模型已成功删除"})
-        else:
-            return jsonify({"success": False, "message": "删除模型失败，未找到指定模型或服务提供商"}), 404
-    except Exception as e:
-        logger.error(f"删除模型时发生错误: {str(e)}")
-        return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
-
 @model_settings_api.route('/api/settings/model/providers/<provider_id>/models/visibility', methods=['PUT'])
 def toggle_model_visibility(provider_id):
     """切换模型可见性"""

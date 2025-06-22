@@ -2,7 +2,7 @@
   "defaultProvider": "ollama",
   "defaultModel": {
     "provider_id": "silicon-flow",
-    "model_id": "Pro/deepseek-ai/DeepSeek-V3"
+    "model_id": "Qwen/Qwen3-32B"
   },
   "providers": {
     "silicon-flow": {

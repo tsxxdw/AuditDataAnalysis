@@ -62,12 +62,6 @@ var ModelService = {
             ModelService.toggleModelVisibility(modelId, true);
         });
         
-        $('#modelTableBody').on('click', '.enable-model-btn', function() {
-            var $tr = $(this).closest('tr');
-            var modelId = $tr.data('model-id');
-            ModelService.enableModel(modelId);
-        });
-        
         // 默认模型下拉框变更事件
         $('#default-model').change(function() {
             var selectedModel = $(this).val();
@@ -422,7 +416,7 @@ var ModelService = {
                             (modelToShow.visible ? 
                                 '<button class="action-btn hide-model-btn" title="不显示">不显示</button>' : 
                                 '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
-                            '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
+                            ''}
                     </td>
                 </tr>
             `;
@@ -440,23 +434,6 @@ var ModelService = {
         this.updateDefaultModelDropdown(activeModels.filter(function(model) {
             return model.visible === true;
         }));
-        
-        // 绑定操作按钮事件
-        $('.hide-model-btn').click(function() {
-            var modelId = $(this).closest('tr').data('model-id');
-            ModelService.toggleModelVisibility(modelId, false);
-        });
-        
-        $('.show-model-btn').click(function() {
-            var modelId = $(this).closest('tr').data('model-id');
-            ModelService.toggleModelVisibility(modelId, true);
-        });
-        
-        $('.enable-model-btn').click(function() {
-            var $tr = $(this).closest('tr');
-            var modelId = $tr.data('model-id');
-            ModelService.enableModel(modelId);
-        });
     },
     
     // 加载提供商的所有可用预设模型
@@ -505,7 +482,7 @@ var ModelService = {
                                         (modelToShow.visible ? 
                                             '<button class="action-btn hide-model-btn" title="不显示">不显示</button>' : 
                                             '<button class="action-btn show-model-btn" title="显示">显示</button>') : 
-                                        '<button class="action-btn enable-model-btn" title="启用">启用</button>'}
+                                        ''}
                                 </td>
                             </tr>
                         `;
@@ -518,23 +495,6 @@ var ModelService = {
                     
                     // 更新表格
                     $('#modelTableBody').html(tableHtml);
-                    
-                    // 绑定操作按钮事件
-                    $('.hide-model-btn').click(function() {
-                        var modelId = $(this).closest('tr').data('model-id');
-                        ModelService.toggleModelVisibility(modelId, false);
-                    });
-                    
-                    $('.show-model-btn').click(function() {
-                        var modelId = $(this).closest('tr').data('model-id');
-                        ModelService.toggleModelVisibility(modelId, true);
-                    });
-                    
-                    $('.enable-model-btn').click(function() {
-                        var $tr = $(this).closest('tr');
-                        var modelId = $tr.data('model-id');
-                        ModelService.enableModel(modelId);
-                    });
                 } else {
                     // 如果API不存在，则使用现有模型作为可用模型
                     ModelService.renderModelTable(activeModels);
@@ -580,133 +540,6 @@ var ModelService = {
         
         // 更新表格
         $('#modelTableBody').html(tableHtml);
-        
-        // 绑定操作按钮事件
-        $('.hide-model-btn').click(function() {
-            var modelId = $(this).closest('tr').data('model-id');
-            ModelService.toggleModelVisibility(modelId, false);
-        });
-        
-        $('.show-model-btn').click(function() {
-            var modelId = $(this).closest('tr').data('model-id');
-            ModelService.toggleModelVisibility(modelId, true);
-        });
-        
-        $('.enable-model-btn').click(function() {
-            var $tr = $(this).closest('tr');
-            var modelId = $tr.data('model-id');
-            ModelService.enableModel(modelId);
-        });
-    },
-    
-    // 启用模型
-    enableModel: function(modelId) {
-        // 对Ollama特殊处理
-        if (this.currentProvider === 'ollama') {
-            // 添加本地Ollama模型
-            var modelData = {
-                id: modelId,
-                name: modelId,
-                category: 'Ollama本地',
-                description: 'Ollama本地模型 ' + modelId,
-                visible: true
-            };
-            
-            $.ajax({
-                url: '/api/settings/model/providers/ollama/models/add',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(modelData),
-                success: function(response) {
-                    if (response.success) {
-                        ModelService.loadAllModels();
-                        alert('Ollama模型已启用');
-                    } else {
-                        alert('启用模型失败: ' + response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    alert('启用模型失败: ' + error);
-                }
-            });
-            return;
-        }
-        
-        // 非Ollama服务商的处理逻辑
-        // 获取预设模型配置中的对应模型
-        $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/available-models',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    var availableModels = response.models;
-                    var modelData = null;
-                    
-                    // 查找对应的模型
-                    for (var i = 0; i < availableModels.length; i++) {
-                        if (availableModels[i].id === modelId) {
-                            modelData = availableModels[i];
-                            break;
-                        }
-                    }
-                    
-                    if (modelData) {
-                        // 添加模型
-                        $.ajax({
-                            url: '/api/settings/model/providers/' + ModelService.currentProvider + '/models/add',
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify(modelData),
-                            success: function(response) {
-                                if (response.success) {
-                                    // 刷新模型列表
-                                    ModelService.loadAllModels();
-                                    alert('模型已启用');
-                                } else {
-                                    alert('启用模型失败: ' + response.message);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                alert('启用模型失败: ' + error);
-                            }
-                        });
-                    } else {
-                        alert('未找到对应的模型信息');
-                    }
-                } else {
-                    alert('获取模型信息失败: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('获取模型信息失败: ' + error);
-            }
-        });
-    },
-    
-    // 禁用模型
-    disableModel: function(modelId, modelName) {
-        if (!confirm('确定要禁用模型 ' + modelName + ' 吗？您可以随时重新启用。')) {
-            return;
-        }
-        
-        $.ajax({
-            url: '/api/settings/model/providers/' + this.currentProvider + '/models/delete',
-            type: 'DELETE',
-            data: { modelId: modelId },
-            success: function(response) {
-                if (response.success) {
-                    // 刷新模型列表
-                    ModelService.loadAllModels();
-                    alert('模型已禁用');
-                } else {
-                    alert('禁用模型失败: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('禁用模型失败: ' + error);
-            }
-        });
     },
     
     // 切换模型可见性
