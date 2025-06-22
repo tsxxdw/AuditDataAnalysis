@@ -24,6 +24,7 @@ from service.knowledge_base.kb_service import (
 )
 from werkzeug.utils import secure_filename
 from service.common.model_common_service import ModelService
+from service.common.model.model_chat_common_service import model_chat_service
 
 # 创建知识库API蓝图
 knowledge_base_api = Blueprint('knowledge_base_api', __name__)
@@ -464,7 +465,7 @@ def knowledge_base_chat():
                     chat_messages[-1]['content'] += " /no_think"
             
             # 调用模型生成回复
-            response = model_service.chat_completion(
+            response = model_chat_service.chat_completion(
                 provider_id,
                 model_id,
                 chat_messages,

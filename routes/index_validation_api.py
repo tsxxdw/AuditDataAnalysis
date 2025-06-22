@@ -10,6 +10,8 @@ from service.prompt_templates.index_prompt_templates_service import PromptTempla
 from utils.database_config_util import DatabaseConfigUtil
 from sqlalchemy import text
 from service.database.database_service import DatabaseService
+from service.common.model_common_service import model_service
+from service.common.model.model_chat_common_service import model_chat_service
 
 # 创建蓝图
 index_validation_bp = Blueprint('index_validation_api', __name__, url_prefix='/api/validation')
@@ -113,9 +115,6 @@ def generate_sql():
         
         # 调用默认模型服务生成SQL
         try:
-            # 导入模型服务
-            from service.common.model_common_service import model_service
-            
             # 获取默认模型信息
             default_model = model_service.get_default_model()
             if not default_model:
@@ -182,7 +181,7 @@ def generate_sql():
             }
             
             # 调用模型
-            result = model_service.chat_completion(provider_id, model_id, messages, options)
+            result = model_chat_service.chat_completion(provider_id, model_id, messages, options)
             
             # 检查是否有错误
             if "error" in result:

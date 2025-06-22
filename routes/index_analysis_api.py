@@ -19,6 +19,10 @@ from routes.common.common_database_api import get_fields as common_get_fields
 from routes.common.common_database_api import get_tables as common_get_tables
 from routes.common.common_database_api import db_service as common_db_service
 
+# 导入模型服务
+from service.common.model_common_service import model_service
+from service.common.model.model_chat_common_service import model_chat_service
+
 # 创建蓝图
 index_analysis_bp = Blueprint('index_analysis_api', __name__, url_prefix='/api/analysis')
 
@@ -125,16 +129,12 @@ def generate_sql():
         
         # 调用默认模型服务生成SQL
         try:
-            # 导入模型服务
-            from service.common.model_common_service import model_service
-            
-            # 获取默认模型信息
+            # 获取模型服务提供商ID和模型ID
             default_model = model_service.get_default_model()
             if not default_model:
                 app_logger.error("没有找到默认模型配置")
                 raise Exception("没有找到默认模型配置，请先设置默认模型")
             
-            # 获取模型服务提供商ID和模型ID
             provider_id = default_model.get('provider_id')
             model_id = default_model.get('id')
             model_name = default_model.get('name', '').lower()
@@ -222,7 +222,7 @@ def generate_sql():
             }
             
             # 调用模型
-            result = model_service.chat_completion(provider_id, model_id, messages, options)
+            result = model_chat_service.chat_completion(provider_id, model_id, messages, options)
             
             # 检查是否有错误
             if "error" in result:
