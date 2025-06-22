@@ -111,8 +111,8 @@ def get_models(provider_id):
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
 @model_settings_api.route('/api/settings/model/providers/<provider_id>/models/categories', methods=['GET'])
-def get_models_by_category(provider_id):
-    """按类别获取模型列表"""
+def get_provider_models_grouped_by_category(provider_id):
+    """获取指定服务提供商的模型并按类别分组"""
     try:
         # 获取所有可见模型
         models = modelConfigUtil.get_provider_models(provider_id, only_visible=True)
