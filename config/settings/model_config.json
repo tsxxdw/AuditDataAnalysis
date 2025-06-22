@@ -133,7 +133,7 @@
           "name": "qwen3:14b",
           "category": "本地模型",
           "description": "Ollama本地模型 qwen3:14b",
-          "visible": false
+          "visible": true
         },
         {
           "id": "qwen3:0.6b",

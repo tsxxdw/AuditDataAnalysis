@@ -189,22 +189,6 @@ def get_available_models(provider_id):
         logger.error(f"获取预设模型列表时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
-@model_settings_api.route('/providers/ollama/available-models', methods=['GET'])
-def get_ollama_available_models():
-    """获取Ollama可用预设模型列表
-    
-    返回:
-        JSON: 成功/失败信息以及可用模型列表
-    """
-    logger.info("获取Ollama可用预设模型列表")
-    
-    # 对于Ollama，我们只显示本地已安装的模型，不显示预设模型
-    return jsonify({
-        "success": True,
-        "message": "Ollama仅使用本地安装的模型",
-        "models": []  # 返回空列表以确保不显示预设模型
-    })
-
 @model_settings_api.route('/api/settings/model/providers/ollama/sync', methods=['POST'])
 def sync_ollama_models():
     """手动同步本地Ollama模型
