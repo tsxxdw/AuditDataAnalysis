@@ -15,7 +15,7 @@ from service.common.model.model_log_common_service import model_log_service  # �
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-class ModelChatService:
+class ModelChatCommonService:
     """大模型对话服务类，负责处理与AI模型的对话交互"""
     
     def __init__(self, model_service=None):

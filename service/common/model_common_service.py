@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Any, Union
 from utils.encryption_util import encrypt_api_key, decrypt_api_key, is_encrypted
 from service.log.logger import app_logger  # 导入app_logger
 from service.common.model.model_log_common_service import model_log_service  # 导入model_log_service
-from service.common.model.model_chat_common_service import ModelChatService, model_chat_service  # 导入ModelChatService和model_chat_service
+from service.common.model.model_chat_common_service import ModelChatCommonService, model_chat_service  # 导入ModelChatCommonService和model_chat_service
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -33,7 +33,7 @@ class ModelService:
         global model_chat_service
         from service.common.model.model_chat_common_service import model_chat_service
         if model_chat_service is None:
-            model_chat_service = ModelChatService(self)
+            model_chat_service = ModelChatCommonService(self)
     
     def _load_config(self) -> Dict:
         """加载模型服务配置"""

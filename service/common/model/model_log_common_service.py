@@ -12,7 +12,7 @@ from service.log.logger import app_logger  # 导入app_logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-class ModelLogService:
+class ModelLogCommonService:
     """大模型日志服务类，负责记录大模型调用日志"""
     
     def __init__(self):
@@ -79,4 +79,4 @@ class ModelLogService:
             app_logger.error(f"记录大模型调用日志失败: {str(e)}")
 
 # 创建全局单例实例
-model_log_service = ModelLogService()
+model_log_service = ModelLogCommonService()
