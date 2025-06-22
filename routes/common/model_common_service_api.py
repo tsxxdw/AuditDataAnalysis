@@ -71,40 +71,6 @@ def chat_completion():
         logger.error(f"处理对话请求时发生错误: {str(e)}")
         return jsonify({"error": f"服务器错误: {str(e)}"}), 500
 
-@model_api.route('/api/model/providers', methods=['GET'])
-def get_providers():
-    """获取所有启用的服务提供商"""
-    try:
-        providers = model_service.get_providers()
-        # 仅返回启用的提供商
-        enabled_providers = [provider for provider in providers if provider.get('enabled', False)]
-        return jsonify({"providers": enabled_providers})
-    
-    except Exception as e:
-        logger.error(f"获取服务提供商列表时发生错误: {str(e)}")
-        return jsonify({"error": f"服务器错误: {str(e)}"}), 500
-
-@model_api.route('/api/model/providers/<provider_id>/models', methods=['GET'])
-def get_models(provider_id):
-    """获取指定提供商的模型列表"""
-    try:
-        # 检查提供商是否存在
-        provider = model_service.get_provider(provider_id)
-        if not provider:
-            return jsonify({"error": "未找到指定的服务提供商"}), 404
-        
-        # 检查提供商是否启用
-        if not provider.get('enabled', False):
-            return jsonify({"error": "该服务提供商已禁用"}), 403
-        
-        # 获取分类模型列表
-        models_by_category = model_service.get_models_by_category(provider_id)
-        return jsonify({"categories": models_by_category})
-    
-    except Exception as e:
-        logger.error(f"获取模型列表时发生错误: {str(e)}")
-        return jsonify({"error": f"服务器错误: {str(e)}"}), 500
-
 # 添加默认模型相关的API端点
 @model_api.route('/api/model/visible-models', methods=['GET'])
 def get_visible_models():
@@ -167,82 +133,6 @@ def set_default_model():
     except Exception as e:
         logger.error(f"设置默认模型时发生错误: {str(e)}")
         return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
-
-# ====== 以下是从common_ollama_api.py合并的直接Ollama API接口 ======
-
-@model_api.route('/api/common/ollama/generate', methods=['POST'])
-def generate_text():
-    """调用Ollama模型生成文本
-    
-    请求体:
-        user_prompt: 用户提示词
-        system_prompt: 系统提示词(可选)
-        max_tokens: 最大生成token数(可选)
-        temperature: 温度参数(可选，默认0.7)
-        
-    返回:
-        JSON: 包含生成的文本内容
-    """
-    logger.info("调用Ollama模型生成文本")
-    
-    try:
-        data = request.json
-        
-        if not data:
-            return jsonify({
-                "success": False, 
-                "message": "请求参数为空"
-            }), 400
-        
-        user_prompt = data.get('user_prompt')
-        if not user_prompt:
-            return jsonify({
-                "success": False, 
-                "message": "用户提示词(user_prompt)不能为空"
-            }), 400
-        
-        # 准备请求参数
-        ollama_params = {
-            "model": OLLAMA_MODEL,
-            "prompt": user_prompt,
-            "options": {
-                "temperature": data.get("temperature", 0.7)
-            }
-        }
-        
-        # 添加可选参数
-        if "system_prompt" in data:
-            ollama_params["system"] = data.get("system_prompt")
-        
-        if "max_tokens" in data:
-            ollama_params["options"]["num_predict"] = data.get("max_tokens")
-        
-        # 调用Ollama API
-        logger.info(f"调用Ollama模型, 模型: {OLLAMA_MODEL}")
-        logger.info(f"Ollama请求参数: {ollama_params}")
-        
-        # 使用ollama包生成文本
-        response = ollama.generate(**ollama_params)
-        
-        logger.info(f"Ollama返回数据: {response}")
-        
-        # 获取响应文本并去除<think>标签内容
-        response_text = response.get("response", "")
-        response_text = re.sub(r'<think>.*?</think>', '', response_text, flags=re.DOTALL)
-        
-        return jsonify({
-            "success": True,
-            "message": "成功生成文本",
-            "response": response_text,
-            "model": OLLAMA_MODEL
-        })
-        
-    except Exception as e:
-        logger.error(f"调用Ollama模型失败: {str(e)}")
-        return jsonify({
-            "success": False,
-            "message": f"调用Ollama模型失败: {str(e)}"
-        }), 500
 
 @model_api.route('/api/common/ollama/models', methods=['GET'])
 def list_ollama_models():
