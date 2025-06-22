@@ -305,34 +305,6 @@ class ModelService:
             logger.error(f"测试连接时发生错误: {str(e)}")
             return {"success": False, "message": f"发生错误: {str(e)}"}
     
-    def add_model(self, provider_id: str, model_data: Dict) -> bool:
-        """添加模型到提供商"""
-        if provider_id not in self.config.get('providers', {}):
-            return False
-        
-        # 验证必要字段
-        required_fields = ['id', 'name', 'category']
-        for field in required_fields:
-            if field not in model_data:
-                return False
-        
-        # 检查模型ID是否已存在
-        models = self.config['providers'][provider_id].get('models', [])
-        for model in models:
-            if model['id'] == model_data['id']:
-                return False  # 模型已存在
-        
-        # 设置默认值
-        model_data.setdefault('visible', True)
-        model_data.setdefault('description', '')
-        
-        # 添加模型
-        if 'models' not in self.config['providers'][provider_id]:
-            self.config['providers'][provider_id]['models'] = []
-        
-        self.config['providers'][provider_id]['models'].append(model_data)
-        return self._save_config()
-    
     def update_model(self, provider_id: str, model_id: str, data: Dict) -> bool:
         """更新模型信息"""
         if provider_id not in self.config.get('providers', {}):
@@ -347,20 +319,6 @@ class ModelService:
                 for field in allowed_fields:
                     if field in data:
                         self.config['providers'][provider_id]['models'][i][field] = data[field]
-                return self._save_config()
-        
-        return False  # 未找到模型
-    
-    def delete_model(self, provider_id: str, model_id: str) -> bool:
-        """删除模型"""
-        if provider_id not in self.config.get('providers', {}):
-            return False
-        
-        # 查找并删除模型
-        models = self.config['providers'][provider_id].get('models', [])
-        for i, model in enumerate(models):
-            if model['id'] == model_id:
-                self.config['providers'][provider_id]['models'].pop(i)
                 return self._save_config()
         
         return False  # 未找到模型
