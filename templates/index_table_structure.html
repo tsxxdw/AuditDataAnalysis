@@ -93,13 +93,6 @@
                             <option value="">请选择字段</option>
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="indexOperationType">操作类型：</label>
-                        {% with select_id='indexOperationType', options=[{'value': 'create', 'text': '创建索引'}, {'value': 'delete', 'text': '删除索引'}] %}
-                            {% include 'components/function-switch.html' %}
-                        {% endwith %}
-                    </div>
                 </div>
             </section>
             

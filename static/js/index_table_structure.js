@@ -265,7 +265,6 @@ $(document).ready(function() {
     function generateIndexSQL(e, operation) {
         const tableName = $('#indexTableName').val();
         const fieldName = $('#fieldName').val();
-        const operationType = $('#indexOperationType').val();
         
         // 验证必填项
         if(!tableName || !fieldName) {
@@ -300,7 +299,7 @@ $(document).ready(function() {
             data: JSON.stringify({
                 tableName: tableName,
                 fieldName: fieldName,
-                operationType: operationType,
+                operationType: operation === 'create' ? 'create' : 'delete',
                 templateId: templateId,
                 operation: operation
             }),
