@@ -245,3 +245,38 @@ class modelConfigUtil:
         provider["models"].append(model_info)
         
         return modelConfigUtil._save_config(config_data)
+        
+    @staticmethod
+    def update_provider(provider_id, data):
+        """更新服务提供商配置
+        
+        Args:
+            provider_id (str): 提供商ID
+            data (dict): 需要更新的数据，可包含以下字段:
+                - apiKey (str): API密钥
+                - apiUrl (str): API地址
+                - apiVersion (str): API版本
+                - enabled (bool): 是否启用
+                - name (str): 提供商名称
+                
+        Returns:
+            bool: 是否成功更新
+        """
+        config_data = modelConfigUtil._load_config()
+        if not config_data:
+            return False
+            
+        # 验证提供商是否存在
+        providers = config_data.get("providers", {})
+        if provider_id not in providers:
+            print(f"提供商 {provider_id} 不存在")
+            return False
+            
+        # 只更新允许的字段
+        allowed_fields = ['apiKey', 'apiUrl', 'apiVersion', 'enabled', 'name']
+        for field in allowed_fields:
+            if field in data:
+                # 对API密钥特殊处理：如果需要加密，可以在这里添加加密逻辑
+                config_data['providers'][provider_id][field] = data[field]
+        
+        return modelConfigUtil._save_config(config_data)

@@ -21,7 +21,6 @@ def get_providers():
     """获取所有服务提供商"""
     try:
         providers_dict = modelConfigUtil.get_all_providers()
-        
         # 转换为前端所需格式
         providers = []
         for key, provider in providers_dict.items():
@@ -72,9 +71,8 @@ def update_provider(provider_id):
         if not data:
             return jsonify({"success": False, "message": "请求体不能为空"}), 400
         
-        # 由于modelConfigUtil没有直接更新提供商的方法，这里仍使用model_service
-        # 更新提供商信息
-        success = model_service.update_provider(provider_id, data)
+        # 使用modelConfigUtil更新提供商信息
+        success = modelConfigUtil.update_provider(provider_id, data)
         if not success:
             return jsonify({"success": False, "message": "更新服务提供商配置失败"}), 400
         
@@ -148,26 +146,6 @@ def add_model(provider_id):
         return jsonify({"success": True, "message": "模型添加成功"})
     except Exception as e:
         logger.error(f"添加模型时发生错误: {str(e)}")
-        return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
-
-@model_settings_api.route('/api/settings/model/providers/<provider_id>/models/update', methods=['PUT'])
-def update_model(provider_id):
-    """更新模型信息"""
-    try:
-        data = request.get_json()
-        if not data or 'modelId' not in data:
-            return jsonify({"success": False, "message": "请提供模型ID和更新数据"}), 400
-        
-        model_id = data.pop('modelId')  # 从数据中提取模型ID并移除
-        
-        # 更新模型
-        success = model_service.update_model(provider_id, model_id, data)
-        if not success:
-            return jsonify({"success": False, "message": "更新模型失败"}), 400
-        
-        return jsonify({"success": True, "message": "模型信息已更新"})
-    except Exception as e:
-        logger.error(f"更新模型信息时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500
 
 @model_settings_api.route('/api/settings/model/providers/<provider_id>/models/delete', methods=['DELETE'])
