@@ -522,11 +522,15 @@ def knowledge_base_chat():
 
 @knowledge_base_api.route('/api/knowledge_base/check_model', methods=['GET'])
 def check_model_status():
-    """
-    检查大模型服务的可用性
+    """检查模型状态，返回可用的提供商和模型列表
+    
+    Returns:
+        JSON: 包含所有提供商和模型状态的JSON对象
     """
     try:
-        # 获取所有提供商和模型
+        from utils.settings.model_config_util import modelConfigUtil
+        from service.common.model_common_service import model_service
+        
         providers = model_service.get_providers()
         result = {}
         
@@ -539,14 +543,15 @@ def check_model_status():
             }
             
             try:
-                # 获取该提供商的所有模型
-                models = model_service.get_models(provider_id)
+                # 获取该提供商的所有模型（改用modelConfigUtil）
+                models = modelConfigUtil.get_provider_models(provider_id)
                 
                 if models and len(models) > 0:
                     provider_status['available'] = True
                     provider_status['models'] = []
                     
-                    for model_id, model in models.items():
+                    for model in models:
+                        model_id = model.get('id')
                         provider_status['models'].append({
                             'id': model_id,
                             'name': model.get('name', model_id)

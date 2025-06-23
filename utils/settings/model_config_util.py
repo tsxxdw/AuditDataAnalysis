@@ -312,3 +312,25 @@ class modelConfigUtil:
                     all_visible_models.append(full_model)
         
         return all_visible_models
+        
+    @staticmethod
+    def get_provider_models_by_category(provider_id, only_visible=True):
+        """按类别获取指定提供商的模型
+        
+        Args:
+            provider_id (str): 提供商ID
+            only_visible (bool, optional): 是否只返回可见的模型. 默认为True.
+            
+        Returns:
+            dict: 按类别分组的模型字典，格式为：{类别: [模型列表]}
+        """
+        models = modelConfigUtil.get_provider_models(provider_id, only_visible)
+        categorized = {}
+        
+        for model in models:
+            category = model.get('category', '其他')
+            if category not in categorized:
+                categorized[category] = []
+            categorized[category].append(model)
+        
+        return categorized

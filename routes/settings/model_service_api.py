@@ -114,17 +114,8 @@ def get_models(provider_id):
 def get_provider_models_grouped_by_category(provider_id):
     """获取指定服务提供商的模型并按类别分组"""
     try:
-        # 获取所有可见模型
-        models = modelConfigUtil.get_provider_models(provider_id, only_visible=True)
-        
-        # 按类别分组
-        categorized = {}
-        for model in models:
-            category = model.get('category', '其他')
-            if category not in categorized:
-                categorized[category] = []
-            categorized[category].append(model)
-            
+        # 使用新添加的modelConfigUtil方法按类别获取模型
+        categorized = modelConfigUtil.get_provider_models_by_category(provider_id, only_visible=True)
         return jsonify({"success": True, "categories": categorized})
     except Exception as e:
         logger.error(f"获取分类模型列表时发生错误: {str(e)}")

@@ -211,31 +211,6 @@ class ModelService:
             'hasApiKey': bool(provider.get('apiKey', ''))
         }
     
-    def get_models(self, provider_id: str = None) -> List[Dict]:
-        """获取指定提供商的模型列表，不指定则获取默认提供商的模型"""
-        if not provider_id:
-            provider_id = self.default_provider
-        
-        provider = self.config.get('providers', {}).get(provider_id)
-        if not provider:
-            return []
-        
-        return provider.get('models', [])
-    
-    def get_models_by_category(self, provider_id: str = None) -> Dict[str, List[Dict]]:
-        """按类别获取模型列表"""
-        models = self.get_models(provider_id)
-        categorized = {}
-        
-        for model in models:
-            if model.get('visible', True):
-                category = model.get('category', '其他')
-                if category not in categorized:
-                    categorized[category] = []
-                categorized[category].append(model)
-        
-        return categorized
-    
     def update_provider(self, provider_id: str, data: Dict) -> bool:
         """更新服务提供商配置"""
         if provider_id not in self.config.get('providers', {}):

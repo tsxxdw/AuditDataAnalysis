@@ -2,7 +2,7 @@
   "defaultProvider": "ollama",
   "defaultModel": {
     "provider_id": "ollama",
-    "model_id": "qwen3:14b"
+    "model_id": "qwen3:0.6b"
   },
   "providers": {
     "silicon-flow": {
