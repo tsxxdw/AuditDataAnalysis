@@ -280,3 +280,35 @@ class modelConfigUtil:
                 config_data['providers'][provider_id][field] = data[field]
         
         return modelConfigUtil._save_config(config_data)
+        
+    @staticmethod
+    def get_all_visible_models():
+        """获取所有启用的服务提供商中可见的模型
+        
+        Returns:
+            list: 所有可见模型的列表，每个模型包含提供商信息
+        """
+        config_data = modelConfigUtil._load_config()
+        if not config_data:
+            return []
+            
+        all_visible_models = []
+        providers = config_data.get("providers", {})
+        
+        for provider_id, provider in providers.items():
+            # 只考虑启用的服务提供商
+            if not provider.get("enabled", False):
+                continue
+                
+            provider_name = provider.get("name", provider_id)
+            
+            # 获取该提供商的所有可见模型
+            for model in provider.get("models", []):
+                if model.get("visible", True):
+                    # 创建包含提供商信息的完整模型数据
+                    full_model = model.copy()
+                    full_model["provider_id"] = provider_id
+                    full_model["provider_name"] = provider_name
+                    all_visible_models.append(full_model)
+        
+        return all_visible_models

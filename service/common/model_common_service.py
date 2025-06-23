@@ -305,28 +305,6 @@ class ModelService:
         except Exception as e:
             logger.error(f"测试连接时发生错误: {str(e)}")
             return {"success": False, "message": f"发生错误: {str(e)}"}
-    
-    def get_all_visible_models(self) -> List[Dict]:
-        """获取所有服务提供商中可见的模型"""
-        all_visible_models = []
-        
-        for provider_id, provider in self.config.get('providers', {}).items():
-            # 只考虑启用的服务提供商
-            if not provider.get('enabled', False):
-                continue
-                
-            provider_name = provider.get('name', provider_id)
-            
-            # 获取该提供商的所有可见模型
-            for model in provider.get('models', []):
-                if model.get('visible', True):
-                    # 创建包含提供商信息的完整模型数据
-                    full_model = model.copy()
-                    full_model['provider_id'] = provider_id
-                    full_model['provider_name'] = provider_name
-                    all_visible_models.append(full_model)
-        
-        return all_visible_models
 
 # 创建全局单例实例
 model_service = ModelService() 

@@ -287,7 +287,7 @@ def get_all_visible_models():
     """获取所有服务提供商中可见的模型"""
     try:
         logger.info("API请求: 获取所有可见模型")
-        all_visible_models = model_service.get_all_visible_models()
+        all_visible_models = modelConfigUtil.get_all_visible_models()
         logger.info(f"API响应: 获取所有可见模型成功，共 {len(all_visible_models)} 个模型")
         return jsonify({"success": True, "models": all_visible_models})
     except Exception as e:
