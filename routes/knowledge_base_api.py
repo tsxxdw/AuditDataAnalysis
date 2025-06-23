@@ -23,7 +23,7 @@ from service.knowledge_base.kb_service import (
     detect_document_type, extract_text_from_document
 )
 from werkzeug.utils import secure_filename
-from service.common.model_common_service import ModelService
+from service.common.model.model_base_common_service import ModelBaseCommonService, model_base_common_service as model_service
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil
 
@@ -32,7 +32,7 @@ knowledge_base_api = Blueprint('knowledge_base_api', __name__)
 logger = logging.getLogger(__name__)
 
 # 实例化模型服务
-model_service = ModelService()
+model_service = ModelBaseCommonService()
 
 # 确保知识库文件夹存在
 def ensure_kb_dirs_exist():

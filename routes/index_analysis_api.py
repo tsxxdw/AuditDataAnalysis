@@ -20,7 +20,7 @@ from routes.common.common_database_api import get_tables as common_get_tables
 from routes.common.common_database_api import db_service as common_db_service
 
 # 导入模型服务
-from service.common.model_common_service import model_service
+from service.common.model.model_base_common_service import model_base_common_service as model_service
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil  # 添加导入
 
