@@ -3,6 +3,7 @@
 
 from flask import Blueprint, request, jsonify
 from service.common.model_common_service import model_service
+from utils.settings.model_config_util import modelConfigUtil
 import logging
 import re
 import json
@@ -23,10 +24,20 @@ def get_default_model():
     """获取当前默认模型"""
     try:
         logger.info("API请求: 获取默认模型")
-        default_model = model_service.get_default_model()
+        default_model = modelConfigUtil.get_default_model_info()
         if default_model:
-            logger.info(f"API响应: 获取默认模型成功 - {default_model.get('provider_id', 'unknown')}:{default_model.get('id', 'unknown')}")
-            return jsonify({"success": True, "model": default_model})
+            # 处理返回结果格式，保持与原API兼容
+            model_info = default_model.get('model_details', {})
+            if 'model_details' in default_model:
+                # 复制model_details的内容到顶层
+                model_response = model_info.copy()
+                model_response['provider_id'] = default_model.get('provider_id', '')
+                model_response['provider_name'] = default_model.get('provider_name', '')
+            else:
+                model_response = default_model
+                
+            logger.info(f"API响应: 获取默认模型成功 - {model_response.get('provider_id', 'unknown')}:{model_response.get('id', 'unknown')}")
+            return jsonify({"success": True, "model": model_response})
         else:
             logger.info("API响应: 未找到默认模型")
             return jsonify({"success": True, "model": None})
@@ -53,12 +64,12 @@ def set_default_model():
             return jsonify({"success": False, "error": "服务提供商ID和模型ID不能为空"}), 400
         
         logger.info(f"设置默认模型 - 提供商ID: {provider_id}, 模型ID: {model_id}")
-        result = model_service.set_default_model(provider_id, model_id)
+        result = modelConfigUtil.update_default_model(provider_id, model_id)
         
         if result:
             logger.info("API响应: 默认模型设置成功")
             # 验证设置是否生效
-            current_default = model_service.get_default_model()
+            current_default = modelConfigUtil.get_default_model_info()
             logger.info(f"验证默认模型设置 - 当前默认模型: {current_default}")
             return jsonify({"success": True, "message": "默认模型设置成功"})
         else:

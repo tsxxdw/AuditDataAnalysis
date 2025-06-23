@@ -8,6 +8,7 @@ import logging
 import datetime
 from typing import Dict, List, Optional, Any, Union
 from utils.encryption_util import encrypt_api_key, decrypt_api_key, is_encrypted
+from utils.settings.model_config_util import modelConfigUtil  # 导入modelConfigUtil
 from service.log.logger import app_logger  # 导入app_logger
 from service.common.model.model_log_common_service import model_log_service  # 导入model_log_service
 from service.common.model.model_chat_common_service import ModelChatCommonService, model_chat_service  # 导入ModelChatCommonService和model_chat_service
@@ -326,67 +327,6 @@ class ModelService:
                     all_visible_models.append(full_model)
         
         return all_visible_models
-    
-    def get_default_model(self) -> Dict:
-        """获取默认模型的信息"""
-        # 首先检查是否设置了全局默认模型
-        global_default = self.config.get('defaultModel')
-        if global_default:
-            provider_id = global_default.get('provider_id')
-            model_id = global_default.get('model_id')
-            
-            # 确保提供商和模型存在且可用
-            if provider_id and model_id:
-                provider = self.config.get('providers', {}).get(provider_id)
-                if provider and provider.get('enabled', False):
-                    for model in provider.get('models', []):
-                        if model.get('id') == model_id and model.get('visible', True):
-                            # 创建包含提供商信息的完整模型数据
-                            full_model = model.copy()
-                            full_model['provider_id'] = provider_id
-                            full_model['provider_name'] = provider.get('name', provider_id)
-                            return full_model
-        
-        # 如果没有设置默认模型或默认模型不可用，返回空字典
-        return {}
-    
-    def set_default_model(self, provider_id: str, model_id: str) -> bool:
-        """设置默认模型"""
-        logger.info(f"设置默认模型 - 提供商ID: {provider_id}, 模型ID: {model_id}")
-        
-        # 验证提供商和模型是否存在且可用
-        provider = self.config.get('providers', {}).get(provider_id)
-        if not provider or not provider.get('enabled', False):
-            logger.error(f"设置默认模型 - 提供商不存在或未启用: {provider_id}")
-            return False
-            
-        model_exists = False
-        for model in provider.get('models', []):
-            if model.get('id') == model_id and model.get('visible', True):
-                model_exists = True
-                logger.info(f"设置默认模型 - 找到匹配的模型: {model_id}")
-                break
-                
-        if not model_exists:
-            logger.error(f"设置默认模型 - 未找到匹配的模型: {model_id}")
-            return False
-            
-        # 记录之前的默认模型（如果有）
-        old_default = self.config.get('defaultModel', {})
-        logger.info(f"设置默认模型 - 之前的默认模型: {old_default}")
-        
-        # 设置默认模型
-        self.config['defaultModel'] = {
-            'provider_id': provider_id,
-            'model_id': model_id
-        }
-        
-        logger.info(f"设置默认模型 - 新的默认模型设置为: {self.config['defaultModel']}")
-        
-        # 保存配置
-        save_result = self._save_config()
-        logger.info(f"设置默认模型 - 配置保存结果: {'成功' if save_result else '失败'}")
-        return save_result
 
 # 创建全局单例实例
 model_service = ModelService() 

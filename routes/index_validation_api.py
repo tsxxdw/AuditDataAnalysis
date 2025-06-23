@@ -12,6 +12,7 @@ from sqlalchemy import text
 from service.database.database_service import DatabaseService
 from service.common.model_common_service import model_service
 from service.common.model.model_chat_common_service import model_chat_service
+from utils.settings.model_config_util import modelConfigUtil
 
 # 创建蓝图
 index_validation_bp = Blueprint('index_validation_api', __name__, url_prefix='/api/validation')
@@ -116,15 +117,20 @@ def generate_sql():
         # 调用默认模型服务生成SQL
         try:
             # 获取默认模型信息
-            default_model = model_service.get_default_model()
-            if not default_model:
+            default_model_info = modelConfigUtil.get_default_model_info()
+            if not default_model_info:
                 app_logger.error("没有找到默认模型配置")
                 raise Exception("没有找到默认模型配置，请先设置默认模型")
             
             # 获取模型服务提供商ID和模型ID
-            provider_id = default_model.get('provider_id')
-            model_id = default_model.get('id')
-            model_name = default_model.get('name', '').lower()
+            provider_id = default_model_info.get('provider_id')
+            model_id = default_model_info.get('model_id')
+            
+            # 获取模型名称，可能在model_details中
+            if 'model_details' in default_model_info and default_model_info['model_details']:
+                model_name = default_model_info['model_details'].get('name', '').lower()
+            else:
+                model_name = ''
             
             app_logger.info(f"使用默认模型生成校验SQL: 提供商 {provider_id}, 模型 {model_id}")
             

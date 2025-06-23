@@ -25,6 +25,7 @@ from service.knowledge_base.kb_service import (
 from werkzeug.utils import secure_filename
 from service.common.model_common_service import ModelService
 from service.common.model.model_chat_common_service import model_chat_service
+from utils.settings.model_config_util import modelConfigUtil
 
 # 创建知识库API蓝图
 knowledge_base_api = Blueprint('knowledge_base_api', __name__)
@@ -435,8 +436,8 @@ def knowledge_base_chat():
         # 调用模型生成回复
         try:
             # 获取默认模型信息
-            default_model = model_service.get_default_model()
-            if not default_model:
+            default_model_info = modelConfigUtil.get_default_model_info()
+            if not default_model_info:
                 app_logger.error("没有找到默认模型配置")
                 return jsonify({
                     'success': False,
@@ -444,9 +445,14 @@ def knowledge_base_chat():
                 }), 500
             
             # 获取模型服务提供商ID和模型ID
-            provider_id = default_model.get('provider_id')
-            model_id = default_model.get('id')
-            model_name = default_model.get('name', '').lower()
+            provider_id = default_model_info.get('provider_id')
+            model_id = default_model_info.get('model_id')
+            
+            # 获取模型名称，可能在model_details中
+            if 'model_details' in default_model_info and default_model_info['model_details']:
+                model_name = default_model_info['model_details'].get('name', '').lower()
+            else:
+                model_name = ''
             
             app_logger.info(f"使用默认模型回答知识库问题: 提供商 {provider_id}, 模型 {model_id}")
             
