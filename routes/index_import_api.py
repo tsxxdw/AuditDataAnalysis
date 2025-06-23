@@ -4,21 +4,19 @@
 提供数据导入相关的API，包括获取数据库类型、获取数据库表、获取表字段等
 """
 
-from flask import Blueprint, jsonify, request, current_app, send_file, send_from_directory
+from flask import Blueprint, jsonify, request, send_from_directory
 from utils.database_config_util import DatabaseConfigUtil
 from utils.excel_util import ExcelUtil
 from utils.request_util import is_local_request
 from utils.file_util import is_safe_file_path, ensure_export_directory
 from config.global_config import get_project_root, get_export_dir
 from service.database.database_service import DatabaseService
-from service.database.db_pool_manager import DatabasePoolManager
 from service.log.logger import app_logger
 from service.exception import AppException
 from sqlalchemy import text
 import os
 import time
 import datetime
-from werkzeug.utils import secure_filename
 import uuid
 
 # 创建蓝图

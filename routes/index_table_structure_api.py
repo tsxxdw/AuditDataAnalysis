@@ -5,17 +5,13 @@
 """
 
 import re
-import os
 from flask import Blueprint, request, jsonify
 from service.log.logger import app_logger
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
 from pypinyin import lazy_pinyin
 from utils.excel_util import ExcelUtil
-from service.exception import AppException
-from sqlalchemy import text
 from service.prompt_templates.index_prompt_templates_service import PromptTemplateService
-from service.common.model.model_base_common_service import model_base_common_service as model_service
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil
 

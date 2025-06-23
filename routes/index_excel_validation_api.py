@@ -5,8 +5,7 @@ EXCEL校验API模块
 """
 
 import os
-import json
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from service.log.logger import app_logger
 from utils.excel_util import ExcelUtil
 

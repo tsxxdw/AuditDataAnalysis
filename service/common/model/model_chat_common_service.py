@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+
 import json
 import requests
 import logging
-import datetime
-from typing import Dict, List, Optional, Any, Union
-from utils.encryption_util import encrypt_api_key, decrypt_api_key, is_encrypted
+from typing import Dict, List
+from utils.encryption_util import  decrypt_api_key, is_encrypted
 from service.log.logger import app_logger  # 导入app_logger
 from service.common.model.model_log_common_service import model_log_service  # 导入model_log_service
 from utils.settings.model_config_util import modelConfigUtil  # 导入modelConfigUtil
@@ -222,7 +221,7 @@ class ModelChatCommonService:
                             return {
                                 "id": f"ollama-{model_id}",
                                 "object": "chat.completion",
-                                "created": int(import_time()),
+                                "created": int((lambda: __import__('time').time())()),
                                 "model": model_id,
                                 "choices": [
                                     {
@@ -315,7 +314,7 @@ class ModelChatCommonService:
                         return {
                             "id": f"ollama-{model_id}",
                             "object": "chat.completion",
-                            "created": int(import_time()),
+                            "created": int((lambda: __import__('time').time())()),
                             "model": model_id,
                             "choices": [
                                 {
@@ -347,12 +346,6 @@ class ModelChatCommonService:
             import traceback
             app_logger.error(f"异常堆栈: {traceback.format_exc()}")
             return {"error": error_msg}
-
-# 辅助方法
-def import_time():
-    """导入time模块并获取当前时间戳"""
-    import time
-    return time.time()
 
 # 创建全局单例实例
 model_chat_service = ModelChatCommonService()

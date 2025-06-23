@@ -4,7 +4,7 @@
 负责处理与一对一导入相关的API请求
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from service.log.logger import app_logger
 
 # 创建蓝图

@@ -10,7 +10,6 @@ from service.prompt_templates.index_prompt_templates_service import PromptTempla
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
 from service.common.dify_common_service import dify_service
-import json
 
 # 创建蓝图
 index_repair_bp = Blueprint('index_repair_api', __name__, url_prefix='/api/repair')

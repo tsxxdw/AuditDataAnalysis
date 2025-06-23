@@ -6,12 +6,9 @@
 
 import os
 import uuid
-import json
 import logging
 import traceback
-from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
-import shutil
 from service.log.logger import app_logger
 from service.knowledge_base.kb_service import (
     process_document, 
@@ -20,7 +17,6 @@ from service.knowledge_base.kb_service import (
     get_knowledge_items,
     delete_knowledge_item,
     get_knowledge_item_by_id,
-    detect_document_type, extract_text_from_document
 )
 from werkzeug.utils import secure_filename
 from service.common.model.model_base_common_service import ModelBaseCommonService, model_base_common_service as model_service

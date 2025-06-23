@@ -4,23 +4,18 @@
 负责处理与数据分析相关的API请求
 """
 
-import os
-import json
 from flask import Blueprint, request, jsonify
 from service.log.logger import app_logger
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
 from service.prompt_templates.index_prompt_templates_service import PromptTemplateService
 from sqlalchemy import text
-from service.exception import AppException
 
 # 从通用数据库API模块导入相关函数
 from routes.common.common_database_api import get_fields as common_get_fields
 from routes.common.common_database_api import get_tables as common_get_tables
-from routes.common.common_database_api import db_service as common_db_service
 
 # 导入模型服务
-from service.common.model.model_base_common_service import model_base_common_service as model_service
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil  # 添加导入
 

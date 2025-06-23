@@ -8,7 +8,6 @@ from flask import Blueprint, request, jsonify, current_app, send_file, url_for
 import os
 import pandas as pd
 import uuid
-import tempfile
 from service.log.logger import app_logger
 from datetime import datetime, timedelta
 import glob
