@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Blueprint, request, jsonify
-from service.common.model_common_service import model_service
+from service.common.model.model_base_common_service import model_base_common_service as model_service
 from utils.settings.model_config_util import modelConfigUtil
 import logging
 import os

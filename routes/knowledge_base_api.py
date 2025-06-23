@@ -31,9 +31,6 @@ from utils.settings.model_config_util import modelConfigUtil
 knowledge_base_api = Blueprint('knowledge_base_api', __name__)
 logger = logging.getLogger(__name__)
 
-# 实例化模型服务
-model_service = ModelBaseCommonService()
-
 # 确保知识库文件夹存在
 def ensure_kb_dirs_exist():
     """确保知识库相关目录存在"""
@@ -528,8 +525,7 @@ def check_model_status():
         JSON: 包含所有提供商和模型状态的JSON对象
     """
     try:
-        from utils.settings.model_config_util import modelConfigUtil
-        from service.common.model_common_service import model_service
+        # model_service 已在文件顶部导入，不需要再导入
         
         # 替换为modelConfigUtil.get_all_providers()
         providers = modelConfigUtil.get_all_providers()

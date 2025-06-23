@@ -10,7 +10,7 @@ from service.prompt_templates.index_prompt_templates_service import PromptTempla
 from utils.database_config_util import DatabaseConfigUtil
 from sqlalchemy import text
 from service.database.database_service import DatabaseService
-from service.common.model_common_service import model_service
+from service.common.model.model_base_common_service import model_base_common_service as model_service
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil
 
