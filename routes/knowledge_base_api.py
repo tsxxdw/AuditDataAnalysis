@@ -531,7 +531,8 @@ def check_model_status():
         from utils.settings.model_config_util import modelConfigUtil
         from service.common.model_common_service import model_service
         
-        providers = model_service.get_providers()
+        # 替换为modelConfigUtil.get_all_providers()
+        providers = modelConfigUtil.get_all_providers()
         result = {}
         
         # 遍历提供商检查状态

@@ -179,56 +179,6 @@ class ModelService:
             logger.error(f"保存模型配置文件失败: {str(e)}")
             return False
     
-    def get_providers(self) -> List[Dict]:
-        """获取所有服务提供商信息"""
-        providers = []
-        for key, provider in self.config.get('providers', {}).items():
-            # 创建提供商信息的副本，去除敏感信息
-            provider_info = {
-                'id': key,
-                'name': provider.get('name', key),
-                'apiUrl': provider.get('apiUrl', ''),
-                'enabled': provider.get('enabled', False),
-                'hasApiKey': bool(provider.get('apiKey', ''))
-            }
-            providers.append(provider_info)
-        
-        return providers
-    
-    def get_provider(self, provider_id: str) -> Optional[Dict]:
-        """获取指定服务提供商信息"""
-        provider = self.config.get('providers', {}).get(provider_id)
-        if not provider:
-            return None
-        
-        # 创建提供商信息的副本，去除敏感信息
-        return {
-            'id': provider_id,
-            'name': provider.get('name', provider_id),
-            'apiUrl': provider.get('apiUrl', ''),
-            'apiVersion': provider.get('apiVersion', 'v1'),
-            'enabled': provider.get('enabled', False),
-            'hasApiKey': bool(provider.get('apiKey', ''))
-        }
-    
-    def update_provider(self, provider_id: str, data: Dict) -> bool:
-        """更新服务提供商配置"""
-        if provider_id not in self.config.get('providers', {}):
-            return False
-        
-        # 只更新允许的字段
-        allowed_fields = ['apiKey', 'apiUrl', 'apiVersion', 'enabled', 'name']
-        for field in allowed_fields:
-            if field in data:
-                # 对API密钥特殊处理：加密后再存储
-                if field == 'apiKey' and data[field]:
-                    # 加密API密钥
-                    self.config['providers'][provider_id][field] = encrypt_api_key(data[field])
-                else:
-                    self.config['providers'][provider_id][field] = data[field]
-        
-        return self._save_config()
-    
     def test_connection(self, provider_id: str, api_key: str = None, api_url: str = None) -> Dict:
         """测试与服务提供商的连接"""
         provider = self.config.get('providers', {}).get(provider_id)
