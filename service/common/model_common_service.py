@@ -305,28 +305,6 @@ class ModelService:
             logger.error(f"测试连接时发生错误: {str(e)}")
             return {"success": False, "message": f"发生错误: {str(e)}"}
     
-    def update_model(self, provider_id: str, model_id: str, data: Dict) -> bool:
-        """更新模型信息"""
-        if provider_id not in self.config.get('providers', {}):
-            return False
-        
-        # 查找模型
-        models = self.config['providers'][provider_id].get('models', [])
-        for i, model in enumerate(models):
-            if model['id'] == model_id:
-                # 只更新允许的字段
-                allowed_fields = ['name', 'visible', 'category', 'description']
-                for field in allowed_fields:
-                    if field in data:
-                        self.config['providers'][provider_id]['models'][i][field] = data[field]
-                return self._save_config()
-        
-        return False  # 未找到模型
-    
-    def toggle_model_visibility(self, provider_id: str, model_id: str, visible: bool) -> bool:
-        """切换模型的可见性"""
-        return self.update_model(provider_id, model_id, {'visible': visible})
-    
     def get_all_visible_models(self) -> List[Dict]:
         """获取所有服务提供商中可见的模型"""
         all_visible_models = []
