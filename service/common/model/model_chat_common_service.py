@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Any, Union
 from utils.encryption_util import encrypt_api_key, decrypt_api_key, is_encrypted
 from service.log.logger import app_logger  # 导入app_logger
 from service.common.model.model_log_common_service import model_log_service  # 导入model_log_service
+from utils.settings.model_config_util import modelConfigUtil  # 导入modelConfigUtil
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -22,9 +23,10 @@ class ModelChatCommonService:
         """初始化对话服务
         
         Args:
-            model_service: ModelService实例，用于获取配置信息
+            model_service: ModelService实例，用于获取配置信息（已弃用，保留参数兼容旧代码）
         """
-        self.model_service = model_service  # 保存ModelService实例的引用
+        # 不再使用model_service，保留参数仅为了兼容性
+        pass
     
     def chat_completion(self, provider_id: str, model_id: str, messages: List[Dict], options: Dict = None) -> Dict:
         """调用大模型进行对话
@@ -49,7 +51,8 @@ class ModelChatCommonService:
         model_log_service.log_model_call(provider_id, model_id, messages)
         
         # 获取提供商配置
-        provider = self.model_service.config.get('providers', {}).get(provider_id)
+        config_data = modelConfigUtil._load_config()
+        provider = config_data.get('providers', {}).get(provider_id)
         if not provider:
             error_msg = "未找到指定的服务提供商"
             app_logger.error(f"调用大模型失败 - {error_msg}")
@@ -351,5 +354,5 @@ def import_time():
     import time
     return time.time()
 
-# 创建全局单例实例 - 但此处不初始化，需要在model_common_service.py中初始化
-model_chat_service = None
+# 创建全局单例实例
+model_chat_service = ModelChatCommonService()

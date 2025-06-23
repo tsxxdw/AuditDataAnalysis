@@ -205,8 +205,8 @@ def sync_ollama_models():
                     local_model_ids.append(model.name)
         
         # 获取当前配置
-        from service.common.model_common_service import model_service
-        ollama_config = model_service.config.get('providers', {}).get('ollama', {})
+        config_data = modelConfigUtil._load_config()
+        ollama_config = config_data.get('providers', {}).get('ollama', {})
         configured_models = ollama_config.get('models', [])
         
         # 保留已配置但本地也存在的模型
@@ -238,9 +238,9 @@ def sync_ollama_models():
                 models_added.append(model_id)
         
         # 更新配置
-        if 'ollama' in model_service.config.get('providers', {}):
-            model_service.config['providers']['ollama']['models'] = models_to_keep
-            model_service._save_config()
+        if 'ollama' in config_data.get('providers', {}):
+            config_data['providers']['ollama']['models'] = models_to_keep
+            modelConfigUtil._save_config(config_data)
             
             # 准备返回消息
             message = "同步完成"
