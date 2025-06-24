@@ -1,4 +1,6 @@
-// 首页JS文件
+/**
+ * 首页脚本
+ */
 $(document).ready(function() {
-    // 首页特定的JS代码
+    // 首页特定的JavaScript代码
 }); 

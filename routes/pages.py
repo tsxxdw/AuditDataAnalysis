@@ -4,17 +4,41 @@
 管理所有页面的路由定义，包括首页、数据库管理、数据导入等页面
 """
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for, session
 from service.log.logger import app_logger
+from service.auth.auth_middleware import login_required, admin_required, has_permission
 
 # 创建页面蓝图
 pages_bp = Blueprint('pages', __name__)
+
+@pages_bp.route('/login')
+def login():
+    """登录页面"""
+    # 如果用户已登录，重定向到首页
+    if 'user_info' in session:
+        return redirect(url_for('pages.index'))
+    
+    app_logger.info("访问登录页面")
+    return render_template('login.html', page_title='登录')
 
 @pages_bp.route('/')
 def index():
     """首页"""
     app_logger.info("访问首页")
-    return render_template('index.html', page_title='数据分析系统')
+    
+    # 获取当前用户信息
+    user_info = session.get('user_info', {})
+    
+    # 获取用户权限
+    permissions = []
+    if user_info:
+        if user_info.get('role') == '管理员':
+            # 管理员有所有权限
+            permissions = None  # None表示全部权限
+        else:
+            permissions = user_info.get('permissions', [])
+    
+    return render_template('index.html', page_title='数据分析系统', user_info=user_info, permissions=permissions)
 
 @pages_bp.route('/index_table_structure')
 def index_table_structure():
@@ -95,6 +119,7 @@ def index_knowledge_base():
     return render_template('index_knowledge_base.html', page_title='本地知识库')
 
 @pages_bp.route('/user_management')
+@admin_required
 def user_management():
     """用户管理页面"""
     app_logger.info("访问用户管理页面")

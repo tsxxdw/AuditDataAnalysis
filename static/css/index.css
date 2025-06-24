@@ -34,6 +34,12 @@
     font-size: 1rem;
 }
 
+.main-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.12);
+}
+
 /* 表结构管理按钮图标 */
 .db-btn:before {
     content: "🗃️";
@@ -97,12 +103,6 @@
 /* 用户管理按钮图标 */
 .user-management-btn:before {
     content: "👤";
-}
-
-.main-btn:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.12);
 }
 
 /* 响应式设计 */

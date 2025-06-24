@@ -13,9 +13,15 @@
             <h1>{{ page_title|default('数据分析系统') }}</h1>
         </div>
         
-        <!-- 右侧设置按钮 -->
+        <!-- 右侧设置按钮和注销按钮 -->
         <div class="right-nav">
-            <a href="{{ url_for('pages.settings') }}" class="settings-btn">设置</a>
+            {% if request.path != '/settings' %}
+                <a href="{{ url_for('pages.settings') }}" class="settings-btn">设置</a>
+            {% else %}
+                {% if session.get('user_info') %}
+                <button id="logout-btn" class="logout-btn" title="{{ session.user_info.username }}">注销</button>
+                {% endif %}
+            {% endif %}
         </div>
         
         <!-- 移动端菜单按钮 -->

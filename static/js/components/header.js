@@ -22,4 +22,26 @@ $(document).ready(function() {
             $('.header-container').removeClass('menu-active');
         }
     });
+    
+    // 注销按钮点击事件
+    $('#logout-btn').on('click', function() {
+        // 发送退出登录请求
+        $.ajax({
+            url: '/api/user/logout',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({}),
+            success: function(response) {
+                if (response.code === 200) {
+                    // 退出成功，跳转到登录页
+                    window.location.href = '/login';
+                } else {
+                    alert(response.message || '退出失败，请稍后重试');
+                }
+            },
+            error: function() {
+                alert('服务器错误，请稍后重试');
+            }
+        });
+    });
 }); 

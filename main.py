@@ -3,6 +3,7 @@ from flask import Flask, render_template, send_from_directory
 import webbrowser
 import threading
 import time
+import secrets
 from routes.settings.setting_relational_database_api import settings_database_bp
 from routes.settings.setting_vector_database_api import settings_vector_database_bp  # 新增导入向量数据库设置API蓝图
 from routes.settings.setting_log_api import log_settings_bp
@@ -21,6 +22,7 @@ from routes.knowledge_base_api import knowledge_base_api  # 导入知识库API�
 from routes.user_management_api import user_management_api  # 导入用户管理API蓝图
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
+from service.auth.auth_middleware import init_auth_middleware  # 导入身份验证中间件
 from service.exception import register_error_handlers
 from service.database.db_pool_manager import DatabasePoolManager
 from service.knowledge_base import init_knowledge_base  # 导入知识库初始化函数
@@ -38,6 +40,11 @@ ensure_dir_exists(UPLOAD_FOLDER)
 app_logger.info(f"确保文件上传目录存在: {os.path.abspath(UPLOAD_FOLDER)}")
 
 app = Flask(__name__)
+
+# 配置会话
+app.secret_key = secrets.token_hex(16)  # 使用随机密钥
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 会话过期时间，单位秒（1天）
 
 # 注册蓝图
 app.register_blueprint(settings_database_bp)
@@ -62,6 +69,7 @@ app.register_blueprint(user_management_api)  # 注册用户管理API路由
 
 # 初始化中间件
 init_log_middleware(app)
+init_auth_middleware(app)  # 初始化身份验证中间件
 
 # 注册异常处理器
 register_error_handlers(app)
@@ -79,7 +87,7 @@ def open_browser():
     # 等待1秒，确保Flask服务器已启动
     time.sleep(1)
     # 打开默认浏览器并访问应用URL
-    webbrowser.open('http://127.0.0.1:5000/')
+    webbrowser.open('http://127.0.0.1:5000/login')  # 修改为访问登录页
 
 if __name__ == '__main__':
     app_logger.info("启动应用服务器")

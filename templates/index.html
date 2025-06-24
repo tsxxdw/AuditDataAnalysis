@@ -17,19 +17,57 @@
     <main>
         <div class="home-container">
             <div class="buttons-container">
+                {% if permissions is none or 'index_table_structure.html' in permissions %}
                 <a href="{{ url_for('pages.index_table_structure') }}" class="main-btn db-btn" target="_blank">表结构管理</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_file_upload.html' in permissions %}
                 <a href="{{ url_for('pages.index_file_upload') }}" class="main-btn upload-btn" target="_blank">文件上传</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_import.html' in permissions %}
                 <a href="{{ url_for('pages.index_import') }}" class="main-btn import-btn" target="_blank">数据导入</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_one_to_one_import.html' in permissions %}
                 <a href="{{ url_for('pages.index_one_to_one_import') }}" class="main-btn one-to-one-btn" target="_blank">一对一导入</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_repair.html' in permissions %}
                 <a href="{{ url_for('pages.index_repair') }}" class="main-btn repair-btn" target="_blank">数据修复</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_validation.html' in permissions %}
                 <a href="{{ url_for('pages.index_validation') }}" class="main-btn validation-btn" target="_blank">数据校验</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_excel_validation.html' in permissions %}
                 <a href="{{ url_for('pages.index_excel_validation') }}" class="main-btn excel-validation-btn" target="_blank">EXCEL校验</a>
+                {% endif %}
+                
+                {% if permissions is none or 'excel_repair.html' in permissions %}
                 <a href="{{ url_for('pages.excel_repair') }}" class="main-btn excel-repair-btn" target="_blank">EXCEL修复</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_analysis.html' in permissions %}
                 <a href="{{ url_for('pages.index_analysis') }}" class="main-btn query-btn" target="_blank">数据分析</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_sql.html' in permissions %}
                 <a href="{{ url_for('pages.index_sql') }}" class="main-btn sql-btn" target="_blank">常用SQL</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_prompt_templates.html' in permissions %}
                 <a href="{{ url_for('pages.index_prompt_templates') }}" class="main-btn prompt-btn" target="_blank">提示词模板</a>
+                {% endif %}
+                
+                {% if permissions is none or 'index_knowledge_base.html' in permissions %}
                 <a href="{{ url_for('pages.index_knowledge_base') }}" class="main-btn knowledge-base-btn" target="_blank">本地知识库</a>
+                {% endif %}
+                
+                {% if user_info and user_info.role == '管理员' %}
                 <a href="{{ url_for('pages.user_management') }}" class="main-btn user-management-btn" target="_blank">用户管理</a>
+                {% endif %}
             </div>
         </div>
     </main>

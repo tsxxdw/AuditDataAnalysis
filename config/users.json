@@ -2,7 +2,7 @@
     "users": [
         {
             "username": "admin",
-            "password": "admin123",
+            "password": "0192023a7bbd73250516f069df18b500",
             "role": "管理员",
             "permissions": []
         },
@@ -11,6 +11,7 @@
             "password": "fa820cc1ad39a4e99283e9fa555035ec",
             "role": "普通用户",
             "permissions": [
+                "excel_repair.html",
                 "index_sql.html"
             ]
         }
