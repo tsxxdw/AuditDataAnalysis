@@ -1,0 +1,41 @@
+<!-- 个人设置页面 -->
+<div id="personal-settings" class="settings-section">
+    <div class="setting-section">
+        <h3 class="section-title">账号信息</h3>
+        <div class="info-card">
+            <div class="info-item">
+                <span class="info-label">用户名：</span>
+                <span class="info-value" id="current-username"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">角色：</span>
+                <span class="info-value" id="current-role"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">权限：</span>
+                <div class="permission-list" id="current-permissions"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h3 class="section-title">修改密码</h3>
+        <form id="change-password-form" class="settings-form">
+            <div class="form-item">
+                <label for="current-password">当前密码：</label>
+                <input type="password" id="current-password" name="current-password" required>
+            </div>
+            <div class="form-item">
+                <label for="new-password">新密码：</label>
+                <input type="password" id="new-password" name="new-password" required>
+            </div>
+            <div class="form-item">
+                <label for="confirm-password">确认密码：</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">确认修改</button>
+            </div>
+        </form>
+    </div>
+</div> 

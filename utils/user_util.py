@@ -120,6 +120,29 @@ class UserUtil:
         
         return False, "用户不存在"
     
+    def change_password(self, username, current_password, new_password):
+        """修改用户密码"""
+        # 首先验证当前密码是否正确
+        verify_result, message = self.verify_user(username, current_password)
+        
+        if not verify_result:
+            return False, "当前密码错误"
+        
+        users_data = self.load_users()
+        
+        for user in users_data['users']:
+            if user['username'] == username:
+                # 更新密码
+                user['password'] = self._hash_password(new_password)
+                success = self.save_users(users_data)
+                
+                if success:
+                    return True, "密码修改成功"
+                else:
+                    return False, "密码修改失败"
+        
+        return False, "用户不存在"
+    
     def delete_user(self, username):
         """删除用户"""
         users_data = self.load_users()

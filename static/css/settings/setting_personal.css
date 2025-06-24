@@ -1,0 +1,106 @@
+/* 个人设置页面样式 */
+#personal-settings {
+    display: none;
+}
+
+#personal-settings.active {
+    display: block;
+}
+
+.info-card {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.info-item {
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    font-weight: bold;
+    min-width: 80px;
+    display: inline-block;
+}
+
+.permission-list {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.permission-tag {
+    display: inline-block;
+    background-color: #e8f0fe;
+    color: #1a73e8;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 2px 4px 2px 0;
+    font-size: 0.9em;
+}
+
+.settings-form {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 20px;
+    max-width: 500px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-item {
+    margin-bottom: 20px;
+}
+
+.form-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-item input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: right;
+}
+
+.btn-primary {
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.btn-primary:hover {
+    background-color: #1765cc;
+}
+
+/* 错误消息样式 */
+.error-message {
+    color: #d93025;
+    font-size: 0.9em;
+    margin-top: 5px;
+    display: none;
+}
+
+.success-message {
+    color: #188038;
+    font-size: 0.9em;
+    margin-top: 5px;
+    display: none;
+} 

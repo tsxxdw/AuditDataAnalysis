@@ -33,8 +33,10 @@ def init_auth_middleware(app):
         
         # 不需要登录的API路径前缀
         public_api_prefixes = [
-            '/api/user/login',
-            '/api/user/logout',
+            '/api/login',  # 新的登录API路径
+            '/api/login/logout',  # 新的退出登录API路径
+            '/api/user/login',  # 旧的登录API路径（保留兼容性）
+            '/api/user/logout',  # 旧的退出登录API路径（保留兼容性）
             '/static/'
         ]
         

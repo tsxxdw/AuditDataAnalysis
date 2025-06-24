@@ -27,7 +27,7 @@ $(document).ready(function() {
     $('#logout-btn').on('click', function() {
         // 发送退出登录请求
         $.ajax({
-            url: '/api/user/logout',
+            url: '/api/login/logout',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({}),

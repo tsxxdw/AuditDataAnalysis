@@ -12,6 +12,9 @@ $(document).ready(function() {
     // 初始化模型服务模块
     ModelService.init();
 
+    // 页面加载时默认显示个人设置面板
+    showSettingsPanel('personal-settings');
+
     // 导航菜单切换
     $('.nav-item').click(function() {
         // 移除所有导航项的active类
@@ -22,16 +25,22 @@ $(document).ready(function() {
         // 获取目标内容区域的ID
         var targetId = $(this).data('target');
         
-        // 隐藏所有内容区域
+        // 显示对应的设置面板
+        showSettingsPanel(targetId);
+    });
+
+    // 显示指定的设置面板
+    function showSettingsPanel(panelId) {
+        // 隐藏所有设置面板
         $('.settings-section').removeClass('active');
-        // 显示目标内容区域
-        $('#' + targetId).addClass('active');
+        // 显示目标设置面板
+        $('#' + panelId).addClass('active');
         
-        // 如果点击的是日志设置，加载日志设置
-        if (targetId === 'log-settings') {
+        // 如果是日志设置，加载日志设置
+        if (panelId === 'log-settings') {
             LogSettings.loadSettings();
         }
-    });
+    }
 });
 
 // 日志设置模块

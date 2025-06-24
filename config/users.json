@@ -12,7 +12,9 @@
             "role": "普通用户",
             "permissions": [
                 "excel_repair.html",
-                "index_sql.html"
+                "index_sql.html",
+                "settings.html",
+                "settings/setting_personal.html"
             ]
         }
     ]

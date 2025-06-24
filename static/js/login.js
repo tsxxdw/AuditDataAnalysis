@@ -38,7 +38,7 @@ $(document).ready(function() {
 
         // 发送登录请求
         $.ajax({
-            url: '/api/user/login',
+            url: '/api/login',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -55,8 +55,19 @@ $(document).ready(function() {
                     loginBtn.text(originalText).prop('disabled', false);
                 }
             },
-            error: function() {
-                messageElement.text('服务器错误，请稍后重试');
+            error: function(xhr, status, error) {
+                // 检查是否是401错误（未授权）
+                if (xhr.status === 401) {
+                    // 尝试从响应中解析错误消息
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        messageElement.text(response.message || '用户名或密码错误');
+                    } catch (e) {
+                        messageElement.text('用户名或密码错误');
+                    }
+                } else {
+                    messageElement.text('服务器错误，请稍后重试');
+                }
                 loginBtn.text(originalText).prop('disabled', false);
             }
         });
