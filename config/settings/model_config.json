@@ -2,7 +2,7 @@
   "defaultProvider": "ollama",
   "defaultModel": {
     "provider_id": "silicon-flow",
-    "model_id": "Pro/deepseek-ai/DeepSeek-V3"
+    "model_id": "Qwen/Qwen3-32B"
   },
   "providers": {
     "silicon-flow": {
@@ -98,7 +98,7 @@
           "name": "deepseek-r1:8b-0528-qwen3-q4_K_M",
           "category": "本地模型",
           "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-q4_K_M",
-          "visible": false
+          "visible": true
         },
         {
           "id": "deepseek-r1:8b-0528-qwen3-fp16",

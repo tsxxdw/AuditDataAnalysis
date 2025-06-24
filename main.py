@@ -3,9 +3,9 @@ from flask import Flask, render_template, send_from_directory
 import webbrowser
 import threading
 import time
-from routes.settings.settings_database_api import settings_database_bp
-from routes.settings.settings_vector_database_api import settings_vector_database_bp  # 新增导入向量数据库设置API蓝图
-from routes.settings.log_settings_api import log_settings_bp
+from routes.settings.setting_relational_database_api import settings_database_bp
+from routes.settings.setting_vector_database_api import settings_vector_database_bp  # 新增导入向量数据库设置API蓝图
+from routes.settings.setting_log_api import log_settings_bp
 from routes.index_file_upload_api import file_upload_bp, ensure_dir_exists, UPLOAD_FOLDER
 from routes.index_import_api import import_api_bp
 from routes.index_one_to_one_import_api import index_one_to_one_import_bp
@@ -25,7 +25,7 @@ from service.database.db_pool_manager import DatabasePoolManager
 from service.knowledge_base import init_knowledge_base  # 导入知识库初始化函数
 from config.global_config import init_project_root
 from routes.common.model_common_service_api import model_api  # 导入模型服务API蓝图
-from routes.settings.model_service_api import model_settings_api  # 导入模型设置API蓝图
+from routes.settings.setting_model_server_api import model_settings_api  # 导入模型设置API蓝图
 from routes.index_repair_api import index_repair_bp  # 注册数据修复API路由
 
 # 初始化项目根路径（全局配置）

@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/database_setting.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/vector_database_setting.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/log_settings.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/model_service.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/setting_relational_database.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/setting_vector_database.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/setting_log.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings/setting_model_server.css') }}">
     <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
 </head>
 <body>
@@ -48,16 +48,16 @@
                 <!-- 右侧内容区 -->
                 <div class="settings-content">
                     <!-- 引入数据库设置 -->
-                    {% include 'settings/database_setting.html' %}
+                    {% include 'settings/setting_relational_database.html' %}
                     
                     <!-- 引入向量数据库设置 -->
-                    {% include 'settings/vector_database_setting.html' %}
+                    {% include 'settings/setting_vector_database.html' %}
                     
                     <!-- 引入日志设置 -->
-                    {% include 'settings/log_settings.html' %}
+                    {% include 'settings/setting_log.html' %}
                     
                     <!-- 引入模型服务设置 -->
-                    {% include 'settings/model_service.html' %}
+                    {% include 'settings/setting_model_server.html' %}
                 </div>
             </div>
         </div>
@@ -67,10 +67,10 @@
     {% include 'components/footer.html' %}
 
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/settings/database_setting.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/settings/vector_database_setting.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/settings/log_settings.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/settings/model_service.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings/setting_relational_database.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings/setting_vector_database.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings/setting_log.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings/setting_model_server.js') }}"></script>
     <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 </body>
 </html> 
