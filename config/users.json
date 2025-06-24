@@ -1,0 +1,18 @@
+{
+    "users": [
+        {
+            "username": "admin",
+            "password": "admin123",
+            "role": "管理员",
+            "permissions": []
+        },
+        {
+            "username": "test001",
+            "password": "fa820cc1ad39a4e99283e9fa555035ec",
+            "role": "普通用户",
+            "permissions": [
+                "index_sql.html"
+            ]
+        }
+    ]
+}

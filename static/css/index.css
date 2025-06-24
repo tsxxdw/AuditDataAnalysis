@@ -94,6 +94,11 @@
     content: "📚";
 }
 
+/* 用户管理按钮图标 */
+.user-management-btn:before {
+    content: "👤";
+}
+
 .main-btn:hover {
     background-color: #2980b9;
     transform: translateY(-2px);

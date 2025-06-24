@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - 数据分析系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_management.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
+    
+    <main>
+        <div class="user-management-container">
+            <h2 class="page-title">用户管理</h2>
+            
+            <div class="user-controls">
+                <button id="add-user-btn" class="primary-btn">添加用户</button>
+            </div>
+            
+            <div class="user-list-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>身份</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list">
+                        <!-- 用户列表将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 添加用户的模态框 -->
+        <div id="add-user-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>添加用户</h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="add-user-form">
+                        <div class="form-group">
+                            <label for="username">用户名:</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">密码:</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">身份:</label>
+                            <select id="role" name="role" required>
+                                <option value="管理员">管理员</option>
+                                <option value="普通用户">普通用户</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="primary-btn">保存</button>
+                            <button type="button" class="cancel-btn close-modal">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设置权限的模态框 -->
+        <div id="permissions-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>设置权限 - <span id="permission-username"></span></h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="permissions-container">
+                        <div class="permissions-list" id="permissions-list">
+                            <!-- 权限列表将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="save-permissions-btn" class="primary-btn">保存</button>
+                        <button type="button" class="cancel-btn close-modal">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/user_management.js') }}"></script>
+</body>
+</html> 

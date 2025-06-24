@@ -92,4 +92,10 @@ def settings():
 def index_knowledge_base():
     """本地知识库页面"""
     app_logger.info("访问本地知识库页面")
-    return render_template('index_knowledge_base.html', page_title='本地知识库') 
+    return render_template('index_knowledge_base.html', page_title='本地知识库')
+
+@pages_bp.route('/user_management')
+def user_management():
+    """用户管理页面"""
+    app_logger.info("访问用户管理页面")
+    return render_template('user_management.html', page_title='用户管理') 
