@@ -1,0 +1,100 @@
+<div class="settings-section" id="vector-db-settings">
+    <h3 class="section-title">向量数据库设置</h3>
+    <div class="vector-db-settings-form">
+        <div class="form-group">
+            <label for="default-vector-db" class="highlight-label">默认向量数据库：</label>
+            <select id="default-vector-db" class="select-input">
+                <option value="chroma">Chroma</option>
+                <option value="milvus">Milvus</option>
+                <option value="faiss">FAISS</option>
+                <option value="elasticsearch">Elasticsearch</option>
+            </select>
+        </div>
+        
+        <div class="db-divider"></div>
+        
+        <div class="form-group">
+            <label for="vector-db-type" class="highlight-label">向量数据库类型：</label>
+            <select id="vector-db-type" class="select-input">
+                <option value="chroma">Chroma</option>
+                <option value="milvus">Milvus</option>
+                <option value="faiss">FAISS</option>
+                <option value="elasticsearch">Elasticsearch</option>
+            </select>
+        </div>
+        
+        <!-- Chroma 连接信息 -->
+        <div class="vector-db-connection-form" id="chroma-form">
+            <div class="form-group">
+                <label for="chroma-host">服务器地址：</label>
+                <input type="text" id="chroma-host" class="text-input" placeholder="localhost">
+            </div>
+            <div class="form-group">
+                <label for="chroma-port">端口：</label>
+                <input type="text" id="chroma-port" class="text-input" placeholder="8000">
+            </div>
+            <div class="form-group">
+                <label for="chroma-collection">集合名称：</label>
+                <input type="text" id="chroma-collection" class="text-input" placeholder="default_collection">
+            </div>
+            <div class="form-group">
+                <label for="chroma-persistent">持久化目录：</label>
+                <input type="text" id="chroma-persistent" class="text-input" placeholder="./chroma_db">
+            </div>
+        </div>
+        
+        <!-- Milvus 连接信息 -->
+        <div class="vector-db-connection-form" id="milvus-form" style="display: none;">
+            <div class="form-group">
+                <label for="milvus-host">Milvus地址：</label>
+                <input type="text" id="milvus-host" class="text-input" placeholder="localhost">
+            </div>
+            <div class="form-group">
+                <label for="milvus-collection">Milvus数据库：</label>
+                <input type="text" id="milvus-collection" class="text-input" placeholder="default_collection">
+            </div>
+        </div>
+        
+        <!-- FAISS 连接信息 -->
+        <div class="vector-db-connection-form" id="faiss-form" style="display: none;">
+            <div class="form-group">
+                <label for="faiss-index-path">索引文件路径：</label>
+                <input type="text" id="faiss-index-path" class="text-input" placeholder="./faiss_index">
+            </div>
+            <div class="form-group">
+                <label for="faiss-dimension">向量维度：</label>
+                <input type="text" id="faiss-dimension" class="text-input" placeholder="1536">
+            </div>
+        </div>
+        
+        <!-- Elasticsearch 连接信息 -->
+        <div class="vector-db-connection-form" id="elasticsearch-form" style="display: none;">
+            <div class="form-group">
+                <label for="elasticsearch-host">服务器地址：</label>
+                <input type="text" id="elasticsearch-host" class="text-input" placeholder="localhost">
+            </div>
+            <div class="form-group">
+                <label for="elasticsearch-port">端口：</label>
+                <input type="text" id="elasticsearch-port" class="text-input" placeholder="9200">
+            </div>
+            <div class="form-group">
+                <label for="elasticsearch-index">索引名称：</label>
+                <input type="text" id="elasticsearch-index" class="text-input" placeholder="vector_search">
+            </div>
+            <div class="form-group">
+                <label for="elasticsearch-username">用户名：</label>
+                <input type="text" id="elasticsearch-username" class="text-input">
+            </div>
+            <div class="form-group">
+                <label for="elasticsearch-password">密码：</label>
+                <input type="password" id="elasticsearch-password" class="text-input">
+            </div>
+        </div>
+        
+        <!-- 按钮操作区 -->
+        <div class="form-actions">
+            <button class="secondary-btn test-vector-db-connection-btn">测试连接</button>
+            <button class="primary-btn save-vector-db-btn">保存设置</button>
+        </div>
+    </div>
+</div> 

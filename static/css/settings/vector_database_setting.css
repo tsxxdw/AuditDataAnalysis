@@ -1,0 +1,39 @@
+/* 向量数据库设置样式 */
+
+/* 向量数据库设置表单 */
+.vector-db-settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* 向量数据库连接表单 */
+.vector-db-connection-form {
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* 表单组件适配 */
+.vector-db-settings-form .highlight-label {
+    color: #3498db !important; /* 与普通数据库设置区分颜色 */
+}
+
+/* 在小屏幕上的响应式设计 */
+@media (max-width: 768px) {
+    .vector-db-settings-form .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .vector-db-settings-form .form-group label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .vector-db-settings-form .text-input,
+    .vector-db-settings-form .select-input {
+        width: 100%;
+    }
+} 

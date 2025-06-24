@@ -4,6 +4,7 @@ import webbrowser
 import threading
 import time
 from routes.settings.settings_database_api import settings_database_bp
+from routes.settings.settings_vector_database_api import settings_vector_database_bp  # 新增导入向量数据库设置API蓝图
 from routes.settings.log_settings_api import log_settings_bp
 from routes.index_file_upload_api import file_upload_bp, ensure_dir_exists, UPLOAD_FOLDER
 from routes.index_import_api import import_api_bp
@@ -39,6 +40,7 @@ app = Flask(__name__)
 
 # 注册蓝图
 app.register_blueprint(settings_database_bp)
+app.register_blueprint(settings_vector_database_bp)  # 注册向量数据库设置API蓝图
 app.register_blueprint(log_settings_bp)
 app.register_blueprint(file_upload_bp)
 app.register_blueprint(import_api_bp)

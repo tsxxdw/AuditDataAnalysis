@@ -3,6 +3,9 @@ $(document).ready(function() {
     // 初始化数据库设置模块
     DatabaseSettings.init();
     
+    // 初始化向量数据库设置模块
+    VectorDatabaseSettings.init();
+    
     // 初始化日志设置模块
     LogSettings.init();
     
