@@ -4,12 +4,16 @@
 管理所有页面的路由定义，包括首页、数据库管理、数据导入等页面
 """
 
-from flask import Blueprint, render_template, redirect, url_for, session
+from flask import Blueprint, render_template, redirect, url_for, session, request
 from service.log.logger import app_logger
 from service.auth.auth_middleware import login_required, admin_required, has_permission
 
 # 创建页面蓝图
 pages_bp = Blueprint('pages', __name__)
+
+# 判断是否为AJAX请求的辅助函数
+def is_ajax_request():
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
 @pages_bp.route('/login')
 def login():
@@ -99,6 +103,67 @@ def settings():
     """系统设置页面"""
     app_logger.info("访问系统设置页面")
     return render_template('settings.html', page_title='系统设置')
+
+# 设置子页面路由
+@pages_bp.route('/settings/setting_personal')
+def settings_personal():
+    """个人设置页面"""
+    app_logger.info("访问个人设置页面")
+    
+    # 如果是AJAX请求，只返回子页面内容
+    if is_ajax_request():
+        return render_template('settings/setting_personal.html')
+    
+    # 常规请求返回完整页面
+    return render_template('settings.html', page_title='个人设置', active_tab='personal-settings')
+
+@pages_bp.route('/settings/setting_relational_database')
+def setting_relational_database():
+    """数据库设置页面"""
+    app_logger.info("访问数据库设置页面")
+    
+    # 如果是AJAX请求，只返回子页面内容
+    if is_ajax_request():
+        return render_template('settings/setting_relational_database.html')
+    
+    # 常规请求返回完整页面
+    return render_template('settings.html', page_title='关系型数据库设置', active_tab='db-settings')
+
+@pages_bp.route('/settings/setting_vector_database')
+def settings_vector_database():
+    """向量数据库设置页面"""
+    app_logger.info("访问向量数据库设置页面")
+    
+    # 如果是AJAX请求，只返回子页面内容
+    if is_ajax_request():
+        return render_template('settings/setting_vector_database.html')
+    
+    # 常规请求返回完整页面
+    return render_template('settings.html', page_title='向量数据库设置', active_tab='vector-db-settings')
+
+@pages_bp.route('/settings/setting_log')
+def settings_log():
+    """日志设置页面"""
+    app_logger.info("访问日志设置页面")
+    
+    # 如果是AJAX请求，只返回子页面内容
+    if is_ajax_request():
+        return render_template('settings/setting_log.html')
+    
+    # 常规请求返回完整页面
+    return render_template('settings.html', page_title='日志设置', active_tab='log-settings')
+
+@pages_bp.route('/settings/setting_model_server')
+def settings_model_service():
+    """模型服务设置页面"""
+    app_logger.info("访问模型服务设置页面")
+    
+    # 如果是AJAX请求，只返回子页面内容
+    if is_ajax_request():
+        return render_template('settings/setting_model_server.html')
+    
+    # 常规请求返回完整页面
+    return render_template('settings.html', page_title='模型服务', active_tab='model-service')
 
 @pages_bp.route('/index_knowledge_base')
 def index_knowledge_base():

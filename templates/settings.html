@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>设置 - 数据分析系统</title>
+    <title>{{ page_title }} - 数据分析系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
@@ -24,48 +24,18 @@
             <h2 class="settings-title">系统设置</h2>
             
             <div class="settings-layout">
-                <!-- 左侧导航栏 -->
-                <div class="settings-nav">
-                    <ul class="nav-list">
-                        <li class="nav-item active" data-target="personal-settings">
-                            <span class="nav-icon">👤</span>
-                            <span class="nav-text">个人设置</span>
-                        </li>
-                        <li class="nav-item" data-target="db-settings">
-                            <span class="nav-icon">🔌</span>
-                            <span class="nav-text">数据库设置</span>
-                        </li>
-                        <li class="nav-item" data-target="vector-db-settings">
-                            <span class="nav-icon">🔍</span>
-                            <span class="nav-text">向量数据库设置</span>
-                        </li>
-                        <li class="nav-item" data-target="log-settings">
-                            <span class="nav-icon">📝</span>
-                            <span class="nav-text">日志设置</span>
-                        </li>
-                        <li class="nav-item" data-target="model-service">
-                            <span class="nav-icon">🤖</span>
-                            <span class="nav-text">模型服务</span>
-                        </li>
-                    </ul>
+                <!-- 左侧导航栏 - 将由JavaScript动态生成 -->
+                <div class="settings-nav" id="settings-nav-container">
+                    <!-- 菜单将通过JavaScript动态生成 -->
                 </div>
                 
-                <!-- 右侧内容区 -->
-                <div class="settings-content">
-                    <!-- 引入个人设置 -->
-                    {% include 'settings/setting_personal.html' %}
-                    
-                    <!-- 引入数据库设置 -->
-                    {% include 'settings/setting_relational_database.html' %}
-                    
-                    <!-- 引入向量数据库设置 -->
-                    {% include 'settings/setting_vector_database.html' %}
-                    
-                    <!-- 引入日志设置 -->
-                    {% include 'settings/setting_log.html' %}
-                    
-                    <!-- 引入模型服务设置 -->
-                    {% include 'settings/setting_model_server.html' %}
+                <!-- 右侧内容区 - 将通过AJAX动态加载 -->
+                <div class="settings-content" id="settings-content-container">
+                    <!-- 内容将通过AJAX动态加载 -->
+                    <div class="loading-spinner" id="settings-loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>加载中...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -74,6 +44,12 @@
     {# 引入底部组件 #}
     {% include 'components/footer.html' %}
 
+    <!-- 传递活动标签页参数到JavaScript -->
+    <script>
+        // 设置活动标签页，如果没有传递参数则默认为个人设置
+        var activeTab = "{{ active_tab|default('personal-settings') }}";
+    </script>
+    
     <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
     <script src="{{ url_for('static', filename='js/settings/setting_relational_database.js') }}"></script>
     <script src="{{ url_for('static', filename='js/settings/setting_vector_database.js') }}"></script>
