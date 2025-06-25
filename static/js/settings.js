@@ -3,36 +3,82 @@ $(document).ready(function() {
     // 标记是否已经加载过内容，避免重复加载
     let initialLoadComplete = false;
     
+    // 设置超时，确保在API请求失败时也能显示一些内容
+    const apiTimeout = setTimeout(function() {
+        if (!initialLoadComplete) {
+            console.log('API请求超时，显示默认内容');
+            $('#settings-nav-container').html('<div class="error-message">加载菜单失败，请刷新页面重试</div>');
+            $('#settings-loading').hide();
+            $('#settings-content-container').append(
+                `<div id="default-error" class="settings-section">
+                    <div class="error-message">无法加载设置内容，请检查网络连接后刷新页面</div>
+                </div>`
+            );
+        }
+    }, 10000); // 10秒超时
+    
     // 从API获取设置菜单配置
     $.ajax({
         url: '/api/settings/menu_config',
         type: 'GET',
         dataType: 'json',
         success: function(response) {
+            // 清除超时
+            clearTimeout(apiTimeout);
+            
             if (response.code === 200) {
                 // 生成左侧导航菜单
                 generateSettingsMenu(response.data);
                 
-                // 页面加载时加载活动标签页对应的面板
-                const activeMenuItem = response.data.find(item => item.active);
-                if (activeMenuItem) {
-                    loadSettingsPanel(activeMenuItem.id);
+                // 如果URL中有tab参数，使用它；否则使用HTML中传递的activeTab；如果都没有，就用第一个菜单项
+                const urlParams = new URLSearchParams(window.location.search);
+                const tabFromUrl = urlParams.get('tab');
+                
+                let tabToLoad = null;
+                
+                if (tabFromUrl && response.data.some(item => item.id === tabFromUrl)) {
+                    tabToLoad = tabFromUrl;
+                } else if (typeof activeTab !== 'undefined' && activeTab && response.data.some(item => item.id === activeTab)) {
+                    tabToLoad = activeTab;
+                } else {
+                    // 页面加载时加载活动标签页对应的面板
+                    const activeMenuItem = response.data.find(item => item.active);
+                    if (activeMenuItem) {
+                        tabToLoad = activeMenuItem.id;
+                    } else if (response.data.length > 0) {
+                        // 如果没有活动项，默认加载第一项
+                        tabToLoad = response.data[0].id;
+                    }
+                }
+                
+                // 如果找到了要加载的标签页，立即加载它
+                if (tabToLoad) {
+                    // 先确保对应的菜单项被标记为活动状态
+                    $('.nav-item').removeClass('active');
+                    $(`.nav-item[data-target="${tabToLoad}"]`).addClass('active');
+                    
+                    // 立即加载内容
+                    loadSettingsPanel(tabToLoad);
                     initialLoadComplete = true;
-                } else if (response.data.length > 0) {
-                    // 如果没有活动项，默认加载第一项
-                    loadSettingsPanel(response.data[0].id);
-                    initialLoadComplete = true;
+                    
+                    // 打印日志，便于调试
+                    console.log('初始加载标签页:', tabToLoad);
                 }
             } else {
                 console.error('获取菜单配置失败:', response.message);
                 // 显示错误信息
-                $('#settings-nav-container').html('<div class="error-message">加载菜单失败</div>');
+                $('#settings-nav-container').html('<div class="error-message">加载菜单失败: ' + response.message + '</div>');
+                $('#settings-loading').hide();
             }
         },
         error: function(xhr, status, error) {
+            // 清除超时
+            clearTimeout(apiTimeout);
+            
             console.error('获取菜单配置异常:', error);
             // 显示错误信息
-            $('#settings-nav-container').html('<div class="error-message">加载菜单失败</div>');
+            $('#settings-nav-container').html('<div class="error-message">加载菜单失败: ' + error + '</div>');
+            $('#settings-loading').hide();
         }
     });
     
@@ -58,6 +104,8 @@ $(document).ready(function() {
      * @param {boolean} pushState 是否推送历史记录状态，默认为true
      */
     function loadSettingsPanel(tabId, pushState = true) {
+        console.log('开始加载设置面板:', tabId); // 调试日志
+        
         // 从导航项中获取路由信息
         const $navItem = $(`.nav-item[data-target="${tabId}"]`);
         if ($navItem.length === 0) {
@@ -78,9 +126,17 @@ $(document).ready(function() {
         // 检查内容是否已存在
         const $existingContent = $(`#${tabId}`);
         if ($existingContent.length > 0) {
+            console.log('内容已存在，直接显示:', tabId); // 调试日志
+            
             // 内容已存在，隐藏其他内容并显示当前内容
-            $('#settings-content-container').children().not('#settings-loading').hide();
+            $('#settings-content-container').children('.settings-section').hide();
             $existingContent.show();
+            
+            // 如果模块有初始化函数，调用它
+            if (moduleInitMap[tabId]) {
+                console.log('调用模块初始化函数:', tabId); // 调试日志
+                moduleInitMap[tabId]();
+            }
             
             // 更新URL，但不刷新页面
             if (pushState) {
@@ -89,26 +145,35 @@ $(document).ready(function() {
             return;
         }
         
+        console.log('内容不存在，从服务器加载:', tabId, route); // 调试日志
+        
         // 显示加载中状态
         $('#settings-loading').show();
-        $('#settings-content-container').children().not('#settings-loading').hide();
+        $('#settings-content-container').children('.settings-section').hide();
         
-        // 发送AJAX请求获取内容
+        // 从服务器获取设置面板内容
         $.ajax({
             url: route,
             type: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            success: function(response) {
+            success: function(html) {
+                console.log('内容加载成功:', tabId); // 调试日志
+                
                 // 隐藏加载中状态
                 $('#settings-loading').hide();
                 
-                // 添加内容到容器
-                $('#settings-content-container').append(response);
+                // 将返回的HTML内容添加到容器
+                $('#settings-content-container').append(html);
                 
-                // 初始化对应的模块
+                // 确保新加载的内容可见，其他内容隐藏
+                $('#settings-content-container').children('.settings-section').not(`#${tabId}`).hide();
+                $(`#${tabId}`).show();
+                
+                // 如果模块有初始化函数，调用它
                 if (moduleInitMap[tabId]) {
+                    console.log('调用模块初始化函数:', tabId); // 调试日志
                     moduleInitMap[tabId]();
                 }
                 
@@ -118,32 +183,45 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                // 处理错误
+                console.error('加载设置面板失败:', error); // 调试日志
+                
+                // 隐藏加载中状态
                 $('#settings-loading').hide();
+                
+                // 显示错误信息
                 $('#settings-content-container').append(
-                    `<div class="error-message">加载设置内容失败: ${error}</div>`
+                    `<div id="${tabId}" class="settings-section">
+                        <div class="error-message">加载设置面板失败: ${error}</div>
+                    </div>`
                 );
-                console.error('加载设置内容失败:', error);
+                
+                // 确保错误信息可见
+                $('#settings-content-container').children('.settings-section').not(`#${tabId}`).hide();
+                $(`#${tabId}`).show();
             }
         });
     }
     
     /**
-     * 更新URL并保存当前标签页到服务器
+     * 更新URL并保存当前标签页到会话
      * @param {string} tabId 标签页ID
      */
     function updateUrlAndSaveTab(tabId) {
-        const url = new URL(window.location);
+        // 更新URL，但不刷新页面
+        const url = new URL(window.location.href);
         url.searchParams.set('tab', tabId);
-        history.pushState({ tabId: tabId }, '', url);
+        window.history.pushState({tabId: tabId}, '', url.toString());
         
-        // 向服务器保存当前活动标签页
+        // 保存当前活动标签页到会话
         $.ajax({
             url: '/api/settings/set_active_tab',
             type: 'POST',
+            data: JSON.stringify({tab_id: tabId}),
             contentType: 'application/json',
-            data: JSON.stringify({ tab_id: tabId }),
-            dataType: 'json'
+            dataType: 'json',
+            error: function(xhr, status, error) {
+                console.error('保存活动标签页失败:', error);
+            }
         });
     }
     
@@ -169,11 +247,8 @@ $(document).ready(function() {
                 $navItem.addClass('active');
             }
             
-            // 添加点击事件，使用事件委托以避免多次绑定
-            $navItem.on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
+            // 添加点击事件
+            $navItem.on('click', function() {
                 // 获取目标内容区域的ID
                 const targetId = $(this).data('target');
                 

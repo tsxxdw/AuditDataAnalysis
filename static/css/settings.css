@@ -67,20 +67,16 @@
 /* 右侧内容区 */
 .settings-content {
     flex: 1;
+    min-height: 500px;
 }
 
 /* 设置部分通用样式 */
 .settings-section {
-    display: none;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
     margin-bottom: 2rem;
-}
-
-.settings-section.active {
-    display: block;
 }
 
 .section-title {

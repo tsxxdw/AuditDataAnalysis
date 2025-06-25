@@ -50,11 +50,6 @@ def get_menu_config():
             # 普通用户只能看到有权限的菜单项
             filtered_menu_items = []
             for item in menu_items:
-                # 个人设置所有用户都可以访问
-                if item.get('id') == 'personal-settings':
-                    filtered_menu_items.append(item)
-                    continue
-                
                 # 检查用户是否有权限访问该设置页面
                 url = item.get('url', '')
                 if url and (url in user_permissions or has_permission(url)):
