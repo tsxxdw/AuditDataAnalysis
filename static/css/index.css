@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 170px;
+    width: 200px;
     padding: 0.8rem 1.2rem;
     background-color: #3498db;
     color: white;
@@ -27,11 +27,13 @@
     border-radius: 5px;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .main-btn:before {
     margin-right: 8px;
     font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .main-btn:hover {
@@ -43,6 +45,11 @@
 /* 表结构管理按钮图标 */
 .db-btn:before {
     content: "🗃️";
+}
+
+/* 数据库表结构管理按钮特殊样式 */
+.db-btn {
+    width: 220px;
 }
 
 /* 数据导入按钮图标 */
