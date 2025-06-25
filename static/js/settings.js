@@ -1,46 +1,40 @@
 // 设置页面JS文件
 $(document).ready(function() {
-    // 设置菜单配置
-    const settingsMenuConfig = [
-        {
-            id: 'personal-settings',
-            icon: '👤',
-            text: '个人设置',
-            active: activeTab === 'personal-settings',
-            route: '/settings/setting_personal'
-        },
-        {
-            id: 'db-settings',
-            icon: '🔌',
-            text: '数据库设置',
-            active: activeTab === 'db-settings',
-            route: '/settings/setting_relational_database'
-        },
-        {
-            id: 'vector-db-settings',
-            icon: '🔍',
-            text: '向量数据库设置',
-            active: activeTab === 'vector-db-settings',
-            route: '/settings/setting_vector_database'
-        },
-        {
-            id: 'log-settings',
-            icon: '📝',
-            text: '日志设置',
-            active: activeTab === 'log-settings',
-            route: '/settings/setting_log'
-        },
-        {
-            id: 'model-service',
-            icon: '🤖',
-            text: '模型服务',
-            active: activeTab === 'model-service',
-            route: '/settings/setting_model_server'
-        }
-    ];
+    // 标记是否已经加载过内容，避免重复加载
+    let initialLoadComplete = false;
     
-    // 生成左侧导航菜单
-    generateSettingsMenu(settingsMenuConfig);
+    // 从API获取设置菜单配置
+    $.ajax({
+        url: '/api/settings/menu_config',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.code === 200) {
+                // 生成左侧导航菜单
+                generateSettingsMenu(response.data);
+                
+                // 页面加载时加载活动标签页对应的面板
+                const activeMenuItem = response.data.find(item => item.active);
+                if (activeMenuItem) {
+                    loadSettingsPanel(activeMenuItem.id);
+                    initialLoadComplete = true;
+                } else if (response.data.length > 0) {
+                    // 如果没有活动项，默认加载第一项
+                    loadSettingsPanel(response.data[0].id);
+                    initialLoadComplete = true;
+                }
+            } else {
+                console.error('获取菜单配置失败:', response.message);
+                // 显示错误信息
+                $('#settings-nav-container').html('<div class="error-message">加载菜单失败</div>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('获取菜单配置异常:', error);
+            // 显示错误信息
+            $('#settings-nav-container').html('<div class="error-message">加载菜单失败</div>');
+        }
+    });
     
     // 模块初始化映射
     const moduleInitMap = {
@@ -50,9 +44,6 @@ $(document).ready(function() {
         'log-settings': function() { LogSettings.init(); },
         'model-service': function() { ModelService.init(); }
     };
-    
-    // 页面加载时加载活动标签页对应的面板
-    loadSettingsPanel(activeTab);
     
     // 监听浏览器前进/后退按钮
     window.addEventListener('popstate', function(event) {
@@ -67,16 +58,36 @@ $(document).ready(function() {
      * @param {boolean} pushState 是否推送历史记录状态，默认为true
      */
     function loadSettingsPanel(tabId, pushState = true) {
-        // 找到对应的菜单配置
-        const menuItem = settingsMenuConfig.find(item => item.id === tabId);
-        if (!menuItem || !menuItem.route) {
-            console.error('找不到对应的菜单项或路由:', tabId);
+        // 从导航项中获取路由信息
+        const $navItem = $(`.nav-item[data-target="${tabId}"]`);
+        if ($navItem.length === 0) {
+            console.error('找不到对应的菜单项:', tabId);
+            return;
+        }
+        
+        const route = $navItem.data('route');
+        if (!route) {
+            console.error('菜单项缺少路由信息:', tabId);
             return;
         }
         
         // 更新活动菜单项
         $('.nav-item').removeClass('active');
-        $(`.nav-item[data-target="${tabId}"]`).addClass('active');
+        $navItem.addClass('active');
+        
+        // 检查内容是否已存在
+        const $existingContent = $(`#${tabId}`);
+        if ($existingContent.length > 0) {
+            // 内容已存在，隐藏其他内容并显示当前内容
+            $('#settings-content-container').children().not('#settings-loading').hide();
+            $existingContent.show();
+            
+            // 更新URL，但不刷新页面
+            if (pushState) {
+                updateUrlAndSaveTab(tabId);
+            }
+            return;
+        }
         
         // 显示加载中状态
         $('#settings-loading').show();
@@ -84,7 +95,7 @@ $(document).ready(function() {
         
         // 发送AJAX请求获取内容
         $.ajax({
-            url: menuItem.route,
+            url: route,
             type: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -93,15 +104,8 @@ $(document).ready(function() {
                 // 隐藏加载中状态
                 $('#settings-loading').hide();
                 
-                // 检查内容是否已存在
-                const $existingContent = $(`#${tabId}`);
-                if ($existingContent.length > 0) {
-                    // 内容已存在，显示它
-                    $existingContent.show();
-                } else {
-                    // 内容不存在，添加到容器
-                    $('#settings-content-container').append(response);
-                }
+                // 添加内容到容器
+                $('#settings-content-container').append(response);
                 
                 // 初始化对应的模块
                 if (moduleInitMap[tabId]) {
@@ -110,9 +114,7 @@ $(document).ready(function() {
                 
                 // 更新URL，但不刷新页面
                 if (pushState) {
-                    const url = new URL(window.location);
-                    url.searchParams.set('tab', tabId);
-                    history.pushState({ tabId: tabId }, '', url);
+                    updateUrlAndSaveTab(tabId);
                 }
             },
             error: function(xhr, status, error) {
@@ -123,6 +125,25 @@ $(document).ready(function() {
                 );
                 console.error('加载设置内容失败:', error);
             }
+        });
+    }
+    
+    /**
+     * 更新URL并保存当前标签页到服务器
+     * @param {string} tabId 标签页ID
+     */
+    function updateUrlAndSaveTab(tabId) {
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tabId);
+        history.pushState({ tabId: tabId }, '', url);
+        
+        // 向服务器保存当前活动标签页
+        $.ajax({
+            url: '/api/settings/set_active_tab',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ tab_id: tabId }),
+            dataType: 'json'
         });
     }
     
@@ -139,6 +160,7 @@ $(document).ready(function() {
             // 创建菜单项元素
             const $navItem = $('<li class="nav-item"></li>')
                 .attr('data-target', item.id)
+                .attr('data-route', item.route)
                 .append(`<span class="nav-icon">${item.icon}</span>`)
                 .append(`<span class="nav-text">${item.text}</span>`);
             
@@ -147,10 +169,13 @@ $(document).ready(function() {
                 $navItem.addClass('active');
             }
             
-            // 添加点击事件
-            $navItem.on('click', function() {
+            // 添加点击事件，使用事件委托以避免多次绑定
+            $navItem.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // 获取目标内容区域的ID
-                var targetId = $(this).data('target');
+                const targetId = $(this).data('target');
                 
                 // 加载对应的设置面板
                 loadSettingsPanel(targetId);
@@ -160,7 +185,7 @@ $(document).ready(function() {
             $navList.append($navItem);
         });
         
-        // 将生成的导航列表添加到容器
-        $('#settings-nav-container').append($navList);
+        // 清空并将生成的导航列表添加到容器
+        $('#settings-nav-container').empty().append($navList);
     }
 }); 

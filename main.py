@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, send_from_directory
+from flask import Flask
 import webbrowser
 import threading
 import time
@@ -8,6 +8,7 @@ from routes.settings.setting_relational_database_api import settings_database_bp
 from routes.settings.setting_vector_database_api import settings_vector_database_bp  # 新增导入向量数据库设置API蓝图
 from routes.settings.setting_log_api import log_settings_bp
 from routes.settings.setting_personal_api import setting_personal_api  # 导入个人设置API蓝图
+from routes.settings_api import settings_api  # 导入系统设置API蓝图
 from routes.login_api import login_api  # 导入登录API蓝图
 from routes.index_file_upload_api import file_upload_bp, ensure_dir_exists, UPLOAD_FOLDER
 from routes.index_import_api import import_api_bp
@@ -54,6 +55,7 @@ app.register_blueprint(settings_database_bp)
 app.register_blueprint(settings_vector_database_bp)  # 注册向量数据库设置API蓝图
 app.register_blueprint(log_settings_bp)
 app.register_blueprint(setting_personal_api)  # 注册个人设置API蓝图
+app.register_blueprint(settings_api)  # 注册系统设置API蓝图
 app.register_blueprint(login_api)  # 注册登录API蓝图
 app.register_blueprint(file_upload_bp)
 app.register_blueprint(import_api_bp)

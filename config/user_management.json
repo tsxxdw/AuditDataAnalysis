@@ -12,7 +12,9 @@
             "role": "普通用户",
             "permissions": [
                 "index_table_structure",
-                "settings"
+                "settings",
+                "settings/setting_personal",
+                "settings/setting_relational_database"
             ]
         }
     ]

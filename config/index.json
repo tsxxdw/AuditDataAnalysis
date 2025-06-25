@@ -87,30 +87,55 @@
     "title": "个人设置",
     "url": "settings/setting_personal",
     "position": "settings",
-    "nav-icon": "\uD83D\uDC64"
+    "nav-icon": "👤",
+    "id": "personal-settings",
+    "route": "/settings/setting_personal",
+    "active": false,
+    "text": "个人设置",
+    "icon": "👤"
   },
   {
     "title": "数据库设置",
-    "url": "settings",
+    "url": "settings/setting_relational_database",
     "position": "settings",
-    "nav-icon": "\uD83D\uDD0C"
+    "nav-icon": "🔌",
+    "id": "db-settings",
+    "route": "/settings/setting_relational_database",
+    "active": false,
+    "text": "数据库设置",
+    "icon": "🔌"
   },
   {
     "title": "向量数据库设置",
-    "url": "settings",
+    "url": "settings/setting_vector_database",
     "position": "settings",
-    "nav-icon": "\uD83D\uDD0D"
+    "nav-icon": "🔍",
+    "id": "vector-db-settings",
+    "route": "/settings/setting_vector_database",
+    "active": false,
+    "text": "向量数据库设置",
+    "icon": "🔍"
   },
   {
     "title": "日志设置",
-    "url": "settings",
+    "url": "settings/setting_log",
     "position": "settings",
-    "nav-icon": "\uD83D\uDCDD"
+    "nav-icon": "📝",
+    "id": "log-settings",
+    "route": "/settings/setting_log",
+    "active": false,
+    "text": "日志设置",
+    "icon": "📝"
   },
   {
     "title": "模型服务",
-    "url": "settings",
+    "url": "settings/setting_model_server",
     "position": "settings",
-    "nav-icon": "\uD83E\uDD16"
+    "nav-icon": "🤖",
+    "id": "model-service",
+    "route": "/settings/setting_model_server",
+    "active": false,
+    "text": "模型服务",
+    "icon": "🤖"
   }
 ]
