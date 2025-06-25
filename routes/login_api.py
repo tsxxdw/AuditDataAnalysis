@@ -5,9 +5,11 @@
 """
 
 from flask import Blueprint, request, jsonify, session
+import os
 
 from service.log.logger import app_logger
 from utils.user_util import UserUtil
+from utils.index_util import IndexUtil
 
 # 创建登录API蓝图
 login_api = Blueprint('login_api', __name__, url_prefix='/api')
@@ -30,11 +32,23 @@ def login():
         success, result = UserUtil.verify_user(username, password)
         
         if success:
+            # 获取权限对应的标题
+            permission_titles = {}
+            json_file_path = os.path.join('config', 'index.json')
+            json_read_success, index_data = IndexUtil.read_json_file(json_file_path)
+            
+            if json_read_success:
+                # 创建URL到title的映射
+                for item in index_data:
+                    if 'url' in item and 'title' in item:
+                        permission_titles[item['url']] = item['title']
+            
             # 登录成功，将用户信息存入session
             user_info = {
                 'username': result['username'],
                 'role': result['role'],
-                'permissions': result.get('permissions', [])
+                'permissions': result.get('permissions', []),
+                'permission_titles': permission_titles  # 添加权限标题映射
             }
             session['user_info'] = user_info
             

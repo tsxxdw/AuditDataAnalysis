@@ -60,7 +60,13 @@ var PersonalSettings = {
             // 显示具体权限列表
             if (userInfo.permissions && userInfo.permissions.length > 0) {
                 userInfo.permissions.forEach(function(permission) {
-                    $permissionList.append(`<span class="permission-tag">${permission}</span>`);
+                    // 获取权限对应的标题
+                    let permissionTitle = permission;
+                    // 如果存在permission_titles映射，则使用标题而不是路径
+                    if (userInfo.permission_titles && userInfo.permission_titles[permission]) {
+                        permissionTitle = userInfo.permission_titles[permission];
+                    }
+                    $permissionList.append(`<span class="permission-tag">${permissionTitle}</span>`);
                 });
             } else {
                 $permissionList.append('<span>无</span>');

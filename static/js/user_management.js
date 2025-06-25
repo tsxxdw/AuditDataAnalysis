@@ -243,8 +243,8 @@ function renderPermissionsList(pages, userPermissions) {
         
         const $item = $(`
             <div class="permission-item">
-                <input type="checkbox" class="permission-checkbox" id="perm-${page.name}" value="${page.path}" ${isChecked ? 'checked' : ''}>
-                <label for="perm-${page.name}">${page.name}</label>
+                <input type="checkbox" class="permission-checkbox" id="perm-${page.path}" value="${page.path}" ${isChecked ? 'checked' : ''}>
+                <label for="perm-${page.path}">${page.name}</label>
             </div>
         `);
         
