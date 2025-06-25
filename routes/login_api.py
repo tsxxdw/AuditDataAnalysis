@@ -5,8 +5,9 @@
 """
 
 from flask import Blueprint, request, jsonify, session
-from utils.user_util import user_util
+
 from service.log.logger import app_logger
+from utils.user_util import UserUtil
 
 # 创建登录API蓝图
 login_api = Blueprint('login_api', __name__, url_prefix='/api')
@@ -26,7 +27,7 @@ def login():
                 'data': None
             })
         
-        success, result = user_util.verify_user(username, password)
+        success, result = UserUtil.verify_user(username, password)
         
         if success:
             # 登录成功，将用户信息存入session

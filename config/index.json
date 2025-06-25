@@ -1,0 +1,116 @@
+[
+  {
+    "title": "数据库表结构管理",
+    "url": "index_table_structure",
+    "position": "index",
+    "class": "main-btn db-btn"
+  },
+  {
+    "title": "数据分析",
+    "url": "index_analysis",
+    "position": "index",
+    "class": "main-btn query-btn"
+  },
+  {
+    "title": "数据导入",
+    "url": "index_import",
+    "position": "index",
+    "class": "main-btn import-btn"
+  },
+  {
+    "title": "文件上传",
+    "url": "index_file_upload",
+    "position": "index",
+    "class": "main-btn upload-btn"
+  },
+  {
+    "title": "数据修复",
+    "url": "index_repair",
+    "position": "index",
+    "class": "main-btn repair-btn"
+  },
+  {
+    "title": "数据校验",
+    "url": "index_validation",
+    "position": "index",
+    "class": "main-btn validation-btn"
+  },
+  {
+    "title": "EXCEL校验",
+    "url": "index_excel_validation",
+    "position": "index",
+    "class": "main-btn excel-validation-btn"
+  },
+  {
+    "title": "EXCEL修复",
+    "url": "excel_repair",
+    "position": "index",
+    "class": "main-btn excel-repair-btn"
+  },
+  {
+    "title": "常用SQL",
+    "url": "index_sql",
+    "position": "index",
+    "class": "main-btn sql-btn"
+  },
+  {
+    "title": "一对一导入",
+    "url": "index_one_to_one_import",
+    "position": "index",
+    "class": "main-btn one-to-one-btn"
+  },
+  {
+    "title": "提示词模板",
+    "url": "index_prompt_templates",
+    "position": "index",
+    "class": "main-btn prompt-btn"
+  },
+  {
+    "title": "本地知识库",
+    "url": "index_knowledge_base",
+    "position": "index",
+    "class": "main-btn knowledge-base-btn"
+  },
+  {
+    "title": "用户管理",
+    "url": "user_management",
+    "position": "index",
+    "class": "main-btn user-management-btn"
+  },
+  {
+    "title": "设置页面",
+    "url": "settings",
+    "position": "settings",
+    "class": "nav-item"
+  },
+  {
+    "title": "个人设置",
+    "url": "settings/setting_personal",
+    "position": "settings",
+    "nav-icon": "\uD83D\uDC64"
+  },
+  {
+    "title": "数据库设置",
+    "url": "settings",
+    "position": "settings",
+    "nav-icon": "\uD83D\uDD0C"
+  },
+  {
+    "title": "向量数据库设置",
+    "url": "settings",
+    "position": "settings",
+    "nav-icon": "\uD83D\uDD0D"
+  },
+  {
+    "title": "日志设置",
+    "url": "settings",
+    "position": "settings",
+    "nav-icon": "\uD83D\uDCDD"
+  },
+  {
+    "title": "模型服务",
+    "url": "settings",
+    "position": "settings",
+    "nav-icon": "\uD83E\uDD16"
+  }
+]

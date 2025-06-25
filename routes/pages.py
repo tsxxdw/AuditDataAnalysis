@@ -26,19 +26,7 @@ def index():
     """首页"""
     app_logger.info("访问首页")
     
-    # 获取当前用户信息
-    user_info = session.get('user_info', {})
-    
-    # 获取用户权限
-    permissions = []
-    if user_info:
-        if user_info.get('role') == '管理员':
-            # 管理员有所有权限
-            permissions = None  # None表示全部权限
-        else:
-            permissions = user_info.get('permissions', [])
-    
-    return render_template('index.html', page_title='数据分析系统', user_info=user_info, permissions=permissions)
+    return render_template('index.html', page_title='数据分析系统')
 
 @pages_bp.route('/index_table_structure')
 def index_table_structure():

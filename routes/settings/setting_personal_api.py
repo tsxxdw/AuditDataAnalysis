@@ -5,8 +5,9 @@
 """
 
 from flask import Blueprint, request, jsonify, session
-from utils.user_util import user_util
+
 from service.log.logger import app_logger
+from utils.user_util import UserUtil
 
 # 创建个人设置API蓝图
 setting_personal_api = Blueprint('setting_personal_api', __name__, url_prefix='/api/settings/personal')
@@ -64,7 +65,7 @@ def change_password():
         username = user_info.get('username')
         
         # 修改密码
-        success, message = user_util.change_password(username, current_password, new_password)
+        success, message = UserUtil.change_password(username, current_password, new_password)
         
         if success:
             app_logger.info(f"用户 {username} 密码修改成功")

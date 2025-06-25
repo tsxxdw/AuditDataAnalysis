@@ -22,6 +22,7 @@ from routes.pages import pages_bp
 from routes.excel_repair_api import excel_repair_api  # 导入EXCEL修复API蓝图
 from routes.knowledge_base_api import knowledge_base_api  # 导入知识库API蓝图
 from routes.user_management_api import user_management_api  # 导入用户管理API蓝图
+from routes.index_api import index_api  # 导入首页API蓝图
 from service.log.logger import app_logger
 from service.log.middleware import init_log_middleware
 from service.auth.auth_middleware import init_auth_middleware  # 导入身份验证中间件
@@ -70,6 +71,7 @@ app.register_blueprint(index_repair_bp)  # 注册数据修复API路由
 app.register_blueprint(excel_repair_api)  # 注册EXCEL修复API路由
 app.register_blueprint(knowledge_base_api)  # 注册知识库API路由
 app.register_blueprint(user_management_api)  # 注册用户管理API路由
+app.register_blueprint(index_api)  # 注册首页API路由
 
 # 初始化中间件
 init_log_middleware(app)

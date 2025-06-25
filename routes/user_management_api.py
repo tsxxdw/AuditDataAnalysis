@@ -5,8 +5,11 @@
 """
 
 from flask import Blueprint, request, jsonify, session
-from utils.user_util import user_util
+
+import os
 from service.log.logger import app_logger
+from utils.user_util import UserUtil
+from utils.index_util import IndexUtil
 
 # 创建用户管理API蓝图
 user_management_api = Blueprint('user_management_api', __name__, url_prefix='/api/user')
@@ -41,7 +44,7 @@ def get_current_user():
 def get_users():
     """获取所有用户"""
     try:
-        users_data = user_util.load_users()
+        users_data = UserUtil.load_users()
         # 移除密码信息
         for user in users_data['users']:
             if 'password' in user:
@@ -76,7 +79,7 @@ def add_user():
                 'data': None
             })
         
-        success, message = user_util.add_user(username, password, role)
+        success, message = UserUtil.add_user(username, password, role)
         
         if success:
             return jsonify({
@@ -112,7 +115,7 @@ def delete_user():
                 'data': None
             })
         
-        success, message = user_util.delete_user(username)
+        success, message = UserUtil.delete_user(username)
         
         if success:
             return jsonify({
@@ -149,7 +152,7 @@ def update_permissions():
                 'data': None
             })
         
-        success, message = user_util.update_user_permissions(username, permissions)
+        success, message = UserUtil.update_user_permissions(username, permissions)
         
         if success:
             return jsonify({
@@ -175,7 +178,26 @@ def update_permissions():
 def available_pages():
     """获取系统中所有可用页面"""
     try:
-        pages = user_util.get_available_pages()
+        # 直接从index.json文件读取可用页面
+        json_file_path = os.path.join('config', 'index.json')
+        success, data = IndexUtil.read_json_file(json_file_path)
+        
+        if not success:
+            app_logger.error(f"读取导航按钮配置失败: {data}")
+            return jsonify({
+                'code': 500,
+                'message': f"读取导航按钮配置失败: {data}",
+                'data': None
+            })
+        
+        # 转换为权限设置需要的格式
+        pages = []
+        for item in data:
+            if 'title' in item and 'url' in item:
+                pages.append({
+                    'path': item['url'],
+                    'name': item['title']
+                })
         
         return jsonify({
             'code': 200,

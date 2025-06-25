@@ -78,20 +78,25 @@ def init_auth_middleware(app):
             permissions = user_info.get('permissions', [])
             
             # 将页面路径转换为权限标识
-            # 例如：/user_management -> user_management.html
-            page_identifier = path[1:] + '.html' if path != '/' else 'index.html'
+            # 例如：/user_management -> user_management
+            # 注意：不再添加.html后缀
+            page_identifier = path[1:] if path != '/' else 'index'
             
             # 检查是否有权限访问
             has_permission = False
             for perm in permissions:
                 # 权限可能是字符串类型
                 if isinstance(perm, str):
-                    if perm == page_identifier or perm == page_identifier.replace('index_', ''):
+                    # 移除可能的.html后缀进行比较
+                    perm_clean = perm.replace('.html', '')
+                    if perm_clean == page_identifier or perm_clean == page_identifier.replace('index_', ''):
                         has_permission = True
                         break
                 # 或者是字典类型
                 elif isinstance(perm, dict) and 'path' in perm:
-                    if perm['path'] == page_identifier or perm['path'] == page_identifier.replace('index_', ''):
+                    # 移除可能的.html后缀进行比较
+                    perm_path_clean = perm['path'].replace('.html', '')
+                    if perm_path_clean == page_identifier or perm_path_clean == page_identifier.replace('index_', ''):
                         has_permission = True
                         break
             
@@ -144,16 +149,23 @@ def has_permission(permission_path):
     if user_info.get('role') == '管理员':
         return True
     
+    # 移除可能的.html后缀
+    permission_path_clean = permission_path.replace('.html', '')
+    
     # 检查普通用户权限
     permissions = user_info.get('permissions', [])
     for perm in permissions:
         # 权限可能是字符串类型
         if isinstance(perm, str):
-            if perm == permission_path:
+            # 移除可能的.html后缀进行比较
+            perm_clean = perm.replace('.html', '')
+            if perm_clean == permission_path_clean:
                 return True
         # 或者是字典类型
         elif isinstance(perm, dict) and 'path' in perm:
-            if perm['path'] == permission_path:
+            # 移除可能的.html后缀进行比较
+            perm_path_clean = perm['path'].replace('.html', '')
+            if perm_path_clean == permission_path_clean:
                 return True
     
     return False 

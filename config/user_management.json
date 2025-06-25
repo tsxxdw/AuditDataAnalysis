@@ -11,10 +11,8 @@
             "password": "fa820cc1ad39a4e99283e9fa555035ec",
             "role": "普通用户",
             "permissions": [
-                "excel_repair.html",
-                "index_sql.html",
-                "settings.html",
-                "settings/setting_personal.html"
+                "index_table_structure",
+                "settings"
             ]
         }
     ]
