@@ -112,6 +112,11 @@
     content: "👤";
 }
 
+/* 股票基本信息按钮图标 */
+.share-btn:before {
+    content: "📈";
+}
+
 /* 加载状态样式 */
 .buttons-container .loading {
     padding: 2rem;

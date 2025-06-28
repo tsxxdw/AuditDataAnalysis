@@ -78,6 +78,12 @@
     "class": "main-btn user-management-btn"
   },
   {
+    "title": "股票基本信息",
+    "url": "share_base",
+    "position": "index",
+    "class": "main-btn share-btn"
+  },
+  {
     "title": "设置页面",
     "url": "settings",
     "position": "settings",
