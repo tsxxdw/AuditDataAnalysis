@@ -8,6 +8,7 @@ import json
 import os
 import hashlib
 from flask import current_app
+import re
 
 class UserUtil:
     users_file = os.path.join('config', 'user_management.json')
@@ -41,6 +42,10 @@ class UserUtil:
         for user in users_data['users']:
             if user['username'] == username:
                 return False, "用户名已存在"
+        
+        # 检查用户名是否只包含字母和数字
+        if not re.match(r'^[a-zA-Z0-9]+$', username):
+            return False, "用户名只能包含字母和数字"
         
         # 创建新用户
         new_user = {

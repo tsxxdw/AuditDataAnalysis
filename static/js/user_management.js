@@ -31,6 +31,13 @@ $(document).ready(function() {
         const password = $('#password').val();
         const role = $('#role').val();
         
+        // 验证用户名是否只包含字母和数字
+        const usernameRegex = /^[a-zA-Z0-9]+$/;
+        if (!usernameRegex.test(username)) {
+            showMessage('用户名只能包含字母和数字', 'error');
+            return;
+        }
+        
         addUser(username, password, role);
     });
     

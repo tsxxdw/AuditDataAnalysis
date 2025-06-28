@@ -23,6 +23,14 @@
             "password": "c4ca4238a0b923820dcc509a6f75849b",
             "role": "管理员",
             "permissions": []
+        },
+        {
+            "username": "2",
+            "password": "c81e728d9d4c2f636f067f89cc14862c",
+            "role": "普通用户",
+            "permissions": [
+                "index_table_structure"
+            ]
         }
     ]
 }
