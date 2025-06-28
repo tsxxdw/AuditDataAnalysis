@@ -7,6 +7,7 @@
 from functools import wraps
 from flask import session, redirect, url_for, request, jsonify
 from service.log.logger import app_logger
+from service.session_service import session_service
 
 def init_auth_middleware(app):
     """
@@ -42,7 +43,8 @@ def init_auth_middleware(app):
                 return  # 允许访问公开API
         
         # 检查登录状态
-        user_info = session.get('user_info')
+        # 使用 SessionService 实例方法
+        user_info = session_service.get_user_info()
         
         # 用户未登录时的处理
         if not user_info:
@@ -100,7 +102,8 @@ def login_required(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_info' not in session:
+        # 使用 SessionService 实例方法
+        if not session_service.is_logged_in():
             if request.path.startswith('/api/'):
                 return jsonify({
                     'code': 401,
@@ -120,7 +123,8 @@ def admin_required(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user_info = session.get('user_info')
+        # 使用 SessionService 实例方法
+        user_info = session_service.get_user_info()
         if not user_info or user_info.get('role') != '管理员':
             if request.path.startswith('/api/'):
                 return jsonify({
@@ -142,7 +146,8 @@ def has_permission(permission_path):
     2. 管理员拥有所有权限
     3. 普通用户检查权限列表中是否包含指定的路径标识符
     """
-    user_info = session.get('user_info')
+    # 使用 SessionService 实例方法
+    user_info = session_service.get_user_info()
     
     # 未登录
     if not user_info:

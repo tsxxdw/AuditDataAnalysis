@@ -8,6 +8,7 @@ from flask import Blueprint, request, jsonify, session
 
 from service.log.logger import app_logger
 from utils.user_util import UserUtil
+from service.session_service import session_service
 
 # 创建个人设置API蓝图
 setting_personal_api = Blueprint('setting_personal_api', __name__, url_prefix='/api/settings/personal')
@@ -17,7 +18,7 @@ def get_personal_info():
     """获取当前登录用户的个人信息"""
     try:
         # 获取当前登录用户
-        user_info = session.get('user_info')
+        user_info = session_service.get_user_info()
         if not user_info:
             return jsonify({
                 'code': 401,
@@ -54,7 +55,7 @@ def change_password():
             })
         
         # 获取当前登录用户
-        user_info = session.get('user_info')
+        user_info = session_service.get_user_info()
         if not user_info:
             return jsonify({
                 'code': 401,

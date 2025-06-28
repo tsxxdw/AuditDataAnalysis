@@ -10,6 +10,7 @@ import os
 from service.log.logger import app_logger
 from utils.user_util import UserUtil
 from utils.index_util import IndexUtil
+from service.session_service import session_service
 
 # 创建用户管理API蓝图
 user_management_api = Blueprint('user_management_api', __name__, url_prefix='/api/user')
@@ -18,7 +19,7 @@ user_management_api = Blueprint('user_management_api', __name__, url_prefix='/ap
 def get_current_user():
     """获取当前登录用户信息"""
     try:
-        user_info = session.get('user_info')
+        user_info = session_service.get_user_info()
         
         if user_info:
             return jsonify({

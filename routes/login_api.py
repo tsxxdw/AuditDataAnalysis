@@ -5,7 +5,7 @@
 """
 
 from flask import Blueprint, request, jsonify
-from service import login_service  # 导入全局服务实例
+from service.login_service import login_service  # 导入全局服务实例
 
 # 创建登录API蓝图
 login_api = Blueprint('login_api', __name__, url_prefix='/api')

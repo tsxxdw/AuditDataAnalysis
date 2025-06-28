@@ -9,6 +9,7 @@ from flask import Blueprint, jsonify, session
 
 from service.log.logger import app_logger
 from utils.index_util import IndexUtil
+from service.session_service import session_service
 
 # 创建首页API蓝图
 index_api = Blueprint('index_api', __name__, url_prefix='/api')
@@ -18,7 +19,7 @@ def get_navigation_buttons():
     """获取导航按钮列表（根据用户权限过滤）"""
     try:
         # 获取当前用户信息
-        user_info = session.get('user_info', {})
+        user_info = session_service.get_user_info()
         user_role = user_info.get('role', '')
         user_permissions = user_info.get('permissions', [])
         

@@ -9,6 +9,7 @@ import os
 from service.log.logger import app_logger
 from utils.index_util import IndexUtil
 from service.auth.auth_middleware import has_permission
+from service.session_service import session_service
 
 # 创建系统设置API蓝图
 settings_api = Blueprint('settings_api', __name__, url_prefix='/api/settings')
@@ -18,10 +19,10 @@ def get_menu_config():
     """获取设置菜单配置"""
     try:
         # 获取活动标签页，如果没有则默认为个人设置
-        active_tab = session.get('active_settings_tab', 'personal-settings')
+        active_tab = session_service.get('active_settings_tab', 'personal-settings')
         
         # 获取用户信息
-        user_info = session.get('user_info', {})
+        user_info = session_service.get_user_info()
         user_role = user_info.get('role', '')
         user_permissions = user_info.get('permissions', [])
         
@@ -88,7 +89,7 @@ def set_active_tab():
             })
         
         # 保存活动标签页到会话
-        session['active_settings_tab'] = tab_id
+        session_service.set('active_settings_tab', tab_id)
         
         return jsonify({
             'code': 200,

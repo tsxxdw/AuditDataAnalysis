@@ -10,8 +10,13 @@ from flask import session
 from service.log.logger import app_logger
 from utils.user_util import UserUtil
 from utils.index_util import IndexUtil
+from service.session_service import session_service
 
 class LoginService:
+    def __init__(self):
+        """初始化登录服务"""
+        pass
+        
     def verify_user(self, username, password):
         try:
             if not all([username, password]):
@@ -60,7 +65,8 @@ class LoginService:
                 'permissions': user_data.get('permissions', []),
                 'permission_titles': permission_titles  # 添加权限标题映射
             }
-            session['user_info'] = user_info
+            # 使用 SessionService 实例方法
+            session_service.set('user_info', user_info)
             
             app_logger.info(f"用户 {user_data['username']} 登录成功")
             
@@ -106,9 +112,11 @@ class LoginService:
         try:
             # 清除session中的用户信息
             username = None
-            if 'user_info' in session:
-                username = session['user_info'].get('username')
-                session.pop('user_info', None)
+            user_info = session_service.get('user_info')
+            if user_info:
+                username = user_info.get('username')
+                # 使用 SessionService 实例方法
+                session_service.delete('user_info')
                 app_logger.info(f"用户 {username} 退出登录")
             
             return True, {
@@ -122,4 +130,7 @@ class LoginService:
                 'code': 500,
                 'message': f'服务器错误: {str(e)}',
                 'data': None
-            } 
+            }
+
+# 创建单例实例，方便导入使用
+login_service = LoginService()
