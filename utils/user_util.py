@@ -14,23 +14,6 @@ class UserUtil:
     
     @staticmethod
     def load_users():
-        """加载所有用户信息"""
-        if not os.path.exists(UserUtil.users_file):
-            # 如果文件不存在，创建默认文件
-            default_users = {
-                "users": [
-                    {
-                        "username": "admin",
-                        "password": UserUtil._hash_password("admin123"),
-                        "role": "管理员",
-                        "permissions": []
-                    }
-                ]
-            }
-            with open(UserUtil.users_file, 'w', encoding='utf-8') as f:
-                json.dump(default_users, f, ensure_ascii=False, indent=4)
-            return default_users
-        
         try:
             with open(UserUtil.users_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
