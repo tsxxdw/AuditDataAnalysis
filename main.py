@@ -4,6 +4,7 @@ import webbrowser
 import threading
 import time
 import secrets
+
 from routes.settings.setting_relational_database_api import settings_database_bp
 from routes.settings.setting_vector_database_api import settings_vector_database_bp  # 新增导入向量数据库设置API蓝图
 from routes.settings.setting_log_api import log_settings_bp
