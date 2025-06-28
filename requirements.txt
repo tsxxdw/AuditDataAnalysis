@@ -27,6 +27,9 @@ pypinyin
 cryptography
 ollama
 
+akshare
+lib-pybroker
+
 # 知识库服务依赖
 jieba
 scikit-learn

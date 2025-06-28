@@ -34,6 +34,7 @@ from config.global_config import init_project_root
 from routes.common.model_common_service_api import model_api  # 导入模型服务API蓝图
 from routes.settings.setting_model_server_api import model_settings_api  # 导入模型设置API蓝图
 from routes.index_repair_api import index_repair_bp  # 注册数据修复API路由
+from routes.share_base_api import share_base_api_bp  # 导入股票基本信息API蓝图
 
 # 初始化项目根路径（全局配置）
 project_root = init_project_root()
@@ -75,6 +76,7 @@ app.register_blueprint(knowledge_base_api)  # 注册知识库API路由
 app.register_blueprint(user_management_api)  # 注册用户管理API路由
 app.register_blueprint(index_api)  # 注册首页API路由
 
+app.register_blueprint(share_base_api_bp, url_prefix='/api/share_base')  # 注册股票基本信息API路由
 # 初始化中间件
 init_log_middleware(app)
 init_auth_middleware(app)  # 初始化身份验证中间件

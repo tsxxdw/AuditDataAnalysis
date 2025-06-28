@@ -4,7 +4,7 @@
         "mysql": {
             "host": "localhost",
             "port": "3306",
-            "database": "sjj_data",
+            "database": "myshare",
             "username": "root",
             "password": "123456"
         },
