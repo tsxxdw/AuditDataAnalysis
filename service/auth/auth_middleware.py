@@ -9,35 +9,28 @@ from flask import session, redirect, url_for, request, jsonify
 from service.log.logger import app_logger
 
 def init_auth_middleware(app):
-    """初始化身份验证中间件"""
+    """
+    注册全局权限验证中间件
+    """
     @app.before_request
     def check_auth():
-        # 需要登录的路径列表
-        protected_paths = [
-            '/',  # 首页
-            '/index_table_structure',
-            '/index_import',
-            '/index_one_to_one_import',
-            '/index_file_upload',
-            '/index_repair',
-            '/index_validation',
-            '/index_excel_validation',
-            '/index_analysis',
-            '/index_sql',
-            '/index_prompt_templates',
-            '/excel_repair',
-            '/settings',
-            '/index_knowledge_base',
-            '/user_management'
-        ]
+        """
+        请求拦截器：在每次请求前执行，判断用户是否有权限访问
         
+        判断逻辑：
+        1. 公开路径（登录页、静态资源等）无需验证直接放行
+        2. 用户未登录时，API请求返回401错误，页面请求重定向到登录页
+        3. 已登录用户访问页面时，检查是否有该页面的权限
+        4. 管理员拥有所有页面权限，普通用户只能访问其权限列表中的页面
+        """
         # 不需要登录的API路径前缀
         public_api_prefixes = [
             '/api/login',  # 新的登录API路径
             '/api/login/logout',  # 新的退出登录API路径
             '/api/user/login',  # 旧的登录API路径（保留兼容性）
             '/api/user/logout',  # 旧的退出登录API路径（保留兼容性）
-            '/static/'
+            '/static/',
+            '/login'  # 登录页面
         ]
         
         # 当前请求路径
@@ -48,16 +41,12 @@ def init_auth_middleware(app):
             if path.startswith(prefix):
                 return  # 允许访问公开API
         
-        # 检查是否是受保护的页面
-        is_protected_page = path in protected_paths
-        is_api = path.startswith('/api/')
-        
         # 检查登录状态
         user_info = session.get('user_info')
         
-        # 如果是受保护的页面或API，且用户未登录
-        if (is_protected_page or is_api) and not user_info:
-            if is_api:
+        # 用户未登录时的处理
+        if not user_info:
+            if path.startswith('/api/'):
                 # 对于API请求，返回401错误
                 return jsonify({
                     'code': 401,
@@ -68,8 +57,8 @@ def init_auth_middleware(app):
                 # 对于页面请求，重定向到登录页
                 return redirect(url_for('pages.login'))
         
-        # 对于已登录用户，检查页面访问权限
-        if user_info and is_protected_page and path != '/':
+        # 对于已登录用户，检查页面访问权限（除了首页外）
+        if path != '/' and not path.startswith('/api/'):
             # 管理员可以访问所有页面
             if user_info.get('role') == '管理员':
                 return
@@ -79,7 +68,6 @@ def init_auth_middleware(app):
             
             # 将页面路径转换为权限标识
             # 例如：/user_management -> user_management
-            # 注意：不再添加.html后缀
             page_identifier = path[1:] if path != '/' else 'index'
             
             # 检查是否有权限访问
@@ -105,7 +93,11 @@ def init_auth_middleware(app):
                 return redirect(url_for('pages.index'))  # 无权限则重定向到首页
 
 def login_required(f):
-    """登录验证装饰器"""
+    """
+    登录验证装饰器：确保用户必须登录才能访问某个路由
+    
+    验证逻辑：检查session中是否存在user_info，不存在则拒绝访问
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_info' not in session:
@@ -121,7 +113,11 @@ def login_required(f):
     return decorated_function
 
 def admin_required(f):
-    """管理员权限验证装饰器"""
+    """
+    管理员验证装饰器：确保只有管理员角色才能访问某个路由
+    
+    验证逻辑：检查用户是否登录且角色为"管理员"，不符合则拒绝访问
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user_info = session.get('user_info')
@@ -138,7 +134,14 @@ def admin_required(f):
     return decorated_function
 
 def has_permission(permission_path):
-    """检查是否有特定页面的访问权限"""
+    """
+    权限检查函数：判断当前用户是否有访问指定功能的权限
+    
+    判断逻辑：
+    1. 未登录用户没有任何权限
+    2. 管理员拥有所有权限
+    3. 普通用户检查权限列表中是否包含指定的路径标识符
+    """
     user_info = session.get('user_info')
     
     # 未登录
