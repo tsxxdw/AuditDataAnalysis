@@ -164,7 +164,7 @@ function deleteUser(username) {
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
-            username: username
+            username: String(username)  // 确保用户名作为字符串发送
         }),
         success: function(response) {
             if (response.code === 200) {
@@ -225,7 +225,8 @@ function getUserByUsername(username) {
             if (response.code === 200) {
                 const users = response.data;
                 users.forEach(function(user) {
-                    if (user.username === username) {
+                    // 确保使用字符串比较，解决纯数字用户名的问题
+                    if (String(user.username) === String(username)) {
                         targetUser = user;
                     }
                 });
@@ -245,8 +246,12 @@ function renderPermissionsList(pages, userPermissions) {
     const $permissionsList = $('#permissions-list');
     $permissionsList.empty();
     
+    // 确保userPermissions是数组
+    const permissions = Array.isArray(userPermissions) ? userPermissions : [];
+    
     pages.forEach(function(page) {
-        const isChecked = userPermissions.includes(page.path);
+        // 使用some方法进行比较，确保类型一致
+        const isChecked = permissions.some(perm => String(perm) === String(page.path));
         
         const $item = $(`
             <div class="permission-item">
@@ -270,7 +275,7 @@ function updatePermissions(username, permissions) {
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
-            username: username,
+            username: String(username),  // 确保用户名作为字符串发送
             permissions: permissions
         }),
         success: function(response) {

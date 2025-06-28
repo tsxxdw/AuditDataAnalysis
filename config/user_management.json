@@ -29,7 +29,19 @@
             "password": "c81e728d9d4c2f636f067f89cc14862c",
             "role": "普通用户",
             "permissions": [
-                "index_table_structure"
+                "index_table_structure",
+                "index_analysis",
+                "settings",
+                "settings/setting_personal"
+            ]
+        },
+        {
+            "username": "t",
+            "password": "e358efa489f58062f10dd7316b65649e",
+            "role": "普通用户",
+            "permissions": [
+                "index_table_structure",
+                "index_analysis"
             ]
         }
     ]
