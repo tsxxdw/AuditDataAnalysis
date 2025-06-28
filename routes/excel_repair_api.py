@@ -4,7 +4,7 @@ EXCEL修复API路由
 提供EXCEL修复相关功能的API接口
 """
 
-from flask import Blueprint, request, jsonify, current_app, send_file, url_for
+from flask import Blueprint, request, jsonify, current_app, send_file, url_for, session
 import os
 import pandas as pd
 import uuid
@@ -12,6 +12,7 @@ from service.log.logger import app_logger
 from datetime import datetime, timedelta
 import glob
 import time
+from service.session_service import session_service
 
 # 创建蓝图
 excel_repair_api = Blueprint('excel_repair_api', __name__)
@@ -19,8 +20,24 @@ excel_repair_api = Blueprint('excel_repair_api', __name__)
 # 存储处理后的文件信息
 processed_files = {}
 
-# 定义Excel修复文件保存目录
-EXCEL_REPAIR_DIR = 'file/download/excel_repair'
+# 定义Excel修复文件保存基础目录
+EXCEL_REPAIR_BASE_DIR = 'file'
+EXCEL_REPAIR_SUB_DIR = 'download/excel_repair'
+
+# 获取当前用户的Excel修复文件保存目录
+def get_user_excel_repair_dir():
+    """
+    获取当前用户的Excel修复文件保存目录
+    根据session中的用户名创建对应的目录路径
+    """
+    # 从session获取用户信息
+    user_info = session_service.get_user_info()
+    # 获取用户名，如果没有则使用'anonymous'作为默认值
+    username = user_info.get('username', 'anonymous')
+    
+    # 构建完整的目录路径
+    repair_dir = os.path.join(EXCEL_REPAIR_BASE_DIR, username, EXCEL_REPAIR_SUB_DIR)
+    return repair_dir
 
 # 清理过期的Excel修复文件
 def cleanup_old_files(max_age_hours=24):
@@ -28,14 +45,17 @@ def cleanup_old_files(max_age_hours=24):
     清理指定小时数之前的Excel修复文件
     """
     try:
-        if not os.path.exists(EXCEL_REPAIR_DIR):
+        # 获取用户特定的修复目录
+        repair_dir = get_user_excel_repair_dir()
+        
+        if not os.path.exists(repair_dir):
             return
             
         # 计算过期时间
         expire_time = time.time() - (max_age_hours * 3600)
         
         # 获取目录中的所有Excel文件
-        excel_files = glob.glob(os.path.join(EXCEL_REPAIR_DIR, "*.xls*"))
+        excel_files = glob.glob(os.path.join(repair_dir, "*.xls*"))
         
         # 检查并删除过期文件
         deleted_count = 0
@@ -121,15 +141,18 @@ def remove_blank_rows():
             
             app_logger.info(f"处理结果: 原始行数={original_rows}, 处理后行数={processed_rows}, 移除行数={removed_rows}")
             
+            # 获取用户特定的修复目录
+            repair_dir = get_user_excel_repair_dir()
+            
             # 确保保存目录存在
-            os.makedirs(EXCEL_REPAIR_DIR, exist_ok=True)
+            os.makedirs(repair_dir, exist_ok=True)
             
             # 创建输出文件路径
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             filename = os.path.basename(file_path)
             base_name, ext = os.path.splitext(filename)
             new_filename = f"{base_name}_cleaned_{timestamp}{ext}"
-            output_path = os.path.join(EXCEL_REPAIR_DIR, new_filename)
+            output_path = os.path.join(repair_dir, new_filename)
             
             # 创建一个ExcelWriter对象，用于写入多个工作表
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
@@ -331,15 +354,18 @@ def remove_duplicates():
             
             app_logger.info(f"处理结果: 原始行数={original_rows}, 处理后行数={processed_rows}, 移除行数={removed_rows}, 重复行数={len(df_duplicates)}")
             
+            # 获取用户特定的修复目录
+            repair_dir = get_user_excel_repair_dir()
+            
             # 确保保存目录存在
-            os.makedirs(EXCEL_REPAIR_DIR, exist_ok=True)
+            os.makedirs(repair_dir, exist_ok=True)
             
             # 创建输出文件路径
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             filename = os.path.basename(file_path)
             base_name, ext = os.path.splitext(filename)
             new_filename = f"{base_name}_dedup_{timestamp}{ext}"
-            output_path = os.path.join(EXCEL_REPAIR_DIR, new_filename)
+            output_path = os.path.join(repair_dir, new_filename)
             
             # 创建一个ExcelWriter对象，用于写入多个工作表
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
@@ -479,9 +505,12 @@ def list_excel_repair_files():
     列出所有Excel修复文件
     """
     try:
+        # 获取用户特定的修复目录
+        repair_dir = get_user_excel_repair_dir()
+        
         # 确保目录存在
-        if not os.path.exists(EXCEL_REPAIR_DIR):
-            os.makedirs(EXCEL_REPAIR_DIR, exist_ok=True)
+        if not os.path.exists(repair_dir):
+            os.makedirs(repair_dir, exist_ok=True)
             return jsonify({
                 "success": True,
                 "message": "目录为空",
@@ -491,7 +520,7 @@ def list_excel_repair_files():
         # 获取所有Excel文件
         excel_files = []
         for file_ext in ['.xlsx', '.xls']:
-            excel_files.extend(glob.glob(os.path.join(EXCEL_REPAIR_DIR, f"*{file_ext}")))
+            excel_files.extend(glob.glob(os.path.join(repair_dir, f"*{file_ext}")))
         
         # 生成文件信息列表
         file_list = []
@@ -558,8 +587,11 @@ def download_direct_file(filename):
         if '..' in filename or filename.startswith('/'):
             return jsonify({"success": False, "message": "不允许的文件名"}), 400
         
+        # 获取用户特定的修复目录
+        repair_dir = get_user_excel_repair_dir()
+        
         # 构建完整文件路径
-        file_path = os.path.join(EXCEL_REPAIR_DIR, filename)
+        file_path = os.path.join(repair_dir, filename)
         
         # 检查文件是否存在
         if not os.path.exists(file_path):

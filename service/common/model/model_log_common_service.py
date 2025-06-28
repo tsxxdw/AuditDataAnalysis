@@ -7,6 +7,8 @@ import datetime
 import logging
 from typing import Dict, List
 from service.log.logger import app_logger  # 导入app_logger
+from flask import session
+from service.session_service import session_service
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -37,13 +39,25 @@ class ModelLogCommonService:
             # 获取当前日期作为目录名
             current_date = datetime.datetime.now().strftime('%Y%m%d')
             
-            # 确保日志目录存在
+            # 从session获取用户信息
+            user_info = session_service.get_user_info()
+            # 获取用户名，如果没有则使用'anonymous'作为默认值
+            username = user_info.get('username', 'anonymous')
+            
             # 创建根目录的file文件夹
             root_file_dir = os.path.join('file')
             os.makedirs(root_file_dir, exist_ok=True)
             
+            # 创建用户目录
+            user_dir = os.path.join(root_file_dir, username)
+            os.makedirs(user_dir, exist_ok=True)
+            
+            # 创建logfile目录
+            logfile_dir = os.path.join(user_dir, 'logfile')
+            os.makedirs(logfile_dir, exist_ok=True)
+            
             # 创建大模型调用记录文件夹
-            big_model_dir = os.path.join(root_file_dir, 'big_model_call_record')
+            big_model_dir = os.path.join(logfile_dir, 'big_model_call_record')
             os.makedirs(big_model_dir, exist_ok=True)
             
             # 创建当前日期的文件夹 (格式: YYYYMMDD)
