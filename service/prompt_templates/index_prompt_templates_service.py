@@ -7,18 +7,15 @@
 import os
 import json
 import uuid
+import shutil
 from datetime import datetime
 from service.log.logger import app_logger
 from config.global_config import get_project_root
+from service.session_service import session_service
 
 class PromptTemplateService:
     def __init__(self):
-        # 模板目录
-        self.templates_dir = os.path.join(get_project_root(), 'config', 'prompt_templates')
-        # 确保模板目录存在
-        os.makedirs(self.templates_dir, exist_ok=True)
-        
-        # 示例模板数据 - 仅在目录为空时使用
+        # 示例模板数据 - 仅在目录为空时使用，且仅对admin用户使用
         self.default_templates = [
             {
                 "id": str(uuid.uuid4()),
@@ -52,28 +49,53 @@ class PromptTemplateService:
             }
         ]
         
-        # 初始化默认模板
-        self.init_default_templates()
+        # 不在初始化时调用init_default_templates()，避免在没有请求上下文时访问session
+    
+    def _get_current_username(self):
+        """获取当前登录用户名"""
+        user_info = session_service.get_user_info()
+        return user_info.get('username', 'admin')  # 默认为admin
+    
+    def _get_templates_dir(self):
+        """获取当前用户的模板目录"""
+        username = self._get_current_username()
+        # 修改路径，添加prompt_templates子目录
+        templates_dir = os.path.join(get_project_root(), 'configuration_data', username, 'prompt_templates')
+        # 确保模板目录存在
+        os.makedirs(templates_dir, exist_ok=True)
+        return templates_dir
     
     def init_default_templates(self):
-        """初始化默认模板"""
+        """初始化默认模板 - 仅对admin用户"""
+        username = self._get_current_username()
+        if username != 'admin':
+            return
+            
+        templates_dir = self._get_templates_dir()
         # 检查目录是否为空
-        if not os.listdir(self.templates_dir):
-            app_logger.info("模板目录为空，初始化默认模板")
+        if not os.listdir(templates_dir):
+            app_logger.info("admin模板目录为空，初始化默认模板")
             for template in self.default_templates:
                 self.save_template_to_file(template)
-            app_logger.info(f"已创建 {len(self.default_templates)} 个默认模板")
+            app_logger.info(f"已为admin创建 {len(self.default_templates)} 个默认模板")
     
     def save_template_to_file(self, template):
         """将模板保存到文件"""
-        template_path = os.path.join(self.templates_dir, f"{template['id']}.json")
+        templates_dir = self._get_templates_dir()
+        template_path = os.path.join(templates_dir, f"{template['id']}.json")
         with open(template_path, 'w', encoding='utf-8') as f:
             json.dump(template, f, ensure_ascii=False, indent=2)
         return template_path
     
     def load_template_from_file(self, template_id):
         """从文件加载模板"""
-        template_path = os.path.join(self.templates_dir, f"{template_id}.json")
+        # 检查是否需要初始化默认模板（仅对admin用户）
+        username = self._get_current_username()
+        if username == 'admin':
+            self.init_default_templates()
+            
+        templates_dir = self._get_templates_dir()
+        template_path = os.path.join(templates_dir, f"{template_id}.json")
         if not os.path.exists(template_path):
             return None
         
@@ -86,8 +108,14 @@ class PromptTemplateService:
     
     def load_all_templates(self):
         """加载所有模板"""
+        # 检查是否需要初始化默认模板（仅对admin用户）
+        username = self._get_current_username()
+        if username == 'admin':
+            self.init_default_templates()
+            
+        templates_dir = self._get_templates_dir()
         templates = []
-        for filename in os.listdir(self.templates_dir):
+        for filename in os.listdir(templates_dir):
             if filename.endswith('.json'):
                 template_id = filename[:-5]  # 移除 .json 后缀
                 template = self.load_template_from_file(template_id)
@@ -100,7 +128,8 @@ class PromptTemplateService:
     
     def delete_template_file(self, template_id):
         """删除模板文件"""
-        template_path = os.path.join(self.templates_dir, f"{template_id}.json")
+        templates_dir = self._get_templates_dir()
+        template_path = os.path.join(templates_dir, f"{template_id}.json")
         if os.path.exists(template_path):
             os.remove(template_path)
             return True
@@ -108,6 +137,11 @@ class PromptTemplateService:
     
     def create_template(self, name, description, content, page=''):
         """创建新模板"""
+        # 检查是否需要初始化默认模板（仅对admin用户）
+        username = self._get_current_username()
+        if username == 'admin':
+            self.init_default_templates()
+            
         if not name:
             return False, "模板名称不能为空", None
         

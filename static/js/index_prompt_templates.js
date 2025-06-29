@@ -21,6 +21,11 @@ $(document).ready(function() {
         $('.template-preview-section').hide();
     });
     
+    // "通用"按钮点击事件 - 自动填充"general"到使用页面输入框
+    $('#setGeneralPage').on('click', function() {
+        $('#templatePage').val('general');
+    });
+    
     // 标签编辑对话框事件绑定
     $('#cancelTagEdit').on('click', function() {
         $('#tagEditDialog').hide();

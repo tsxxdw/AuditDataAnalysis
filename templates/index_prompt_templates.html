@@ -52,7 +52,10 @@
                 
                 <div class="form-group">
                     <label for="templatePage">使用页面：<small class="optional-hint">(选填)</small></label>
-                    <input type="text" id="templatePage" class="form-control" placeholder="请输入此模板适用的页面名称">
+                    <div class="input-with-button">
+                        <input type="text" id="templatePage" class="form-control" placeholder="请输入此模板适用的页面名称，如果输入 general 则代表通用">
+                        <button type="button" class="btn btn-sm btn-secondary" id="setGeneralPage">通用</button>
+                    </div>
                 </div>
                 
                 <div class="prompt-sections">

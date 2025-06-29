@@ -6,7 +6,7 @@ import json
 import requests
 import logging
 import datetime
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict
 from service.log.logger import app_logger
 from service.session_service import session_service
 
@@ -29,8 +29,8 @@ class DifyService:
     
     def __init__(self):
         """初始化Dify服务"""
-        # 确保日志目录存在
-        self._ensure_log_directories()
+        # 不在初始化时调用_ensure_log_directories，避免在没有请求上下文时访问session
+        pass
     
     def _ensure_log_directories(self):
         """确保日志目录存在"""
@@ -62,8 +62,11 @@ class DifyService:
             date_dir = os.path.join(dify_dir, current_date)
             os.makedirs(date_dir, exist_ok=True)
             app_logger.info(f"确保日期目录存在: {date_dir}")
+            
+            return username, current_date
         except Exception as e:
             app_logger.error(f"创建日志目录时出错: {str(e)}")
+            return 'anonymous', datetime.datetime.now().strftime('%Y%m%d')
     
     def _log_dify_call(self, operation_type: str, params: Dict) -> None:
         """记录Dify调用信息到文件
@@ -79,13 +82,8 @@ class DifyService:
             # 创建格式化的时间戳用于日志内容显示
             formatted_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            # 获取当前日期作为目录名
-            current_date = datetime.datetime.now().strftime('%Y%m%d')
-            
-            # 从session获取用户信息
-            user_info = session_service.get_user_info()
-            # 获取用户名，如果没有则使用'anonymous'作为默认值
-            username = user_info.get('username', 'anonymous')
+            # 确保日志目录存在并获取用户名和当前日期
+            username, current_date = self._ensure_log_directories()
             
             # 构建日志文件路径
             log_dir = os.path.join('file', username, 'logfile', 'dify_call_record', current_date)

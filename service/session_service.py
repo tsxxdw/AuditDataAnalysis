@@ -152,3 +152,4 @@ class SessionService:
 
 # 创建单例实例，方便导入使用
 session_service = SessionService()
+print("session_service 生成了")

@@ -31,8 +31,24 @@
             "permissions": [
                 "index_table_structure",
                 "index_analysis",
+                "index_import",
+                "index_file_upload",
+                "index_repair",
+                "index_validation",
+                "index_excel_validation",
+                "excel_repair",
+                "index_sql",
+                "index_one_to_one_import",
+                "index_prompt_templates",
+                "index_knowledge_base",
+                "user_management",
+                "share_base",
                 "settings",
-                "settings/setting_personal"
+                "settings/setting_personal",
+                "settings/setting_relational_database",
+                "settings/setting_vector_database",
+                "settings/setting_log",
+                "settings/setting_model_server"
             ]
         },
         {
@@ -42,6 +58,33 @@
             "permissions": [
                 "index_table_structure",
                 "index_analysis"
+            ]
+        },
+        {
+            "username": "3",
+            "password": "eccbc87e4b5ce2fe28308fd9f2a7baf3",
+            "role": "普通用户",
+            "permissions": [
+                "index_table_structure",
+                "index_analysis",
+                "index_import",
+                "index_file_upload",
+                "index_repair",
+                "index_validation",
+                "index_excel_validation",
+                "excel_repair",
+                "index_sql",
+                "index_one_to_one_import",
+                "index_prompt_templates",
+                "index_knowledge_base",
+                "user_management",
+                "share_base",
+                "settings",
+                "settings/setting_personal",
+                "settings/setting_relational_database",
+                "settings/setting_vector_database",
+                "settings/setting_log",
+                "settings/setting_model_server"
             ]
         }
     ]

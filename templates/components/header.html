@@ -18,8 +18,8 @@
             {% if request.path != '/settings' %}
                 <a href="{{ url_for('pages.settings') }}" class="settings-btn">设置</a>
             {% else %}
-                {% if session.get('user_info') %}
-                <button id="logout-btn" class="logout-btn" title="{{ session.user_info.username }}">注销</button>
+                {% if user_info %}
+                <button id="logout-btn" class="logout-btn" title="{{ user_info.username }}">注销</button>
                 {% endif %}
             {% endif %}
         </div>
