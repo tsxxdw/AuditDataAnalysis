@@ -1,48 +1,69 @@
 import json
 import os
+from service.session_service import session_service
 
 class SettingsVectorDatabaseService:
     """向量数据库设置服务，处理向量数据库配置的读取和保存"""
     
     def __init__(self):
-        # 配置文件路径
-        self.config_path = 'config/settings/vector_database_config.json'
+        # 初始化时不设置固定路径，每次操作时动态获取配置路径
+        pass
+    
+    def _get_current_username(self):
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        if not username:
+            raise ValueError("未登录或无法获取用户名")
+        return username
+    
+    def get_config_path(self):
+        username = self._get_current_username()
+        # 首先检查settings子目录中的文件
+        configuration_data_path = os.path.join('configuration_data', username, 'settings', 'vector_database_config.json')
+        # 确保父目录存在
+        os.makedirs(os.path.dirname(configuration_data_path), exist_ok=True)
+        return configuration_data_path
         
     def get_vector_database_settings(self):
-        """获取向量数据库设置"""
         try:
+            username = self._get_current_username()
+            config_path = self.get_config_path()
+            
+            # 默认空配置
+            default_config = {"vectorDatabases": {}, "defaultVectorDbType": "chroma"}
+            
             # 检查配置文件是否存在
-            if not os.path.exists(self.config_path):
-                # 如果不存在，返回默认空配置
-                return {"vectorDatabases": {}, "defaultVectorDbType": "chroma"}
+            if not os.path.exists(config_path):
+                # 直接返回空配置
+                return default_config
             
             # 读取配置文件
-            with open(self.config_path, 'r', encoding='utf-8') as file:
+            with open(config_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
                 return data
+        except ValueError as e:
+            # 重新抛出用户名相关的错误
+            raise e
         except Exception as e:
             print(f"读取向量数据库配置出错: {str(e)}")
             # 读取出错时返回默认空配置
             return {"vectorDatabases": {}, "defaultVectorDbType": "chroma"}
     
     def save_vector_database_settings(self, settings_data):
-        """保存向量数据库设置
-        
-        参数:
-            settings_data: 要保存的向量数据库设置数据
-        
-        返回:
-            bool: 保存是否成功
-        """
         try:
+            username = self._get_current_username()
+            config_path = self.get_config_path()
             # 确保目录存在
-            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
             
             # 保存配置到文件
-            with open(self.config_path, 'w', encoding='utf-8') as file:
+            with open(config_path, 'w', encoding='utf-8') as file:
                 json.dump(settings_data, file, indent=4, ensure_ascii=False)
             
             return True
+        except ValueError as e:
+            # 重新抛出用户名相关的错误
+            raise e
         except Exception as e:
             print(f"保存向量数据库配置出错: {str(e)}")
             return False

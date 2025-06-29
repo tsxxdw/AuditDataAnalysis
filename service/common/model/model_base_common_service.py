@@ -6,6 +6,7 @@ import logging
 from typing import Dict
 from utils.encryption_util import decrypt_api_key, is_encrypted
 from utils.settings.model_config_util import modelConfigUtil  # 导入modelConfigUtil
+from service.session_service import session_service  # 导入session_service
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -21,7 +22,11 @@ class ModelBaseCommonService:
     
     def test_connection(self, provider_id: str, api_key: str = None, api_url: str = None) -> Dict:
         """测试与服务提供商的连接"""
-        config_data = modelConfigUtil._load_config()
+        # 获取当前用户名
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        
+        config_data = modelConfigUtil._load_config(username=username)
         provider = config_data.get('providers', {}).get(provider_id)
         
         if not provider:

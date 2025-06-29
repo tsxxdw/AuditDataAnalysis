@@ -3,6 +3,7 @@
 
 from flask import Blueprint, request, jsonify
 from utils.settings.model_config_util import modelConfigUtil
+from service.session_service import session_service
 import logging
 import json
 import ollama
@@ -17,12 +18,18 @@ OLLAMA_MODEL = "qwen3:1.7b"
 # 创建蓝图
 model_api = Blueprint('model_api', __name__)
 
+# 获取当前用户名的辅助函数
+def get_current_username():
+    user_info = session_service.get_user_info()
+    return user_info.get('username', 'admin')  # 默认返回admin以防万一
+
 @model_api.route('/api/model/default-model', methods=['GET'])
 def get_default_model():
     """获取当前默认模型"""
     try:
         logger.info("API请求: 获取默认模型")
-        default_model = modelConfigUtil.get_default_model_info()
+        username = get_current_username()
+        default_model = modelConfigUtil.get_default_model_info(username=username)
         if default_model:
             # 处理返回结果格式，保持与原API兼容
             model_info = default_model.get('model_details', {})
@@ -62,12 +69,13 @@ def set_default_model():
             return jsonify({"success": False, "error": "服务提供商ID和模型ID不能为空"}), 400
         
         logger.info(f"设置默认模型 - 提供商ID: {provider_id}, 模型ID: {model_id}")
-        result = modelConfigUtil.update_default_model(provider_id, model_id)
+        username = get_current_username()
+        result = modelConfigUtil.update_default_model(provider_id, model_id, username=username)
         
         if result:
             logger.info("API响应: 默认模型设置成功")
             # 验证设置是否生效
-            current_default = modelConfigUtil.get_default_model_info()
+            current_default = modelConfigUtil.get_default_model_info(username=username)
             logger.info(f"验证默认模型设置 - 当前默认模型: {current_default}")
             return jsonify({"success": True, "message": "默认模型设置成功"})
         else:

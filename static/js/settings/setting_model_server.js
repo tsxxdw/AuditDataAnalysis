@@ -583,7 +583,7 @@ var ModelService = {
                     dropdown.empty();
                     dropdown.append('<option value="">请选择默认模型</option>');
                     
-                    var allVisibleModels = response.models;
+                    var allVisibleModels = response.providers;
                     // 排序：按提供商分组
                     allVisibleModels.sort(function(a, b) {
                         // 首先按提供商名称排序

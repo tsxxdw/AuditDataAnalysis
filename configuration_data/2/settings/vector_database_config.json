@@ -1,0 +1,26 @@
+{
+    "defaultVectorDbType": "milvus",
+    "vectorDatabases": {
+        "chroma": {
+            "host": "",
+            "port": "8000",
+            "collection": "",
+            "persistent_directory": ""
+        },
+        "milvus": {
+            "host": "loaclhost",
+            "collection": "default_collection"
+        },
+        "faiss": {
+            "index_path": "",
+            "dimension": "1536"
+        },
+        "elasticsearch": {
+            "host": "",
+            "port": "9200",
+            "index": "",
+            "username": "",
+            "password": ""
+        }
+    }
+}

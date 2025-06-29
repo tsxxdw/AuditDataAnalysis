@@ -1,0 +1,27 @@
+{
+    "defaultDbType": "mysql",
+    "databases": {
+        "mysql": {
+            "host": "localhost",
+            "port": "3306",
+            "database": "myshare",
+            "username": "root",
+            "password": "123456"
+        },
+        "sqlserver": {
+            "host": "localhost",
+            "instance": "",
+            "database": "sa",
+            "authType": "sql",
+            "username": "root",
+            "password": "123456"
+        },
+        "oracle": {
+            "host": "localhost",
+            "port": "1521",
+            "service": "ORCLPDB1",
+            "username": "YB_2025",
+            "password": "123456"
+        }
+    }
+}

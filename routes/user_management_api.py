@@ -83,6 +83,31 @@ def add_user():
         success, message = UserUtil.add_user(username, password, role)
         
         if success:
+            # 获取当前登录用户名
+            current_user_info = session_service.get_user_info()
+            current_username = current_user_info.get('username', 'system')
+            
+            # 创建用户配置文件夹
+            try:
+                # 检查configuration_data文件夹是否存在，不存在则创建
+                if not os.path.exists('configuration_data'):
+                    os.makedirs('configuration_data')
+                
+                # 创建用户专属文件夹
+                user_config_dir = os.path.join('configuration_data', username)
+                if not os.path.exists(user_config_dir):
+                    os.makedirs(user_config_dir)
+                
+                # 复制默认配置文件夹内容到新用户文件夹
+                default_config_dir = os.path.join('configuration_data', 'default')
+                if os.path.exists(default_config_dir):
+                    from distutils.dir_util import copy_tree
+                    copy_tree(default_config_dir, user_config_dir)
+                    app_logger.info(f"已为用户 {username} 创建配置文件夹并复制默认配置 (操作者: {current_username})")
+            except Exception as e:
+                app_logger.error(f"创建用户配置文件夹失败: {str(e)}")
+                # 配置文件夹创建失败不影响用户创建的结果
+            
             return jsonify({
                 'code': 200,
                 'message': message,

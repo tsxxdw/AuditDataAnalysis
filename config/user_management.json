@@ -86,6 +86,39 @@
                 "settings/setting_log",
                 "settings/setting_model_server"
             ]
+        },
+        {
+            "username": "4",
+            "password": "a87ff679a2f3e71d9181a67b7542122c",
+            "role": "普通用户",
+            "permissions": []
+        },
+        {
+            "username": "5",
+            "password": "e4da3b7fbbce2345d7772b0674a318d5",
+            "role": "普通用户",
+            "permissions": [
+                "index_table_structure",
+                "index_analysis",
+                "index_import",
+                "index_file_upload",
+                "index_repair",
+                "index_validation",
+                "index_excel_validation",
+                "excel_repair",
+                "index_sql",
+                "index_one_to_one_import",
+                "index_prompt_templates",
+                "index_knowledge_base",
+                "user_management",
+                "share_base",
+                "settings",
+                "settings/setting_personal",
+                "settings/setting_relational_database",
+                "settings/setting_vector_database",
+                "settings/setting_log",
+                "settings/setting_model_server"
+            ]
         }
     ]
 }

@@ -4,6 +4,7 @@
 from flask import Blueprint, request, jsonify
 from service.common.model.model_base_common_service import model_base_common_service as model_service
 from utils.settings.model_config_util import modelConfigUtil
+from service.session_service import session_service
 import logging
 import os
 import json
@@ -16,11 +17,17 @@ logger = logging.getLogger(__name__)
 # 创建蓝图
 model_settings_api = Blueprint('model_settings_api', __name__)
 
+# 获取当前用户名的辅助函数
+def get_current_username():
+    user_info = session_service.get_user_info()
+    return user_info.get('username', 'admin')  # 默认返回admin以防万一
+
 @model_settings_api.route('/api/settings/model/providers', methods=['GET'])
 def get_providers():
     """获取所有服务提供商"""
     try:
-        providers_dict = modelConfigUtil.get_all_providers()
+        username = get_current_username()
+        providers_dict = modelConfigUtil.get_all_providers(username=username)
         # 转换为前端所需格式
         providers = []
         for key, provider in providers_dict.items():
@@ -42,7 +49,8 @@ def get_providers():
 def get_provider(provider_id):
     """获取指定服务提供商信息"""
     try:
-        providers = modelConfigUtil.get_all_providers()
+        username = get_current_username()
+        providers = modelConfigUtil.get_all_providers(username=username)
         provider = providers.get(provider_id)
         
         if not provider:
@@ -72,7 +80,8 @@ def update_provider(provider_id):
             return jsonify({"success": False, "message": "请求体不能为空"}), 400
         
         # 使用modelConfigUtil更新提供商信息
-        success = modelConfigUtil.update_provider(provider_id, data)
+        username = get_current_username()
+        success = modelConfigUtil.update_provider(provider_id, data, username=username)
         if not success:
             return jsonify({"success": False, "message": "更新服务提供商配置失败"}), 400
         
@@ -104,7 +113,8 @@ def get_models(provider_id):
     """获取服务提供商的所有模型"""
     try:
         # 获取所有模型，包括不可见的
-        models = modelConfigUtil.get_provider_models(provider_id)
+        username = get_current_username()
+        models = modelConfigUtil.get_provider_models(provider_id, username=username)
         return jsonify({"success": True, "models": models})
     except Exception as e:
         logger.error(f"获取模型列表时发生错误: {str(e)}")
@@ -115,7 +125,8 @@ def get_provider_models_grouped_by_category(provider_id):
     """获取指定服务提供商的模型并按类别分组"""
     try:
         # 使用新添加的modelConfigUtil方法按类别获取模型
-        categorized = modelConfigUtil.get_provider_models_by_category(provider_id, only_visible=True)
+        username = get_current_username()
+        categorized = modelConfigUtil.get_provider_models_by_category(provider_id, only_visible=True, username=username)
         return jsonify({"success": True, "categories": categorized})
     except Exception as e:
         logger.error(f"获取分类模型列表时发生错误: {str(e)}")
@@ -133,7 +144,8 @@ def toggle_model_visibility(provider_id):
         visible = data.get('visible')
         
         # 切换可见性
-        success = modelConfigUtil.update_model_visibility(provider_id, model_id, visible)
+        username = get_current_username()
+        success = modelConfigUtil.update_model_visibility(provider_id, model_id, visible, username=username)
         if not success:
             return jsonify({"success": False, "message": "更新模型可见性失败"}), 400
         
@@ -147,7 +159,8 @@ def get_available_models(provider_id):
     """获取服务提供商的所有可用预设模型"""
     try:
         # 直接从modelConfigUtil获取模型列表
-        models = modelConfigUtil.get_provider_models(provider_id)
+        username = get_current_username()
+        models = modelConfigUtil.get_provider_models(provider_id, username=username)
         
         # 为Ollama特殊处理，如果没有预设模型，则使用通用模型
         if provider_id == 'ollama' and not models:
@@ -205,7 +218,8 @@ def sync_ollama_models():
                     local_model_ids.append(model.name)
         
         # 获取当前配置
-        config_data = modelConfigUtil._load_config()
+        username = get_current_username()
+        config_data = modelConfigUtil._load_config(username=username)
         ollama_config = config_data.get('providers', {}).get('ollama', {})
         configured_models = ollama_config.get('models', [])
         
@@ -240,7 +254,7 @@ def sync_ollama_models():
         # 更新配置
         if 'ollama' in config_data.get('providers', {}):
             config_data['providers']['ollama']['models'] = models_to_keep
-            modelConfigUtil._save_config(config_data)
+            modelConfigUtil._save_config(config_data, username=username)
             
             # 准备返回消息
             message = "同步完成"
@@ -275,12 +289,11 @@ def sync_ollama_models():
 
 @model_settings_api.route('/api/settings/model/visible-models', methods=['GET'])
 def get_all_visible_models():
-    """获取所有服务提供商中可见的模型"""
+    """获取所有可见模型，按提供商分组"""
     try:
-        logger.info("API请求: 获取所有可见模型")
-        all_visible_models = modelConfigUtil.get_all_visible_models()
-        logger.info(f"API响应: 获取所有可见模型成功，共 {len(all_visible_models)} 个模型")
-        return jsonify({"success": True, "models": all_visible_models})
+        username = get_current_username()
+        categorized_models = modelConfigUtil.get_all_visible_models(username=username)
+        return jsonify({"success": True, "providers": categorized_models})
     except Exception as e:
         logger.error(f"获取所有可见模型时发生错误: {str(e)}")
         return jsonify({"success": False, "message": f"服务器错误: {str(e)}"}), 500 

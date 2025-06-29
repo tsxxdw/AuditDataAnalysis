@@ -6,27 +6,73 @@ class modelConfigUtil:
     """模型配置工具类，用于管理模型配置信息"""
     
     @staticmethod
-    def _get_config_path():
-        """获取配置文件路径"""
-        current_file_path = os.path.abspath(__file__)
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
-        return os.path.join(project_root, "config", "settings", "model_config.json")
-    
+    def _get_config_path(username=None):
+        # 首先检查settings子目录中的文件
+        configuration_data_path = os.path.join('configuration_data', username, 'settings',
+                                               'model_config.json')
+        # 确保父目录存在
+        os.makedirs(os.path.dirname(configuration_data_path), exist_ok=True)
+        return configuration_data_path
+
     @staticmethod
-    def _load_config():
-        """加载配置文件"""
-        config_path = modelConfigUtil._get_config_path()
+    def _load_config(username=None):
+        """
+        加载配置文件
+        
+        Args:
+            username (str): 用户名，不能为None或空字符串
+            
+        Returns:
+            dict: 配置数据，如果文件不存在则返回空配置
+            
+        Raises:
+            ValueError: 当用户名为None或空字符串时
+        """
+        if not username:
+            raise ValueError("用户名不能为空")
+            
+        config_path = modelConfigUtil._get_config_path(username)
+        
+        # 默认空配置
+        default_config = {
+            "providers": {},
+            "defaultModel": {}
+        }
+        
         try:
+            # 如果配置文件不存在，直接返回空配置
+            if not os.path.exists(config_path):
+                return default_config
+                
+            # 读取配置文件
             with open(config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
+        except FileNotFoundError:
+            # 文件不存在，返回空配置
+            return default_config
         except Exception as e:
             print(f"加载配置文件失败: {e}")
-            return None
+            return default_config
             
     @staticmethod
-    def _save_config(config_data):
-        """保存配置文件"""
-        config_path = modelConfigUtil._get_config_path()
+    def _save_config(config_data, username=None):
+        """
+        保存配置文件
+        
+        Args:
+            config_data (dict): 配置数据
+            username (str): 用户名，不能为None或空字符串
+            
+        Returns:
+            bool: 是否保存成功
+            
+        Raises:
+            ValueError: 当用户名为None或空字符串时
+        """
+        if not username:
+            raise ValueError("用户名不能为空")
+            
+        config_path = modelConfigUtil._get_config_path(username)
         try:
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(config_data, f, indent=2, ensure_ascii=False)
@@ -36,25 +82,45 @@ class modelConfigUtil:
             return False
     
     @staticmethod
-    def get_all_providers():
-        """获取所有服务提供商信息
+    def get_all_providers(username=None):
+        """
+        获取所有服务提供商信息
         
+        Args:
+            username (str): 用户名，不能为None或空字符串
+            
         Returns:
             dict: 所有服务提供商信息
+            
+        Raises:
+            ValueError: 当用户名为None或空字符串时
         """
-        config_data = modelConfigUtil._load_config()
+        if not username:
+            raise ValueError("用户名不能为空")
+            
+        config_data = modelConfigUtil._load_config(username)
         if config_data and "providers" in config_data:
             return config_data["providers"]
         return {}
     
     @staticmethod
-    def get_default_model_info():
-        """获取默认模型的相关信息
+    def get_default_model_info(username=None):
+        """
+        获取默认模型的相关信息
         
+        Args:
+            username (str): 用户名，不能为None或空字符串
+            
         Returns:
             dict: 包含默认模型的完整信息，包括提供商ID、模型ID以及模型详细信息
+            
+        Raises:
+            ValueError: 当用户名为None或空字符串时
         """
-        config_data = modelConfigUtil._load_config()
+        if not username:
+            raise ValueError("用户名不能为空")
+            
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return None
             
@@ -86,17 +152,25 @@ class modelConfigUtil:
         return default_model_basic
     
     @staticmethod
-    def update_default_model(provider_id, model_id):
-        """修改默认模型
+    def update_default_model(provider_id, model_id, username=None):
+        """
+        修改默认模型
         
         Args:
             provider_id (str): 提供商ID
             model_id (str): 模型ID
+            username (str): 用户名，不能为None或空字符串
             
         Returns:
             bool: 是否成功修改
+            
+        Raises:
+            ValueError: 当用户名为None或空字符串时
         """
-        config_data = modelConfigUtil._load_config()
+        if not username:
+            raise ValueError("用户名不能为空")
+            
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return False
             
@@ -124,21 +198,14 @@ class modelConfigUtil:
             "model_id": model_id
         }
         
-        return modelConfigUtil._save_config(config_data)
+        return modelConfigUtil._save_config(config_data, username)
     
     @staticmethod
-    def update_model_visibility(provider_id, model_id, visible):
-        """修改某一个模型是否可见
-        
-        Args:
-            provider_id (str): 提供商ID
-            model_id (str): 模型ID
-            visible (bool): 是否可见
+    def update_model_visibility(provider_id, model_id, visible, username=None):
+        if not username:
+            raise ValueError("用户名不能为空")
             
-        Returns:
-            bool: 是否成功修改
-        """
-        config_data = modelConfigUtil._load_config()
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return False
             
@@ -162,20 +229,14 @@ class modelConfigUtil:
             print(f"模型 {model_id} 在提供商 {provider_id} 中不存在")
             return False
             
-        return modelConfigUtil._save_config(config_data)
+        return modelConfigUtil._save_config(config_data, username)
         
     @staticmethod
-    def get_provider_models(provider_id, only_visible=False):
-        """根据提供商ID获取对应的模型列表
-        
-        Args:
-            provider_id (str): 提供商ID
-            only_visible (bool, optional): 是否只返回可见的模型. 默认为False.
+    def get_provider_models(provider_id, only_visible=False, username=None):
+        if not username:
+            raise ValueError("用户名不能为空")
             
-        Returns:
-            list: 模型列表，如果提供商不存在则返回空列表
-        """
-        config_data = modelConfigUtil._load_config()
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return []
             
@@ -194,21 +255,9 @@ class modelConfigUtil:
         return models
         
     @staticmethod
-    def add_model(provider_id, model_info):
-        """向指定提供商添加新模型
-        
-        Args:
-            provider_id (str): 提供商ID
-            model_info (dict): 模型信息，必须包含以下字段:
-                - id (str): 模型ID
-                - name (str): 模型名称
-                - visible (bool): 是否可见
-                - category (str): 模型分类
-                - description (str): 模型描述
-                
-        Returns:
-            bool: 是否成功添加
-        """
+    def add_model(provider_id, model_info, username=None):
+        if not username:
+            raise ValueError("用户名不能为空")
         # 验证必要的模型信息是否存在
         required_fields = ["id", "name", "category", "description"]
         for field in required_fields:
@@ -220,7 +269,7 @@ class modelConfigUtil:
         if "visible" not in model_info:
             model_info["visible"] = True
             
-        config_data = modelConfigUtil._load_config()
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return False
             
@@ -244,11 +293,12 @@ class modelConfigUtil:
             
         provider["models"].append(model_info)
         
-        return modelConfigUtil._save_config(config_data)
+        return modelConfigUtil._save_config(config_data, username)
         
     @staticmethod
-    def update_provider(provider_id, data):
-        """更新服务提供商配置
+    def update_provider(provider_id, data, username='admin'):
+        """
+        更新服务提供商配置
         
         Args:
             provider_id (str): 提供商ID
@@ -258,11 +308,12 @@ class modelConfigUtil:
                 - apiVersion (str): API版本
                 - enabled (bool): 是否启用
                 - name (str): 提供商名称
+            username (str): 用户名，默认为'admin'
                 
         Returns:
             bool: 是否成功更新
         """
-        config_data = modelConfigUtil._load_config()
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return False
             
@@ -279,16 +330,20 @@ class modelConfigUtil:
                 # 对API密钥特殊处理：如果需要加密，可以在这里添加加密逻辑
                 config_data['providers'][provider_id][field] = data[field]
         
-        return modelConfigUtil._save_config(config_data)
+        return modelConfigUtil._save_config(config_data, username)
         
     @staticmethod
-    def get_all_visible_models():
-        """获取所有启用的服务提供商中可见的模型
+    def get_all_visible_models(username='admin'):
+        """
+        获取所有启用的服务提供商中可见的模型
+        
+        Args:
+            username (str): 用户名，默认为'admin'
         
         Returns:
             list: 所有可见模型的列表，每个模型包含提供商信息
         """
-        config_data = modelConfigUtil._load_config()
+        config_data = modelConfigUtil._load_config(username)
         if not config_data:
             return []
             
@@ -314,17 +369,19 @@ class modelConfigUtil:
         return all_visible_models
         
     @staticmethod
-    def get_provider_models_by_category(provider_id, only_visible=True):
-        """按类别获取指定提供商的模型
+    def get_provider_models_by_category(provider_id, only_visible=True, username='admin'):
+        """
+        按类别获取指定提供商的模型
         
         Args:
             provider_id (str): 提供商ID
             only_visible (bool, optional): 是否只返回可见的模型. 默认为True.
+            username (str): 用户名，默认为'admin'
             
         Returns:
             dict: 按类别分组的模型字典，格式为：{类别: [模型列表]}
         """
-        models = modelConfigUtil.get_provider_models(provider_id, only_visible)
+        models = modelConfigUtil.get_provider_models(provider_id, only_visible, username)
         categorized = {}
         
         for model in models:
