@@ -1,0 +1,162 @@
+{
+  "defaultProvider": "ollama",
+  "defaultModel": {
+    "provider_id": "silicon-flow",
+    "model_id": "Qwen/Qwen3-32B"
+  },
+  "providers": {
+    "silicon-flow": {
+      "name": "硅基流动",
+      "apiKey": "",
+      "apiUrl": "https://api.siliconflow.cn",
+      "apiVersion": "v1",
+      "enabled": true,
+      "models": [
+        {
+          "id": "Qwen/Qwen3-8B",
+          "name": "Qwen3-8B",
+          "visible": false,
+          "category": "通用模型",
+          "description": "通义千问3 8B大模型（免费）"
+        },
+        {
+          "id": "Qwen/Qwen3-32B",
+          "name": "Qwen3-32B",
+          "visible": true,
+          "category": "通用模型",
+          "description": "通义千问3 32B大模型"
+        },
+        {
+          "id": "Pro/deepseek-ai/DeepSeek-V3",
+          "name": "DeepSeek-V3",
+          "visible": true,
+          "category": "高级模型",
+          "description": "DeepSeek V3大模型"
+        }
+      ]
+    },
+    "deep-search": {
+      "name": "深度求索",
+      "apiKey": "",
+      "apiUrl": "https://api.deepseek.com",
+      "apiVersion": "v1",
+      "enabled": true,
+      "models": [
+        {
+          "id": "deep-search-7b",
+          "name": "deep-search-7b",
+          "visible": false,
+          "category": "搜索模型",
+          "description": "深度求索7B搜索增强大模型"
+        },
+        {
+          "id": "deep-search-13b",
+          "name": "deep-search-13b",
+          "visible": true,
+          "category": "搜索模型",
+          "description": "深度求索13B搜索增强大模型"
+        },
+        {
+          "id": "deep-search-base",
+          "name": "深度求索基础模型",
+          "visible": false,
+          "category": "基础模型",
+          "description": "适用于通用场景的基础模型"
+        },
+        {
+          "id": "deep-search-code",
+          "name": "深度求索代码模型",
+          "visible": false,
+          "category": "专业模型",
+          "description": "专为代码开发场景优化的模型"
+        },
+        {
+          "id": "deep-search-finance",
+          "name": "深度求索金融模型",
+          "visible": false,
+          "category": "专业模型",
+          "description": "专为金融领域优化的大模型"
+        }
+      ]
+    },
+    "ollama": {
+      "name": "Ollama",
+      "apiKey": "Z0FBQUFBQm9IWEdSWEdqUkE3OVEyMXBRLVpUd0NqYTh0UXVuUEF2YVdhMXJyUlpEZ1p6V1ZhQ21yZGhHUzk3X1lwNEplbndkdDhqN3VpaTNLMmNWcDcwaWlCdl9PTUkwVzhjYnB4Q3RLZU1HZDhDMEJQU3NYZTQ3dlVSVUxHdk1Pb21lNTFVZVZBc05zaktMTC0zWkh3QVFDNEhVRzVfbUJ3PT0=",
+      "apiUrl": "http://localhost:11434",
+      "apiVersion": "v1",
+      "enabled": true,
+      "models": [
+        {
+          "id": "gemma3:12b",
+          "name": "gemma3:12b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 gemma3:12b",
+          "visible": false
+        },
+        {
+          "id": "deepseek-r1:8b-0528-qwen3-q4_K_M",
+          "name": "deepseek-r1:8b-0528-qwen3-q4_K_M",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-q4_K_M",
+          "visible": true
+        },
+        {
+          "id": "deepseek-r1:8b-0528-qwen3-fp16",
+          "name": "deepseek-r1:8b-0528-qwen3-fp16",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-fp16",
+          "visible": false
+        },
+        {
+          "id": "deepseek-r1:8b-0528-qwen3-q8_0",
+          "name": "deepseek-r1:8b-0528-qwen3-q8_0",
+          "category": "本地模型",
+          "description": "Ollama本地模型 deepseek-r1:8b-0528-qwen3-q8_0",
+          "visible": false
+        },
+        {
+          "id": "qwen3:4b",
+          "name": "qwen3:4b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:4b",
+          "visible": false
+        },
+        {
+          "id": "qwen3:8b",
+          "name": "qwen3:8b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:8b",
+          "visible": false
+        },
+        {
+          "id": "qwen3:14b",
+          "name": "qwen3:14b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:14b",
+          "visible": true
+        },
+        {
+          "id": "qwen3:0.6b",
+          "name": "qwen3:0.6b",
+          "category": "本地模型",
+          "description": "Ollama本地模型 qwen3:0.6b",
+          "visible": true
+        },
+        {
+          "id": "nomic-embed-text:latest",
+          "name": "nomic-embed-text:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 nomic-embed-text:latest",
+          "visible": false
+        },
+        {
+          "id": "devstral:latest",
+          "name": "devstral:latest",
+          "category": "本地模型",
+          "description": "Ollama本地模型 devstral:latest",
+          "visible": false
+        }
+      ]
+    }
+  }
+}

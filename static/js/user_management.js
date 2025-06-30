@@ -53,6 +53,16 @@ $(document).ready(function() {
         
         updatePermissions(username, permissions);
     });
+    
+    // 全选按钮点击事件
+    $('#select-all-permissions').click(function() {
+        $('.permission-checkbox').prop('checked', true);
+    });
+    
+    // 取消全选按钮点击事件
+    $('#deselect-all-permissions').click(function() {
+        $('.permission-checkbox').prop('checked', false);
+    });
 });
 
 /**

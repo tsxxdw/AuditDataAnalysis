@@ -182,6 +182,13 @@
     overflow-y: auto;
 }
 
+.permissions-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
 .permissions-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
