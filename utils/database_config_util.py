@@ -143,32 +143,3 @@ class DatabaseConfigUtil:
         return display_names.get(db_type, db_type)
 
 
-if __name__ == "__main__":
-    # 测试代码，在直接运行该文件时执行
-    try:
-        print("默认数据库类型:")
-        default_type = DatabaseConfigUtil.get_default_db_type()
-        print(f"默认类型: {default_type}")
-        
-        print("\n支持的数据库类型:")
-        db_types = DatabaseConfigUtil.get_all_database_types()
-        for db_type in db_types:
-            print(f"- {db_type}")
-        
-        print("\n获取默认数据库配置:")
-        default_config = DatabaseConfigUtil.get_database_config()
-        if default_config:
-            print(f"主机: {default_config.get('host')}")
-            print(f"端口: {default_config.get('port', 'N/A')}")
-            print(f"数据库: {default_config.get('database', 'N/A')}")
-            print(f"用户名: {default_config.get('username')}")
-        
-        print("\n获取所有数据库配置:")
-        all_configs = DatabaseConfigUtil.get_all_database_configs()
-        for db_type, config in all_configs.items():
-            print(f"\n[{db_type}]")
-            for key, value in config.items():
-                if key != "password":  # 不显示密码
-                    print(f"{key}: {value}")
-    except Exception as e:
-        print(f"测试过程中出错: {str(e)}") 

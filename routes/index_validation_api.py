@@ -12,6 +12,7 @@ from sqlalchemy import text
 from service.database.database_service import DatabaseService
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil
+from service.session_service import session_service
 
 # 创建蓝图
 index_validation_bp = Blueprint('index_validation_api', __name__, url_prefix='/api/validation')
@@ -96,7 +97,7 @@ def generate_sql():
         validation_type = data.get('validationType')
         template_id = data.get('templateId')
         
-        # 验证基本参数
+        # 参数验证
         if not table_name:
             return jsonify({"success": False, "message": "表名不能为空"}), 400
         
@@ -110,8 +111,12 @@ def generate_sql():
         if not template_id:
             return jsonify({"success": False, "message": "提示词模板不能为空"}), 400
         
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+
         # 获取当前数据库类型
-        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
         
         # 调用默认模型服务生成SQL
         try:
@@ -267,9 +272,12 @@ def execute_sql():
         return jsonify({"message": "SQL语句不能为空", "success": False}), 400
     
     try:
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败"}), 500

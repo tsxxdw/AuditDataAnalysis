@@ -22,8 +22,8 @@ class DifyService:
     
     # 操作类型到对应API密钥的映射
     OPERATION_KEYS = {
-        'repair_date': 'app-E9frkkXhinoC2ckAhbXiOmpk',  # 日期修复密钥
-        'repair_idcard': 'app-E9frkkXhinoC2ckAhbXiOmpk',  # 身份证修复密钥
+        'repair_date':   'app-lAMRAZF7U5J8O2E6NOMYWG9m',  # 日期修复密钥
+        'repair_idcard': 'app-lAMRAZF7U5J8O2E6NOMYWG9m',  # 身份证修复密钥
         # 可以根据需要添加更多操作类型及对应的密钥
     }
     

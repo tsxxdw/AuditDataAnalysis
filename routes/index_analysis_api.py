@@ -6,6 +6,7 @@
 
 from flask import Blueprint, request, jsonify
 from service.log.logger import app_logger
+from service.session_service import session_service
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
 from service.prompt_templates.index_prompt_templates_service import PromptTemplateService
@@ -99,14 +100,14 @@ def add_template():
 @index_analysis_bp.route('/generate_sql', methods=['POST'])
 def generate_sql():
     """生成SQL查询语句"""
-    app_logger.info("请求生成SQL查询语句")
+    app_logger.info("生成SQL查询请求")
     
     try:
         # 获取请求参数
         data = request.json
         template_id = data.get('template_id')
         tables = data.get('tables', [])
-        date_compare_type = data.get('date_compare_type', 'year')  # 获取日期对比方式，默认为'year'
+        date_compare_type = data.get('date_compare_type')  # 获取日期对比方式，默认为'year'
         
         # 参数验证
         if not template_id:
@@ -115,11 +116,14 @@ def generate_sql():
         if not tables or len(tables) == 0:
             return jsonify({"success": False, "message": "至少需要选择一个表和字段"}), 400
         
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取默认数据库类型
-        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
         
         # 获取数据库连接信息
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         if not db_config:
             return jsonify({"success": False, "message": f"获取{db_type}数据库配置失败"}), 500
         
@@ -295,11 +299,14 @@ def execute_sql():
         if not sql or not sql.strip():
             return jsonify({"success": False, "message": "SQL语句不能为空"}), 400
         
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取默认数据库类型
-        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
         
         # 获取数据库连接信息
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         if not db_config:
             return jsonify({"success": False, "message": f"获取{db_type}数据库配置失败"}), 500
         

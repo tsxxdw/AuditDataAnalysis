@@ -13,6 +13,7 @@ from config.global_config import get_project_root, get_export_dir
 from service.database.database_service import DatabaseService
 from service.log.logger import app_logger
 from service.exception import AppException
+from service.session_service import session_service
 from sqlalchemy import text
 import os
 import time
@@ -33,8 +34,11 @@ def get_db_types():
         JSON: 包含所有可用数据库类型的列表
     """
     try:
-        db_types = DatabaseConfigUtil.get_all_database_types()
-        default_type = DatabaseConfigUtil.get_default_db_type()
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        db_types = DatabaseConfigUtil.get_all_database_types(username)
+        default_type = DatabaseConfigUtil.get_default_db_type(username)
         
         result = []
         for db_type in db_types:

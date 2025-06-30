@@ -9,6 +9,7 @@ from service.log.logger import app_logger
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
 from sqlalchemy import text
+from service.session_service import session_service
 
 # 创建通用API蓝图
 common_api_bp = Blueprint('common_api', __name__, url_prefix='/api/common')
@@ -21,9 +22,13 @@ def get_database_info():
     app_logger.info("获取当前数据库信息")
     
     try:
+        # 从session获取用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        
         # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         
         if not db_config:
             return jsonify({
@@ -57,9 +62,12 @@ def get_tables():
     app_logger.info("获取表列表")
     
     try:
+        # 从session获取用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败", "tables": []}), 500
@@ -86,9 +94,12 @@ def get_fields(table_name):
     app_logger.info(f"获取表 {table_name} 的字段")
     
     try:
+        # 从session获取用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败", "fields": []}), 500
@@ -123,9 +134,12 @@ def execute_sql():
         if not sql_input:
             return jsonify({"success": False, "message": "SQL语句不能为空"}), 400
         
+        # 从session获取用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败"}), 500

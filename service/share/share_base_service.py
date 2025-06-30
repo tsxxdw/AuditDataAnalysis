@@ -10,6 +10,9 @@ from sqlalchemy import text
 from service.database.database_service import DatabaseService
 from utils.database_config_util import DatabaseConfigUtil
 from service.log.logger import app_logger
+import os
+from datetime import datetime
+from service.session_service import session_service
 
 class ShareBaseService:
     """股票基本信息服务类"""
@@ -33,9 +36,17 @@ class ShareBaseService:
             # 获取数据库服务实例
             db_service = DatabaseService()
             
+            # 获取当前用户信息
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            
+            if not username:
+                app_logger.error("获取股票列表失败: 用户名不能为空")
+                return []
+            
             # 获取默认数据库类型和配置
-            db_type = DatabaseConfigUtil.get_default_db_type()
-            db_config = DatabaseConfigUtil.get_database_config(db_type)
+            db_type = DatabaseConfigUtil.get_default_db_type(username)
+            db_config = DatabaseConfigUtil.get_database_config(username, db_type)
             
             if not db_config:
                 app_logger.error(f"获取{db_type}数据库配置失败")
@@ -187,9 +198,17 @@ class ShareBaseService:
             # 获取数据库服务实例
             db_service = DatabaseService()
             
+            # 获取当前用户信息
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            
+            if not username:
+                app_logger.error("更新股票数据失败: 用户名不能为空")
+                return {'added': 0, 'updated': 0}
+            
             # 获取默认数据库类型和配置
-            db_type = DatabaseConfigUtil.get_default_db_type()
-            db_config = DatabaseConfigUtil.get_database_config(db_type)
+            db_type = DatabaseConfigUtil.get_default_db_type(username)
+            db_config = DatabaseConfigUtil.get_database_config(username, db_type)
             
             if not db_config:
                 app_logger.error(f"获取{db_type}数据库配置失败")

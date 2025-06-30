@@ -14,6 +14,7 @@ from utils.excel_util import ExcelUtil
 from service.prompt_templates.index_prompt_templates_service import PromptTemplateService
 from service.common.model.model_chat_common_service import model_chat_service
 from utils.settings.model_config_util import modelConfigUtil
+from service.session_service import session_service
 
 # 创建蓝图
 index_table_structure_bp = Blueprint('index_table_structure_api', __name__, url_prefix='/api/table_structure')
@@ -91,8 +92,11 @@ def generate_table_sql():
         if not table_name:
             return jsonify({"success": False, "message": "表名不能为空"}), 400
         
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库类型
-        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
         
         # 2. 读取Excel获取字段备注信息
         field_comments = []
@@ -343,8 +347,11 @@ def generate_index_sql():
         if not template_id:
             return jsonify({"success": False, "message": "提示词模板不能为空"}), 400
         
+        # 获取当前用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库类型
-        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
         
         # 调用默认模型服务生成SQL
         try:

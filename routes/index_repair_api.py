@@ -10,6 +10,7 @@ from service.prompt_templates.index_prompt_templates_service import PromptTempla
 from utils.database_config_util import DatabaseConfigUtil
 from service.database.database_service import DatabaseService
 from service.common.dify_common_service import dify_service
+from service.session_service import session_service
 
 # 创建蓝图
 index_repair_bp = Blueprint('index_repair_api', __name__, url_prefix='/api/repair')
@@ -19,20 +20,6 @@ template_service = PromptTemplateService()
 
 # 创建数据库服务实例
 db_service = DatabaseService()
-
-@index_repair_bp.route('/tables', methods=['GET'])
-def get_tables():
-    """获取表列表"""
-    app_logger.info("获取表列表")
-    # 此处添加获取表列表的逻辑
-    return jsonify({"message": "获取表列表成功", "tables": []})
-
-@index_repair_bp.route('/fields/<table_name>', methods=['GET'])
-def get_fields(table_name):
-    """获取表字段"""
-    app_logger.info(f"获取表 {table_name} 的字段")
-    # 此处添加获取表字段的逻辑
-    return jsonify({"message": f"获取表 {table_name} 字段成功", "fields": []})
 
 @index_repair_bp.route('/generate_sql', methods=['POST'])
 def generate_sql():
@@ -57,6 +44,9 @@ def generate_sql():
         if 'reference_field' not in data or not data['reference_field']:
             return jsonify({'success': False, 'message': '参考字段不能为空'}), 400
         
+        # 从session获取用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 参数准备
         table_name = data['table_name']
         reference_field = data['reference_field']
@@ -65,7 +55,7 @@ def generate_sql():
         target_comment = data.get('target_comment', '')
         
         # 获取当前数据库类型
-        db_type = DatabaseConfigUtil.get_default_db_type()
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
 
         # 调用dify服务生成SQL
         try:
@@ -152,9 +142,12 @@ def execute_sql():
         return jsonify({"message": "SQL语句不能为空", "success": False}), 400
     
     try:
+        # 从session获取用户信息
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取当前数据库连接信息
-        db_type = DatabaseConfigUtil.get_default_db_type()
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        db_type = DatabaseConfigUtil.get_default_db_type(username)
+        db_config = DatabaseConfigUtil.get_database_config(username, db_type)
         
         if not db_config:
             return jsonify({"success": False, "message": "获取数据库配置失败"}), 500
