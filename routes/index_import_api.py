@@ -69,7 +69,9 @@ def get_tables():
     
     try:
         # 获取数据库配置
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        db_config = DatabaseConfigUtil.get_database_config(username,db_type)
         if not db_config:
             return jsonify({"error": f"找不到数据库类型 '{db_type}' 的配置"}), 404
         
@@ -208,7 +210,9 @@ def get_table_fields():
     
     try:
         # 获取数据库配置
-        db_config = DatabaseConfigUtil.get_database_config(db_type)
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        db_config = DatabaseConfigUtil.get_database_config(username,db_type)
         if not db_config:
             return jsonify({"error": f"找不到数据库类型 '{db_type}' 的配置"}), 404
         
@@ -571,7 +575,9 @@ def import_excel_data():
             return jsonify({"success": False, "message": f"无效的工作表ID: {sheet_id}"}), 400
         
         # 获取数据库配置
-        db_config = DatabaseConfigUtil.get_database_config(database_id)
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        db_config = DatabaseConfigUtil.get_database_config(username,database_id)
         if not db_config:
             return jsonify({"success": False, "message": f"找不到数据库类型 '{database_id}' 的配置"}), 404
         

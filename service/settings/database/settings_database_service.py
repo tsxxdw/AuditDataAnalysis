@@ -8,16 +8,10 @@ class SettingsDatabaseService:
     def __init__(self):
         # 初始化时不设置固定路径，每次操作时动态获取配置路径
         pass
+
     
-    def _get_current_username(self):
-        user_info = session_service.get_user_info()
-        username = user_info.get('username')
-        if not username:
-            raise ValueError("未登录或无法获取用户名")
-        return username
-    
-    def get_config_path(self):
-        username = self._get_current_username()
+    def get_config_path(username):
+
         
         # 首先检查settings子目录中的文件
         configuration_data_path = os.path.join('configuration_data', username, 'settings', 'database_config.json')
@@ -28,7 +22,9 @@ class SettingsDatabaseService:
         
     def get_database_settings(self):
         try:
-            config_path = self.get_config_path()
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            config_path = self.get_config_path(username)
             
             # 默认空配置
             default_config = {"databases": {}, "defaultDbType": ""}
@@ -52,8 +48,9 @@ class SettingsDatabaseService:
     
     def save_database_settings(self, settings_data):
         try:
-            username = self._get_current_username()
-            config_path = self.get_config_path()
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            config_path = self.get_config_path(username)
             # 确保目录存在
             os.makedirs(os.path.dirname(config_path), exist_ok=True)
             

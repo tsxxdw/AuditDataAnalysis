@@ -6,6 +6,8 @@ import json
 import requests
 import logging
 from typing import Dict, List
+
+from service.session_service import session_service
 from utils.encryption_util import  decrypt_api_key, is_encrypted
 from service.log.logger import app_logger  # 导入app_logger
 from service.common.model.model_log_common_service import model_log_service  # 导入model_log_service
@@ -48,9 +50,10 @@ class ModelChatCommonService:
         
         # 记录大模型调用信息到文件
         model_log_service.log_model_call(provider_id, model_id, messages)
-        
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
         # 获取提供商配置
-        config_data = modelConfigUtil._load_config()
+        config_data = modelConfigUtil._load_config(username)
         provider = config_data.get('providers', {}).get(provider_id)
         if not provider:
             error_msg = "未找到指定的服务提供商"

@@ -130,7 +130,9 @@ def generate_sql():
         # 调用默认模型服务生成SQL
         try:
             # 获取模型服务提供商ID和模型ID
-            default_model_info = modelConfigUtil.get_default_model_info()
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            default_model_info = modelConfigUtil.get_default_model_info(username)
             if not default_model_info:
                 app_logger.error("没有找到默认模型配置")
                 raise Exception("没有找到默认模型配置，请先设置默认模型")

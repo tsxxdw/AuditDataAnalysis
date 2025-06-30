@@ -356,7 +356,7 @@ def generate_index_sql():
         # 调用默认模型服务生成SQL
         try:
             # 获取默认模型信息
-            default_model_info = modelConfigUtil.get_default_model_info()
+            default_model_info = modelConfigUtil.get_default_model_info(username)
             if not default_model_info:
                 app_logger.error("没有找到默认模型配置")
                 raise Exception("没有找到默认模型配置，请先设置默认模型")
@@ -393,20 +393,6 @@ def generate_index_sql():
                     
                     system_prompt = template_content.get('system', '')
                     user_prompt_template = template_content.get('user', '')
-                    
-                    # 如果模板中没有包含必要的提示词，则使用默认提示词
-                    if not user_prompt_template:
-                        app_logger.warning("所选模板未包含用户提示词，使用默认提示词")
-                        user_prompt_template = """请生成为数据库表创建或删除索引的SQL语句。
-                        
-表名：{table_name}
-字段名：{field_name}
-操作类型：{operation_type}（create表示创建索引，delete表示删除索引）
-索引操作：{operation}（create_index表示新增索引，drop_index表示删除索引）
-数据库类型：{db_type}
-
-请仅返回SQL语句，不要包含任何其他文字说明。"""
-                        
                 except Exception as e:
                     error_msg = f"获取提示词模板失败: {str(e)}"
                     app_logger.error(error_msg)

@@ -16,8 +16,8 @@ class SettingsVectorDatabaseService:
             raise ValueError("未登录或无法获取用户名")
         return username
     
-    def get_config_path(self):
-        username = self._get_current_username()
+    def get_config_path(username):
+
         # 首先检查settings子目录中的文件
         configuration_data_path = os.path.join('configuration_data', username, 'settings', 'vector_database_config.json')
         # 确保父目录存在
@@ -26,8 +26,9 @@ class SettingsVectorDatabaseService:
         
     def get_vector_database_settings(self):
         try:
-            username = self._get_current_username()
-            config_path = self.get_config_path()
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            config_path = self.get_config_path(username)
             
             # 默认空配置
             default_config = {"vectorDatabases": {}, "defaultVectorDbType": "chroma"}
@@ -51,8 +52,9 @@ class SettingsVectorDatabaseService:
     
     def save_vector_database_settings(self, settings_data):
         try:
-            username = self._get_current_username()
-            config_path = self.get_config_path()
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            config_path = self.get_config_path(username)
             # 确保目录存在
             os.makedirs(os.path.dirname(config_path), exist_ok=True)
             

@@ -12,7 +12,7 @@ class VectorDatabaseConfigUtil:
     """向量数据库配置工具类，管理向量数据库的配置信息"""
     
     @staticmethod
-    def get_config_path(username=None):
+    def get_config_path(username):
         if not username:
             raise ValueError("用户名不能为空")
             

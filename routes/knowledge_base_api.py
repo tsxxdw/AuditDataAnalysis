@@ -21,6 +21,7 @@ from service.knowledge_base.kb_service import (
 from werkzeug.utils import secure_filename
 from service.common.model.model_base_common_service import ModelBaseCommonService, model_base_common_service as model_service
 from service.common.model.model_chat_common_service import model_chat_service
+from service.session_service import session_service
 from utils.settings.model_config_util import modelConfigUtil
 
 # 创建知识库API蓝图
@@ -429,7 +430,9 @@ def knowledge_base_chat():
         # 调用模型生成回复
         try:
             # 获取默认模型信息
-            default_model_info = modelConfigUtil.get_default_model_info()
+            user_info = session_service.get_user_info()
+            username = user_info.get('username')
+            default_model_info = modelConfigUtil.get_default_model_info(username)
             if not default_model_info:
                 app_logger.error("没有找到默认模型配置")
                 return jsonify({
@@ -524,7 +527,9 @@ def check_model_status():
         # model_service 已在文件顶部导入，不需要再导入
         
         # 替换为modelConfigUtil.get_all_providers()
-        providers = modelConfigUtil.get_all_providers()
+        user_info = session_service.get_user_info()
+        username = user_info.get('username')
+        providers = modelConfigUtil.get_all_providers(username)
         result = {}
         
         # 遍历提供商检查状态

@@ -21,7 +21,7 @@ model_api = Blueprint('model_api', __name__)
 # 获取当前用户名的辅助函数
 def get_current_username():
     user_info = session_service.get_user_info()
-    return user_info.get('username', 'admin')  # 默认返回admin以防万一
+    return user_info.get('username')  # 默认返回admin以防万一
 
 @model_api.route('/api/model/default-model', methods=['GET'])
 def get_default_model():
