@@ -11,7 +11,7 @@ from routes.settings.setting_log_api import log_settings_bp
 from routes.settings.setting_personal_api import setting_personal_api  # 导入个人设置API蓝图
 from routes.settings_api import settings_api  # 导入系统设置API蓝图
 from routes.login_api import login_api  # 导入登录API蓝图
-from routes.index_file_upload_api import file_upload_bp, ensure_dir_exists, UPLOAD_FOLDER
+from routes.index_file_upload_api import file_upload_bp
 from routes.index_import_api import import_api_bp
 from routes.index_one_to_one_import_api import index_one_to_one_import_bp
 from routes.index_table_structure_api import index_table_structure_bp
@@ -40,10 +40,6 @@ from routes.share_base_api import share_base_api_bp  # 导入股票基本信息A
 # 初始化项目根路径（全局配置）
 project_root = init_project_root()
 app_logger.info(f"项目根路径: {project_root}")
-
-# 确保文件上传目录存在
-ensure_dir_exists(UPLOAD_FOLDER)
-app_logger.info(f"确保文件上传目录存在: {os.path.abspath(UPLOAD_FOLDER)}")
 
 app = Flask(__name__)
 

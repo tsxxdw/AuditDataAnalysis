@@ -9,37 +9,45 @@ import time
 from datetime import datetime
 from flask import Blueprint, request, jsonify,  send_from_directory
 from werkzeug.utils import secure_filename
+from service.session_service import session_service
 
 # 创建蓝图
 file_upload_bp = Blueprint('file_upload', __name__)
 
-# 文件上传目录
-UPLOAD_FOLDER = 'file/upload'
+# 文件上传基础目录
+BASE_UPLOAD_FOLDER = 'file'
 
 # 确保上传目录存在
 def ensure_dir_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+# 获取用户上传目录
+def get_user_upload_folder():
+    user_info = session_service.get_user_info()
+    username = user_info.get('username')  # 如果未登录，使用anonymous作为默认用户名
+    user_folder = os.path.join(BASE_UPLOAD_FOLDER, username, 'upload')
+    ensure_dir_exists(user_folder)
+    return user_folder
+
 # 获取今天的日期目录
 def get_date_dir():
     today = datetime.now().strftime('%Y%m%d')
-    date_dir = os.path.join(UPLOAD_FOLDER, today)
+    user_upload_folder = get_user_upload_folder()
+    date_dir = os.path.join(user_upload_folder, today)
     ensure_dir_exists(date_dir)
     return date_dir
 
 # 获取文件的网络访问URL
-def get_file_url(folder, filename):
-    path = os.path.join(folder, filename)
-    relative_path = path.replace('\\', '/') # 兼容Windows路径
+def get_file_url(username, date_folder, filename):
     # 使用file路径而不是static
-    return f"/file/serve/{folder}/{filename}"
+    return f"/file/serve/{username}/{date_folder}/{filename}"
 
 # 添加新的路由来提供文件访问
-@file_upload_bp.route('/file/serve/<folder>/<filename>')
-def serve_file(folder, filename):
+@file_upload_bp.route('/file/serve/<username>/<folder>/<filename>')
+def serve_file(username, folder, filename):
     """提供文件访问的路由，允许用户查看或下载上传的文件"""
-    directory = os.path.join(UPLOAD_FOLDER, folder)
+    directory = os.path.join(BASE_UPLOAD_FOLDER, username, 'upload', folder)
     return send_from_directory(directory, filename)
 
 @file_upload_bp.route('/api/files/upload', methods=['POST'])
@@ -54,6 +62,10 @@ def upload_file():
     files = request.files.getlist('files')
     
     uploaded_files = []
+    
+    # 获取用户信息
+    user_info = session_service.get_user_info()
+    username = user_info.get('username')
     
     for file in files:
         # 检查文件是否存在且有文件名
@@ -111,7 +123,8 @@ def upload_file():
         file.save(save_path)
         
         # 获取文件URL
-        file_url = get_file_url(os.path.basename(date_dir), final_filename)
+        date_folder = os.path.basename(date_dir)
+        file_url = get_file_url(username, date_folder, final_filename)
         
         # 添加到已上传文件列表
         uploaded_files.append({
@@ -130,14 +143,24 @@ def upload_file():
 def list_files():
     """获取已上传的文件列表"""
     
-    ensure_dir_exists(UPLOAD_FOLDER)
+    # 获取用户信息
+    user_info = session_service.get_user_info()
+    username = user_info.get('username')
+    
+    # 获取用户上传目录
+    user_upload_folder = get_user_upload_folder()
+    ensure_dir_exists(user_upload_folder)
     
     # 要返回的文件列表
     files_list = []
     
+    # 检查用户上传目录是否存在
+    if not os.path.exists(user_upload_folder):
+        return jsonify(files_list)  # 返回空列表
+    
     # 遍历上传目录下的所有日期目录
-    for date_dir in os.listdir(UPLOAD_FOLDER):
-        date_path = os.path.join(UPLOAD_FOLDER, date_dir)
+    for date_dir in os.listdir(user_upload_folder):
+        date_path = os.path.join(user_upload_folder, date_dir)
         
         # 跳过非目录
         if not os.path.isdir(date_path):
@@ -155,7 +178,7 @@ def list_files():
             file_stats = os.stat(file_path)
             
             # 构建文件URL
-            file_url = get_file_url(date_dir, filename)
+            file_url = get_file_url(username, date_dir, filename)
             
             # 添加到文件列表
             files_list.append({
@@ -183,8 +206,11 @@ def delete_file():
     
     file_path = data['path']
     
-    # 安全检查：确保路径在上传目录内
-    if not os.path.abspath(file_path).startswith(os.path.abspath(UPLOAD_FOLDER)):
+    # 获取用户上传目录
+    user_upload_folder = get_user_upload_folder()
+    
+    # 安全检查：确保路径在用户上传目录内
+    if not os.path.abspath(file_path).startswith(os.path.abspath(user_upload_folder)):
         return jsonify({'success': False, 'message': '无效的文件路径'}), 403
     
     # 检查文件是否存在
@@ -202,15 +228,18 @@ def delete_file():
 def delete_all_files():
     """删除全部文件"""
     try:
+        # 获取用户上传目录
+        user_upload_folder = get_user_upload_folder()
+        
         # 确保上传目录存在
-        ensure_dir_exists(UPLOAD_FOLDER)
+        ensure_dir_exists(user_upload_folder)
         
         # 删除计数器
         deleted_count = 0
         
         # 遍历上传目录下的所有日期目录
-        for date_dir in os.listdir(UPLOAD_FOLDER):
-            date_path = os.path.join(UPLOAD_FOLDER, date_dir)
+        for date_dir in os.listdir(user_upload_folder):
+            date_path = os.path.join(user_upload_folder, date_dir)
             
             # 跳过非目录
             if not os.path.isdir(date_path):
