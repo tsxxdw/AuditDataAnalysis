@@ -7,6 +7,7 @@
 import json
 import os
 import hashlib
+import shutil
 from flask import current_app
 import re
 
@@ -149,8 +150,26 @@ class UserUtil:
                     if admin_count <= 1:
                         return False, "系统至少需要一个管理员账户"
                 
+                # 删除用户数据记录
                 users_data['users'].pop(i)
                 success = UserUtil.save_users(users_data)
+                
+                # 删除用户文件夹
+                folders_to_delete = [
+                    os.path.join('file', username),
+                    os.path.join('configuration_data', username)
+                ]
+                
+                for folder in folders_to_delete:
+                    try:
+                        if os.path.exists(folder):
+                            shutil.rmtree(folder)
+                            current_app.logger.info(f"已删除用户文件夹: {folder}")
+                        else:
+                            current_app.logger.warning(f"用户文件夹不存在: {folder}")
+                    except Exception as e:
+                        current_app.logger.error(f"删除用户文件夹失败: {folder}, 错误: {str(e)}")
+                        # 即使文件夹删除失败，也认为用户删除成功，但记录错误日志
                 
                 if success:
                     return True, "用户删除成功"
