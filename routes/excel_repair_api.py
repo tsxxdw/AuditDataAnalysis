@@ -100,12 +100,21 @@ def remove_blank_rows():
         app_logger.info(f"处理请求: 文件={file_path}, 工作表={sheet_name}, 数据开始行={start_row}")
         
         try:
+            # 根据文件扩展名选择不同的引擎
+            file_ext = os.path.splitext(file_path)[1].lower()
+            if file_ext == '.xls':
+                engine = 'xlrd'  # 使用xlrd引擎处理.xls文件
+                app_logger.info(f"使用xlrd引擎处理.xls文件: {file_path}")
+            else:
+                engine = 'openpyxl'  # 使用openpyxl引擎处理.xlsx文件
+                app_logger.info(f"使用openpyxl引擎处理.xlsx文件: {file_path}")
+            
             # 读取Excel文件的所有工作表
-            excel = pd.ExcelFile(file_path, engine='openpyxl')
+            excel = pd.ExcelFile(file_path, engine=engine)
             sheet_names = excel.sheet_names
             
             # 读取需要处理的工作表（不指定header，以便获取所有行）
-            df_original = pd.read_excel(file_path, sheet_name=sheet_name, header=None, engine='openpyxl')
+            df_original = pd.read_excel(file_path, sheet_name=sheet_name, header=None, engine=engine)
             
             # 获取原始行数（包括所有标题行和数据行）
             original_rows = len(df_original)
@@ -117,7 +126,7 @@ def remove_blank_rows():
                 start_row = 1
             
             # 使用指定的数据开始行读取数据（header=None表示不使用任何行作为列名）
-            df = pd.read_excel(file_path, sheet_name=sheet_name, header=None, skiprows=start_row-1, engine='openpyxl')
+            df = pd.read_excel(file_path, sheet_name=sheet_name, header=None, skiprows=start_row-1, engine=engine)
             
             # 获取列数
             num_columns = len(df.columns)
@@ -155,11 +164,13 @@ def remove_blank_rows():
             output_path = os.path.join(repair_dir, new_filename)
             
             # 创建一个ExcelWriter对象，用于写入多个工作表
+            # 对于所有文件类型，统一使用openpyxl引擎写入为.xlsx格式
+            # 这样可以避免xlwt的限制，同时保持良好的兼容性
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
                 # 复制原Excel的所有工作表
                 for sheet in sheet_names:
                     # 读取原始工作表
-                    original_sheet_data = pd.read_excel(file_path, sheet_name=sheet, header=None, engine='openpyxl')
+                    original_sheet_data = pd.read_excel(file_path, sheet_name=sheet, header=None, engine=engine)
                     # 保存到新Excel中
                     original_sheet_data.to_excel(writer, sheet_name=sheet, index=False, header=False)
                 
@@ -266,12 +277,21 @@ def remove_duplicates():
         app_logger.info(f"处理请求: 文件={file_path}, 工作表={sheet_name}, 列={columns}, 数据开始行={start_row}")
         
         try:
+            # 根据文件扩展名选择不同的引擎
+            file_ext = os.path.splitext(file_path)[1].lower()
+            if file_ext == '.xls':
+                engine = 'xlrd'  # 使用xlrd引擎处理.xls文件
+                app_logger.info(f"使用xlrd引擎处理.xls文件: {file_path}")
+            else:
+                engine = 'openpyxl'  # 使用openpyxl引擎处理.xlsx文件
+                app_logger.info(f"使用openpyxl引擎处理.xlsx文件: {file_path}")
+            
             # 读取Excel文件的所有工作表
-            excel = pd.ExcelFile(file_path, engine='openpyxl')
+            excel = pd.ExcelFile(file_path, engine=engine)
             sheet_names = excel.sheet_names
             
             # 读取需要处理的工作表（不指定header，以便获取所有行）
-            df_original = pd.read_excel(file_path, sheet_name=sheet_name, header=None, engine='openpyxl')
+            df_original = pd.read_excel(file_path, sheet_name=sheet_name, header=None, engine=engine)
             
             # 获取原始行数（包括所有标题行和数据行）
             original_rows = len(df_original)
@@ -283,7 +303,7 @@ def remove_duplicates():
                 start_row = 1
             
             # 读取实际数据（不使用列名）
-            df = pd.read_excel(file_path, sheet_name=sheet_name, header=None, skiprows=start_row-1, engine='openpyxl')
+            df = pd.read_excel(file_path, sheet_name=sheet_name, header=None, skiprows=start_row-1, engine=engine)
             
             # 获取列数
             num_columns = len(df.columns)
@@ -368,11 +388,13 @@ def remove_duplicates():
             output_path = os.path.join(repair_dir, new_filename)
             
             # 创建一个ExcelWriter对象，用于写入多个工作表
+            # 对于所有文件类型，统一使用openpyxl引擎写入为.xlsx格式
+            # 这样可以避免xlwt的限制，同时保持良好的兼容性
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
                 # 复制原Excel的所有工作表
                 for sheet in sheet_names:
                     # 读取原始工作表
-                    original_sheet_data = pd.read_excel(file_path, sheet_name=sheet, header=None, engine='openpyxl')
+                    original_sheet_data = pd.read_excel(file_path, sheet_name=sheet, header=None, engine=engine)
                     # 保存到新Excel中
                     original_sheet_data.to_excel(writer, sheet_name=sheet, index=False, header=False)
                 
@@ -602,6 +624,40 @@ def download_direct_file(filename):
     
     except Exception as e:
         app_logger.error(f"直接下载文件失败: {str(e)}")
+        return jsonify({"success": False, "message": f"下载文件失败: {str(e)}"}), 500
+
+@excel_repair_api.route('/api/excel_repair/download', methods=['GET'])
+def download_original_file():
+    """
+    下载原始Excel文件
+    """
+    try:
+        # 获取文件路径参数
+        file_path = request.args.get('file_path')
+        
+        if not file_path:
+            return jsonify({"success": False, "message": "未提供文件路径"}), 400
+        
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            app_logger.error(f"文件不存在: {file_path}")
+            return jsonify({"success": False, "message": "文件不存在"}), 404
+        
+        # 获取文件名
+        filename = os.path.basename(file_path)
+        
+        # 检查文件扩展名是否为Excel
+        if not (filename.lower().endswith('.xlsx') or filename.lower().endswith('.xls')):
+            app_logger.error(f"不是Excel文件: {filename}")
+            return jsonify({"success": False, "message": "不是有效的Excel文件"}), 400
+        
+        app_logger.info(f"下载原始Excel文件: {file_path}")
+        
+        # 返回文件供下载
+        return send_file(file_path, as_attachment=True, download_name=filename)
+    
+    except Exception as e:
+        app_logger.error(f"下载原始Excel文件失败: {str(e)}")
         return jsonify({"success": False, "message": f"下载文件失败: {str(e)}"}), 500
 
 # 辅助函数：格式化文件大小

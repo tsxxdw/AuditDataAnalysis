@@ -8,6 +8,9 @@ $(document).ready(function() {
     window.excelColumns = [];
     // 存储下载链接
     window.downloadUrl = null;
+    // 存储选中的Excel文件路径和名称
+    window.selectedExcelFile = null;
+    window.selectedExcelFileName = null;
     
     // 初始化文件选择器
     initializeFileSelector();
@@ -62,6 +65,14 @@ $(document).ready(function() {
         // 如果选择了"字段去重"，显示字段列选择区域
         if (selectedValue === 'remove_duplicates') {
             $('#columns-selection-section').show();
+            
+            // 如果已经选择了文件和工作表，加载Excel的列信息
+            var excelFile = $('#excel-file-select').val() || window.selectedExcelFile;
+            var sheetId = $('#sheet-select').val();
+            if (excelFile && sheetId) {
+                addLog('加载Excel列信息用于字段去重...');
+                loadExcelColumns(excelFile, sheetId);
+            }
         } else {
             $('#columns-selection-section').hide();
         }
@@ -69,8 +80,8 @@ $(document).ready(function() {
     
     // 打开Excel按钮点击事件
     $('#open-excel-btn').click(function() {
-        addLog('用户点击: 打开EXCEL');
-        openExcelFile();
+        addLog('用户点击: 下载EXCEL');
+        downloadExcelFile();
     });
     
     // 修复按钮点击事件
@@ -171,8 +182,18 @@ $(document).ready(function() {
             `,
             onChange: function(value, item) {
                 if (value) {
-                    // 触发Excel文件选择事件
-                    $('#excel-file-select').val(value).trigger('change');
+                    // 确保选择的值被设置到隐藏的select元素，但不触发change事件
+                    $('#excel-file-select').val(value);
+                    
+                    // 记录日志
+                    addLog('用户选择Excel文件: ' + item.text);
+                    
+                    // 存储选中的Excel文件路径，避免在后续操作中丢失
+                    window.selectedExcelFile = value;
+                    window.selectedExcelFileName = item.text;
+                    
+                    // 直接调用加载工作表函数
+                    loadExcelFileSheets(value);
                 }
             }
         });
@@ -185,84 +206,45 @@ $(document).ready(function() {
         }
     }
     
-    // 检查是否为本地环境（localhost或127.0.0.1）
+    // 检查环境（现在只是为了兼容性保留，不再检查是否为本地环境）
     function checkLocalEnvironment() {
-        // 获取当前主机名
-        var host = window.location.hostname.toLowerCase();
-        window.isLocalEnvironment = (host === 'localhost' || host === '127.0.0.1');
-        
         // 设置按钮初始状态
         updateOpenExcelButtonState();
-        
-        // 添加提示信息
-        if (!window.isLocalEnvironment) {
-            $('#open-excel-btn').attr('title', '此功能仅在本地环境下可用');
-        } else {
-            $('#open-excel-btn').attr('title', '在Windows中打开所选的Excel文件');
-        }
     }
     
     // 更新打开Excel按钮的状态
     function updateOpenExcelButtonState() {
         var $btn = $('#open-excel-btn');
-        var selectedExcel = $('#excel-file-select').val();
-        var selectedSheet = $('#sheet-select').val();
+        var selectedExcel = $('#excel-file-select').val() || window.selectedExcelFile;
         
-        // 禁用条件：非本地环境或未选择Excel文件或工作表
-        var shouldDisable = !window.isLocalEnvironment || !selectedExcel || !selectedSheet;
+        // 只在未选择Excel文件时禁用按钮
+        var shouldDisable = !selectedExcel;
         
         $btn.prop('disabled', shouldDisable);
+        
+        // 更新按钮提示文本
+        $btn.attr('title', selectedExcel ? '下载Excel文件到本地' : '请先选择Excel文件');
     }
     
-    // 打开Excel文件
-    function openExcelFile() {
-        // 获取选择的Excel文件和工作表ID
-        const filePath = $('#excel-file-select').val();
-        const sheetId = $('#sheet-select').val();
+    // 下载Excel文件
+    function downloadExcelFile() {
+        // 获取选择的Excel文件路径
+        const filePath = $('#excel-file-select').val() || window.selectedExcelFile;
         
         if (!filePath) {
             addLog('错误: 请先选择Excel文件', false, 'error');
             return;
         }
         
-        if (!sheetId) {
-            addLog('错误: 请先选择工作表', false, 'error');
-            return;
-        }
+        addLog('正在准备下载Excel文件...');
         
-        // 检查是否在本地环境
-        if (!window.isLocalEnvironment) {
-            addLog('错误: 此功能仅支持在本地环境使用', false, 'error');
-            return;
-        }
+        // 创建下载链接 - 使用excel_repair API
+        const downloadUrl = '/api/excel_repair/download?file_path=' + encodeURIComponent(filePath);
         
-        addLog('正在请求打开Excel文件...');
+        // 打开下载链接
+        window.open(downloadUrl, '_blank');
         
-        // 调用API打开Excel文件
-        $.ajax({
-            url: '/api/import/excel/open',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                file_path: filePath,
-                sheet_id: sheetId
-            }),
-            success: function(response) {
-                if (response.success) {
-                    addLog('成功: ' + response.message, true, 'success');
-                } else {
-                    addLog('错误: ' + response.message, false, 'error');
-                    if (!response.is_local) {
-                        addLog('注意: 此功能仅支持在本地环境使用', false, 'error');
-                    }
-                }
-            },
-            error: function(xhr) {
-                const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
-                addLog('错误: 打开Excel文件失败 - ' + errorMsg, false, 'error');
-                console.error('打开Excel文件请求失败:', xhr);
-            }
-        });
+        addLog('已触发Excel文件下载: ' + (window.selectedExcelFileName || filePath.split('/').pop()), true, 'success');
     }
     
     // 监听Excel文件和工作表选择变化，更新打开Excel按钮状态
@@ -273,11 +255,20 @@ $(document).ready(function() {
     // 加载Excel文件的工作表
     function loadExcelFileSheets(filePath) {
         if (!filePath) {
+            addLog('错误: 未提供有效的Excel文件路径', false, 'error');
             return;
         }
         
+        // 保存当前选择的文件路径，以防在后续处理中丢失
+        window.selectedExcelFile = filePath;
+        
         // 清空工作表选择框并显示加载中
         $('#sheet-select').empty().append('<option value="" disabled selected>加载中...</option>');
+        
+        // 确保select元素的值被设置
+        $('#excel-file-select').val(filePath);
+        
+        addLog('正在加载Excel工作表: ' + filePath.split('/').pop());
         
         // 调用API获取工作表列表 - 将POST改为GET，并通过URL参数传递file_path
         $.ajax({
@@ -288,7 +279,7 @@ $(document).ready(function() {
                 if (response.success) {
                     // 更新工作表下拉框
                     updateSheetSelect(response.sheets);
-                    addLog('成功加载工作表列表');
+                    addLog('成功加载工作表列表：找到 ' + response.sheets.length + ' 个工作表', true, 'success');
                 } else {
                     addLog('错误: ' + response.message, false, 'error');
                     $('#sheet-select').empty().append('<option value="" disabled selected>加载失败</option>');
@@ -298,6 +289,7 @@ $(document).ready(function() {
                 const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '未知错误';
                 addLog('错误: 加载工作表失败 - ' + errorMsg, false, 'error');
                 $('#sheet-select').empty().append('<option value="" disabled selected>加载失败</option>');
+                console.error('加载工作表失败:', xhr);
             }
         });
     }
@@ -311,6 +303,15 @@ $(document).ready(function() {
         sheets.forEach(function(sheet) {
             $select.append(`<option value="${sheet.id}">${sheet.name}</option>`);
         });
+
+        // 如果只有一个工作表，自动选中它
+        if (sheets.length === 1) {
+            $select.val(sheets[0].id).trigger('change');
+            addLog('自动选择唯一工作表: ' + sheets[0].name);
+        }
+        
+        // 更新打开Excel按钮的状态
+        updateOpenExcelButtonState();
     }
     
     // 加载Excel文件的列信息
@@ -350,6 +351,15 @@ $(document).ready(function() {
                         const colLetter = getExcelColumnName(index + 1);
                         addLog(`${colLetter}: ${colName}`);
                     });
+                    
+                    // 如果当前选择的是"字段去重"操作类型，重新初始化列选择下拉框
+                    const operationType = $('#operation-type').val();
+                    if (operationType === 'remove_duplicates') {
+                        // 显示字段列选择区域
+                        $('#columns-selection-section').show();
+                        // 重新初始化列选择下拉框，使用加载的列信息
+                        initializeColumnsDropdown(window.excelColumns);
+                    }
                 } else {
                     window.excelColumns = [];
                     addLog('警告: 无法加载Excel列信息，将使用列名代替', false, 'error');
@@ -386,9 +396,15 @@ $(document).ready(function() {
             excelColumns.push(getExcelColumnName(i));
         }
         
-        // 添加所有Excel列名到下拉框
-        excelColumns.forEach(function(colName) {
-            $select.append(`<option value="${colName}">${colName}</option>`);
+        // 添加所有Excel列名到下拉框，如果有列信息则显示列名
+        excelColumns.forEach(function(colName, index) {
+            if (index < columns.length) {
+                // 如果有列信息，显示列名
+                $select.append(`<option value="${colName}">${colName} (${columns[index]})</option>`);
+            } else {
+                // 否则只显示列标识
+                $select.append(`<option value="${colName}">${colName}</option>`);
+            }
         });
         
         // 列选择事件
@@ -423,7 +439,19 @@ $(document).ready(function() {
         // 添加已选列标签
         window.selectedColumns.forEach(function(column) {
             var $tag = $('<div class="selected-column-tag"></div>');
-            $tag.append('<span>' + column + '</span>');
+            
+            // 如果有Excel列信息，显示列名
+            if (window.excelColumns && window.excelColumns.length > 0) {
+                const index = excelColumnToIndex(column);
+                if (index >= 0 && index < window.excelColumns.length) {
+                    $tag.append(`<span>${column} (${window.excelColumns[index]})</span>`);
+                } else {
+                    $tag.append('<span>' + column + '</span>');
+                }
+            } else {
+                $tag.append('<span>' + column + '</span>');
+            }
+            
             $tag.append('<span class="remove-column" data-column="' + column + '">×</span>');
             $container.append($tag);
         });
@@ -485,15 +513,16 @@ $(document).ready(function() {
             return;
         }
         
-        // 获取参数
-        const filePath = $('#excel-file-select').val();
+        // 获取参数，优先使用select元素的值，如果为空则使用存储的值
+        const filePath = $('#excel-file-select').val() || window.selectedExcelFile;
+        const fileName = window.selectedExcelFileName || filePath.split('/').pop();
         const sheetName = $('#sheet-select option:selected').text();
         const operationType = $('#operation-type').val();
         const operationText = $('#operation-type option:selected').text();
         const startRow = $('#start-row-select').val();
         
         // 填充确认对话框
-        $('#confirm-excel').text(filePath.split('/').pop());
+        $('#confirm-excel').text(fileName);
         $('#confirm-sheet').text(sheetName);
         $('#confirm-start-row').text('第' + startRow + '行');
         $('#confirm-operation').text(operationText);
@@ -534,38 +563,58 @@ $(document).ready(function() {
     
     // 验证修复参数
     function validateRepairParams() {
-        const filePath = $('#excel-file-select').val();
+        // 首先尝试从select元素获取文件路径，如果为空则使用存储的值
+        let filePath = $('#excel-file-select').val() || window.selectedExcelFile;
         if (!filePath) {
+            addLog('验证失败: 未选择Excel文件', false, 'error');
             return { valid: false, message: '请选择要修复的Excel文件' };
+        } else {
+            // 确保select元素的值被设置
+            $('#excel-file-select').val(filePath);
+            addLog('使用Excel文件: ' + (window.selectedExcelFileName || filePath.split('/').pop()));
         }
         
         const sheetId = $('#sheet-select').val();
+        const sheetName = $('#sheet-select option:selected').text();
         if (!sheetId) {
+            addLog('验证失败: 未选择工作表', false, 'error');
             return { valid: false, message: '请选择要修复的工作表' };
+        } else {
+            addLog('选中工作表: ' + sheetName);
         }
         
         const operationType = $('#operation-type').val();
         if (!operationType) {
+            addLog('验证失败: 未选择操作类型', false, 'error');
             return { valid: false, message: '请选择修复操作类型' };
         }
         
         const startRow = parseInt($('#start-row-select').val());
         if (isNaN(startRow) || startRow < 1 || startRow > 10) {
+            addLog('验证失败: 无效的数据开始行', false, 'error');
             return { valid: false, message: '请选择有效的数据开始行（1-10行）' };
         }
         
         // 如果是字段去重，需要选择至少一个字段列
         if (operationType === 'remove_duplicates' && window.selectedColumns.length === 0) {
+            addLog('验证失败: 未选择字段列', false, 'error');
             return { valid: false, message: '请选择至少一个用于去重的字段列' };
         }
         
+        // 验证通过，记录日志
+        addLog('验证通过: 所有参数都已正确设置', true, 'success');
         return { valid: true };
     }
     
     // 执行修复操作
     function executeRepair() {
-        // 获取参数
-        const filePath = $('#excel-file-select').val();
+        // 获取参数，优先使用select元素的值，如果为空则使用存储的值
+        const filePath = $('#excel-file-select').val() || window.selectedExcelFile;
+        if (!filePath) {
+            addLog('错误: 未选择Excel文件，无法执行修复', false, 'error');
+            return;
+        }
+        
         const sheetName = $('#sheet-select option:selected').text();
         const operationType = $('#operation-type').val();
         const startRow = parseInt($('#start-row-select').val()) || 1;
@@ -616,7 +665,7 @@ $(document).ready(function() {
         }
         
         // 输出请求详情到日志
-        addLog(`发送请求到: ${apiEndpoint}，数据开始行: ${startRow}`, false);
+        addLog(`发送请求到: ${apiEndpoint}，数据开始行: ${startRow}，文件: ${window.selectedExcelFileName || filePath.split('/').pop()}`, false);
         
         // 发送请求
         $.ajax({
