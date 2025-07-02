@@ -9,6 +9,7 @@
         },
         "milvus": {
             "host": "localhost",
+            "port": "19530",
             "collection": "default_collection"
         },
         "faiss": {

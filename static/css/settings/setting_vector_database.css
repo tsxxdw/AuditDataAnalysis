@@ -20,6 +20,14 @@
     color: #3498db !important; /* 与普通数据库设置区分颜色 */
 }
 
+/* 按钮操作区样式 */
+.vector-db-settings-form .form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
 /* 在小屏幕上的响应式设计 */
 @media (max-width: 768px) {
     .vector-db-settings-form .form-group {
@@ -34,6 +42,16 @@
     
     .vector-db-settings-form .text-input,
     .vector-db-settings-form .select-input {
+        width: 100%;
+    }
+    
+    .vector-db-settings-form .form-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .vector-db-settings-form .form-actions button {
         width: 100%;
     }
 } 

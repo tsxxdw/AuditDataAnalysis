@@ -8,8 +8,9 @@
             "persistent_directory": "./chroma_db"
         },
         "milvus": {
-            "host": "localhost",
-            "collection": "default_collection"
+            "host": "127.0.0.1",
+            "port": "19530",
+            "collection": "default"
         },
         "faiss": {
             "index_path": "./faiss_index",

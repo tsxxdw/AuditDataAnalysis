@@ -16,7 +16,7 @@ class SettingsVectorDatabaseService:
             raise ValueError("未登录或无法获取用户名")
         return username
     
-    def get_config_path(username):
+    def get_config_path(self, username):
 
         # 首先检查settings子目录中的文件
         configuration_data_path = os.path.join('configuration_data', username, 'settings', 'vector_database_config.json')

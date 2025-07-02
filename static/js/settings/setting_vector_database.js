@@ -189,6 +189,7 @@ const VectorDatabaseSettings = {
     // 填充Milvus表单
     fillMilvusForm: function(config) {
         $('#milvus-host').val(config.host || '');
+        $('#milvus-port').val(config.port || '19530');
         $('#milvus-collection').val(config.collection || '');
     },
     
@@ -221,6 +222,7 @@ const VectorDatabaseSettings = {
     collectMilvusInfo: function() {
         return {
             host: $('#milvus-host').val(),
+            port: $('#milvus-port').val(),
             collection: $('#milvus-collection').val()
         };
     },
