@@ -18,7 +18,7 @@ $(document).ready(function() {
     // 初始化数据库类型下拉框
     initializeDatabaseTypes();
     
-    // 检查是否为本地环境
+    // 检查是否在本地环境
     checkLocalEnvironment();
     
     // 初始化Excel列选择下拉框（A到CZ）
@@ -95,7 +95,7 @@ $(document).ready(function() {
     
     // 打开Excel按钮点击事件
     $('#open-excel-btn').click(function() {
-        addLog('用户点击: 打开EXCEL');
+        addLog('用户点击: 下载EXCEL');
         openExcelFile();
     });
     
@@ -312,33 +312,41 @@ $(document).ready(function() {
         });
     }
     
-    // 检查是否为本地环境（localhost或127.0.0.1）
+    // 检查是否在本地环境
     function checkLocalEnvironment() {
-        // 获取当前主机名
-        var host = window.location.hostname.toLowerCase();
-        window.isLocalEnvironment = (host === 'localhost' || host === '127.0.0.1');
+        // 从URL中获取主机名
+        var hostname = window.location.hostname.toLowerCase();
         
-        // 设置按钮初始状态
-        updateOpenExcelButtonState();
+        // 检查是否为localhost或127.0.0.1
+        var isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
         
-        // 添加提示信息
-        if (!window.isLocalEnvironment) {
-            $('#open-excel-btn').attr('title', '此功能仅在本地环境下可用');
-        } else {
-            $('#open-excel-btn').attr('title', '在Windows中打开所选的Excel文件');
-        }
+        // 设置全局变量，可能用于其他功能
+        window.isLocalEnvironment = isLocal;
+        
+        // 不再限制"打开EXCEL"功能只能在本地环境使用
+        // 因为我们现在通过浏览器查看Excel文件，而不是通过本地Excel程序
+        
+        return isLocal;
     }
     
     // 更新打开Excel按钮的状态
     function updateOpenExcelButtonState() {
         var $btn = $('#open-excel-btn');
-        var selectedExcel = $('#excel-file-select').val();
-        var selectedSheet = $('#sheet-select').val();
+        var hasFile = $('#excel-file-select').val() !== null && $('#excel-file-select').val() !== '';
+        var hasSheet = $('#sheet-select').val() !== null && $('#sheet-select').val() !== '';
         
-        // 禁用条件：非本地环境或未选择Excel文件或工作表
-        var shouldDisable = !window.isLocalEnvironment || !selectedExcel || !selectedSheet;
+        // 只需要检查是否选择了文件和工作表
+        var canOpen = hasFile && hasSheet;
         
-        $btn.prop('disabled', shouldDisable);
+        // 启用/禁用按钮
+        $btn.prop('disabled', !canOpen);
+        
+        // 更新提示信息
+        if (!hasFile || !hasSheet) {
+            $btn.attr('title', '请先选择Excel文件和工作表');
+        } else {
+            $btn.attr('title', '下载Excel文件');
+        }
     }
     
     // 打开Excel文件
@@ -357,17 +365,11 @@ $(document).ready(function() {
             return;
         }
         
-        // 检查是否在本地环境
-        if (!window.isLocalEnvironment) {
-            addLog('错误: 此功能仅支持在本地环境使用');
-            return;
-        }
-        
         addLog('正在请求打开Excel文件...');
         
-        // 调用API打开Excel文件
+        // 调用API获取Excel文件的URL
         $.ajax({
-            url: '/api/import/excel/open',
+            url: '/api/import/excel/view',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -377,11 +379,13 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     addLog('成功: ' + response.message);
+                    
+                    // 在新标签页打开Excel文件
+                    if (response.view_url) {
+                        window.open(response.view_url, '_blank');
+                    }
                 } else {
                     addLog('错误: ' + response.message);
-                    if (!response.is_local) {
-                        addLog('注意: 此功能仅支持在本地环境使用');
-                    }
                 }
             },
             error: function(xhr) {

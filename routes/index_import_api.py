@@ -19,6 +19,8 @@ import os
 import time
 import datetime
 import uuid
+from flask import session
+
 
 # 创建蓝图
 import_api_bp = Blueprint('import_api', __name__)
@@ -399,6 +401,124 @@ def open_excel_file():
             "success": False,
             "message": f"打开Excel文件失败: {str(e)}",
             "is_local": is_local_request()
+        }), 500
+
+@import_api_bp.route('/api/import/excel/view', methods=['POST'])
+def view_excel_file():
+    """通过浏览器查看Excel文件
+    
+    Request Body:
+        file_path: Excel文件路径
+        sheet_id: 工作表ID
+        
+    Returns:
+        JSON: 包含查看URL的JSON对象
+    """
+    try:
+        # 获取请求数据
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "未提供请求数据"
+            }), 400
+        
+        # 获取文件路径和工作表ID
+        file_path = data.get('file_path')
+        sheet_id = data.get('sheet_id')
+        
+        app_logger.info(f"尝试通过浏览器查看Excel文件: {file_path}, sheet_id: {sheet_id}")
+        
+        if not file_path:
+            return jsonify({
+                "success": False,
+                "message": "未指定Excel文件路径"
+            }), 400
+            
+        # 验证Excel文件路径
+        if not ExcelUtil.validate_excel_path(file_path):
+            return jsonify({
+                "success": False,
+                "message": f"无效的Excel文件路径: {file_path}"
+            }), 400
+            
+        # 使用临时存储或直接生成URL
+        # 根据文件路径生成相对URL
+        # 如果文件在static目录下，可以直接通过静态文件URL访问
+        if file_path.startswith('static/'):
+            # 直接使用相对路径作为URL
+            file_url = '/' + file_path
+        else:
+            # 创建一个基于会话的临时访问URL
+            # 生成唯一标识符
+            file_id = str(uuid.uuid4())
+            
+            # 存储文件路径到会话中，以便后续通过标识符访问
+            if 'temp_excel_files' not in session:
+                session['temp_excel_files'] = {}
+            
+            session['temp_excel_files'][file_id] = {
+                'file_path': file_path,
+                'sheet_id': sheet_id,
+                'created_at': datetime.datetime.now().isoformat()
+            }
+            
+            # 生成临时访问URL
+            file_url = f"/api/import/excel/temp/{file_id}"
+            
+        app_logger.info(f"生成Excel文件查看URL: {file_url}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Excel文件准备完成",
+            "view_url": file_url
+        })
+        
+    except Exception as e:
+        app_logger.error(f"准备Excel文件查看失败: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "message": f"准备Excel文件查看失败: {str(e)}"
+        }), 500
+
+@import_api_bp.route('/api/import/excel/temp/<file_id>')
+def get_temp_excel_file(file_id):
+    """获取临时Excel文件
+    
+    Args:
+        file_id: 临时文件ID
+        
+    Returns:
+        Excel文件响应
+    """
+    try:
+        # 从会话中获取文件信息
+        if 'temp_excel_files' not in session or file_id not in session['temp_excel_files']:
+            return jsonify({
+                "success": False,
+                "message": "临时文件不存在或已过期"
+            }), 404
+            
+        file_info = session['temp_excel_files'][file_id]
+        file_path = file_info['file_path']
+        
+        # 验证文件路径
+        if not os.path.exists(file_path):
+            return jsonify({
+                "success": False,
+                "message": "文件不存在"
+            }), 404
+            
+        # 返回文件
+        directory = os.path.dirname(file_path)
+        filename = os.path.basename(file_path)
+        return send_from_directory(directory, filename)
+        
+    except Exception as e:
+        app_logger.error(f"获取临时Excel文件失败: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "message": f"获取临时Excel文件失败: {str(e)}"
         }), 500
 
 @import_api_bp.route('/api/import/export-logs', methods=['POST'])
