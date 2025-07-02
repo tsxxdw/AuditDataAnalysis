@@ -1,5 +1,11 @@
 [
   {
+    "title": "AI聊天",
+    "url": "ai_chat",
+    "position": "index",
+    "class": "main-btn ai-chat-btn"
+  },
+  {
     "title": "数据库表结构管理",
     "url": "index_table_structure",
     "position": "index",

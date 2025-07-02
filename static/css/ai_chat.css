@@ -1,0 +1,354 @@
+/**
+ * AI聊天页面样式
+ */
+
+.ai-chat-container {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* 主布局 - 左右分栏 */
+.chat-layout {
+    display: flex;
+    gap: 0;
+    height: calc(100vh - 60px); /* 减去头部和底部的高度 */
+    width: 100%;
+    background-color: #fff;
+}
+
+/* 左侧工作区样式 */
+.workspace-sidebar {
+    width: 240px;
+    background-color: #f9f9fb;
+    border-right: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.workspace-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 16px;
+    background-color: transparent;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 8px;
+}
+
+.add-workspace-title {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #007bff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s;
+    text-align: center;
+    width: 100%;
+    padding: 6px 0;
+    border-radius: 4px;
+}
+
+.add-workspace-title:hover {
+    color: #0056b3;
+    background-color: #e9f0ff;
+}
+
+.workspace-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+}
+
+.workspace-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: transparent;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workspace-item:hover {
+    background-color: #f0f0f0;
+}
+
+.workspace-item.active {
+    background-color: #e6f2ff;
+    border-left: none;
+}
+
+.workspace-name {
+    font-weight: 400;
+    color: #333;
+    font-size: 0.85rem;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.workspace-actions {
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.workspace-item:hover .workspace-actions {
+    opacity: 1;
+}
+
+.workspace-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.workspace-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.upload-btn:hover {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.settings-btn:hover {
+    color: #555;
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.workspace-action-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2px;
+}
+
+/* 覆盖header.css中的设置按钮样式 */
+.workspace-item .settings-btn:before {
+    content: none;
+    margin-right: 0;
+}
+
+/* 右侧聊天内容区 */
+.chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.chat-container {
+    background-color: #fff;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 15% 20px 15%;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background-color: #fff;
+}
+
+.welcome-message {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+    font-style: italic;
+    font-size: 1rem;
+}
+
+.chat-input-container {
+    display: flex;
+    gap: 10px;
+    padding: 15px 15%;
+    border-top: 1px solid #eee;
+    background-color: #fff;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    min-height: 24px;
+    max-height: 150px;
+    overflow-y: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #b0c9ff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.send-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.send-button:hover {
+    background-color: #0056b3;
+}
+
+/* 用户消息和AI消息的样式 */
+.user-message,
+.ai-message {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: 90%;
+    word-wrap: break-word;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.user-message {
+    background-color: #e6f2ff;
+    align-self: flex-end;
+    margin-left: auto;
+    color: #333;
+}
+
+.ai-message {
+    background-color: #f7f7f7;
+    align-self: flex-start;
+    margin-right: auto;
+    color: #333;
+}
+
+.message-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+/* 消息发送者标识 */
+.message-container::before {
+    content: attr(data-sender);
+    position: absolute;
+    top: -18px;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.user-message::before {
+    right: 5px;
+    content: "你";
+}
+
+.ai-message::before {
+    left: 5px;
+    content: "AI";
+}
+
+/* 修改主体内容区域，使其占满全屏 */
+main {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .chat-layout {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .workspace-sidebar {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .chat-content {
+        height: calc(100vh - 260px);
+    }
+    
+    .chat-messages {
+        padding: 20px 5%;
+    }
+    
+    .chat-input-container {
+        padding: 15px 5%;
+    }
+}
+
+/* 打字指示器样式 */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+}
+
+.typing-indicator span {
+    height: 8px;
+    width: 8px;
+    margin: 0 2px;
+    background-color: #999;
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.4;
+}
+
+.typing-indicator span:nth-child(1) {
+    animation: pulse 1s infinite 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation: pulse 1s infinite 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation: pulse 1s infinite 0.4s;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+} 

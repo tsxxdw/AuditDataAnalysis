@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI聊天 - {{ page_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_chat.css') }}">
+    <script src="{{ url_for('static', filename='js/common/jquery-3.6.0.min.js') }}"></script>
+</head>
+<body>
+    {# 引入头部组件 #}
+    {% include 'components/header.html' %}
+    
+    <main>
+        <div class="ai-chat-container">
+            <div class="chat-layout">
+                <!-- 左侧工作区列表 -->
+                <div class="workspace-sidebar">
+                    <div class="workspace-header">
+                        <h2 id="add-workspace-btn" class="add-workspace-title">新增工作区+</h2>
+                    </div>
+                    
+                    <div class="workspace-list" id="workspace-list">
+                        <!-- 工作区项目将通过JS动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- 右侧聊天内容区 -->
+                <div class="chat-content">
+                    <div class="chat-container">
+                        <!-- 聊天消息将在这里显示 -->
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="welcome-message">欢迎使用AI聊天功能！请选择或创建一个工作区开始对话。</div>
+                        </div>
+                        
+                        <!-- 聊天输入区域 -->
+                        <div class="chat-input-container">
+                            <textarea id="chat-input" class="chat-input" placeholder="在这里输入您的问题..." rows="3"></textarea>
+                            <button id="send-button" class="send-button">发送</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    {# 引入底部组件 #}
+    {% include 'components/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/components/header.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ai_chat.js') }}"></script>
+</body>
+</html> 

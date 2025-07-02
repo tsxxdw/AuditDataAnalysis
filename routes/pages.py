@@ -33,6 +33,13 @@ def index():
     user_info = session_service.get_user_info()
     return render_template('index.html', page_title='数据分析系统', user_info=user_info)
 
+@pages_bp.route('/ai_chat')
+def ai_chat():
+    """AI聊天页面"""
+    app_logger.info("访问AI聊天页面")
+    user_info = session_service.get_user_info()
+    return render_template('ai_chat.html', page_title='AI聊天', user_info=user_info)
+
 @pages_bp.route('/index_table_structure')
 def index_table_structure():
     """数据库表结构管理页面"""
