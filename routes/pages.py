@@ -190,13 +190,6 @@ def share_base():
     user_info = session_service.get_user_info()
     return render_template('share_base.html', page_title='股票基本信息', user_info=user_info)
 
-@pages_bp.route('/index_knowledge_base')
-def index_knowledge_base():
-    """本地知识库页面"""
-    app_logger.info("访问本地知识库页面")
-    user_info = session_service.get_user_info()
-    return render_template('index_knowledge_base.html', page_title='本地知识库', user_info=user_info)
-
 @pages_bp.route('/user_management')
 @admin_required
 def user_management():

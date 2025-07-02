@@ -66,12 +66,6 @@
     "class": "main-btn prompt-btn"
   },
   {
-    "title": "本地知识库",
-    "url": "index_knowledge_base",
-    "position": "index",
-    "class": "main-btn knowledge-base-btn"
-  },
-  {
     "title": "用户管理",
     "url": "user_management",
     "position": "index",
