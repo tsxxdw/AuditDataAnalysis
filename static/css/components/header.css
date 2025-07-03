@@ -9,6 +9,25 @@
     top: 0;
     z-index: 100;
     border-bottom: 1px solid #f0f0f0;
+    /* 添加隐藏效果的过渡动画 */
+    transition: transform 0.3s ease-in-out;
+    /* 默认隐藏到顶部外 */
+    transform: translateY(-100%);
+}
+
+/* 添加显示状态类 */
+.site-header.visible {
+    transform: translateY(0);
+}
+
+/* 头部触发区域 - 鼠标移动到这里时显示header */
+.header-trigger-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    z-index: 99;
 }
 
 .header-container {

@@ -1,9 +1,62 @@
 /**
  * 页面头部组件
  * 处理导航菜单交互，包括移动端菜单的切换和页面大小调整响应
+ * 实现鼠标移动到顶部时显示header的功能
+ * 实现页面滚动到顶部时自动显示header的功能
+ * 实现页面加载时自动滚动一点距离以隐藏header的功能
  */
 // 头部组件的JavaScript
 $(document).ready(function() {
+    // 创建顶部触发区域元素
+    $('body').prepend('<div class="header-trigger-area"></div>');
+    
+    // 获取header高度
+    var headerHeight = $('.site-header').outerHeight();
+    
+    // 页面加载完成后，自动滚动一点距离（等于header高度）
+    // 使用setTimeout确保DOM完全加载并渲染
+    setTimeout(function() {
+        // 只有在页面顶部时才执行自动滚动
+        if ($(window).scrollTop() === 0) {
+            // 平滑滚动到header高度的位置
+            window.scrollTo({
+                top: headerHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, 300);
+    
+    // 监听鼠标移入触发区域事件
+    $('.header-trigger-area, .site-header').on('mouseenter', function() {
+        $('.site-header').addClass('visible');
+    });
+    
+    // 监听鼠标移出header事件
+    $('.site-header').on('mouseleave', function() {
+        // 只有当鼠标不在触发区域时且页面不在顶部时才隐藏header
+        if (!$('.header-trigger-area:hover').length && $(window).scrollTop() > 0) {
+            $('.site-header').removeClass('visible');
+        }
+    });
+    
+    // 页面滚动事件
+    $(window).on('scroll', function() {
+        // 如果页面滚动到顶部，显示header
+        if ($(window).scrollTop() === 0) {
+            $('.site-header').addClass('visible');
+        } else {
+            // 只有当鼠标不在header和触发区域时才隐藏
+            if (!$('.site-header:hover').length && !$('.header-trigger-area:hover').length) {
+                $('.site-header').removeClass('visible');
+            }
+        }
+    });
+    
+    // 页面加载时检查滚动位置
+    if ($(window).scrollTop() === 0) {
+        $('.site-header').addClass('visible');
+    }
+    
     // 移动端菜单按钮点击事件
     $('.mobile-menu-toggle').on('click', function() {
         $('.header-container').toggleClass('menu-active');
