@@ -1,0 +1,18 @@
+{
+  "workspaces": [
+    {
+      "id": "0cfbde70-ffb1-45cf-b779-88eb0787ed06",
+      "name": "默认工作区",
+      "create_time": "2025-07-03 10:49:34",
+      "sessions": [
+        {
+          "id": "57e460ee-03fe-4f76-98a3-b4561ceebcc2",
+          "name": "新会话",
+          "create_time": "2025-07-03 10:49:34",
+          "file_path": "file/admin/aichat/workspace\\0cfbde70-ffb1-45cf-b779-88eb0787ed06\\57e460ee-03fe-4f76-98a3-b4561ceebcc2.txt"
+        }
+      ]
+    }
+  ],
+  "vector_collections": []
+}

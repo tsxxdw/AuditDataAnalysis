@@ -179,47 +179,134 @@
     font-size: 1rem;
 }
 
+/* 聊天输入区域 - 新样式 */
 .chat-input-container {
-    display: flex;
-    gap: 10px;
     padding: 15px 15%;
     border-top: 1px solid #eee;
     background-color: #fff;
 }
 
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.input-tools {
+    display: flex;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 8px;
+}
+
+.tool-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #666;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-btn:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* 修改输入区域为水平布局 */
+.input-middle {
+    display: flex;
+    align-items: flex-end; /* 改为底部对齐 */
+    padding: 8px 12px;
+    gap: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    min-height: 40px; /* 确保最小高度 */
+}
+
 .chat-input {
     flex: 1;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    padding: 8px 10px;
+    border: none;
     resize: none;
     font-family: inherit;
     font-size: 0.95rem;
     min-height: 24px;
     max-height: 150px;
     overflow-y: auto;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.chat-input:focus {
     outline: none;
-    border-color: #b0c9ff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+    line-height: 1.5;
+    margin-bottom: 0; /* 确保底部没有额外边距 */
 }
 
 .send-button {
-    background-color: #007bff;
-    color: white;
+    background-color: transparent;
+    color: #007bff;
     border: none;
-    border-radius: 8px;
-    padding: 0 20px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    min-width: 36px; /* 确保按钮不会被压缩 */
     cursor: pointer;
-    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background-color 0.2s;
+    margin-left: 4px;
+    margin-bottom: 4px; /* 添加一点底部边距，使其与输入框文本底部对齐 */
 }
 
 .send-button:hover {
-    background-color: #0056b3;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.input-actions {
+    display: flex;
+    padding: 8px 12px;
+    border-top: 1px solid #f0f0f0;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tool-group-left {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.tool-group-right {
+    display: flex;
+    gap: 6px;
+}
+
+.input-actions .tool-btn,
+.mic-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #666;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+}
+
+.input-actions .tool-btn:hover,
+.mic-button:hover {
+    background-color: #f5f5f5;
+    color: #333;
 }
 
 /* 用户消息和AI消息的样式 */
@@ -252,103 +339,116 @@
 .message-container {
     display: flex;
     flex-direction: column;
-    margin-bottom: 15px;
     position: relative;
+    margin-bottom: 24px;
 }
 
-/* 消息发送者标识 */
 .message-container::before {
     content: attr(data-sender);
     position: absolute;
-    top: -18px;
-    font-size: 0.75rem;
+    top: -20px;
+    font-size: 0.8rem;
     color: #888;
 }
 
 .user-message::before {
-    right: 5px;
-    content: "你";
+    right: 0;
 }
 
 .ai-message::before {
-    left: 5px;
-    content: "AI";
+    left: 0;
 }
 
-/* 修改主体内容区域，使其占满全屏 */
 main {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    max-width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
-/* 响应式布局 */
 @media (max-width: 768px) {
     .chat-layout {
         flex-direction: column;
-        height: auto;
+        height: calc(100vh - 120px);
     }
     
     .workspace-sidebar {
         width: 100%;
-        height: 200px;
+        height: auto;
+        max-height: 30vh;
     }
     
     .chat-content {
-        height: calc(100vh - 260px);
+        height: 70vh;
     }
     
     .chat-messages {
-        padding: 20px 5%;
+        padding: 15px 5%;
     }
     
     .chat-input-container {
-        padding: 15px 5%;
+        padding: 10px 5%;
+    }
+
+    .input-tools {
+        padding: 6px 8px;
+        overflow-x: auto;
+    }
+
+    .input-actions {
+        padding: 6px 8px;
+    }
+    
+    .tool-group-left {
+        gap: 4px;
+    }
+    
+    .input-actions .tool-btn,
+    .mic-button {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        padding: 3px;
     }
 }
 
-/* 打字指示器样式 */
 .typing-indicator {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 6px 0;
+    gap: 4px;
+    padding: 5px 10px;
 }
 
 .typing-indicator span {
-    height: 8px;
-    width: 8px;
-    margin: 0 2px;
-    background-color: #999;
-    border-radius: 50%;
     display: inline-block;
-    opacity: 0.4;
+    width: 8px;
+    height: 8px;
+    background-color: #aaa;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: pulse 1.5s infinite;
 }
 
 .typing-indicator span:nth-child(1) {
-    animation: pulse 1s infinite 0s;
+    animation-delay: 0s;
 }
 
 .typing-indicator span:nth-child(2) {
-    animation: pulse 1s infinite 0.2s;
+    animation-delay: 0.2s;
 }
 
 .typing-indicator span:nth-child(3) {
-    animation: pulse 1s infinite 0.4s;
+    animation-delay: 0.4s;
 }
 
 @keyframes pulse {
-    0% {
-        opacity: 0.4;
+    0%, 100% {
+        opacity: 0.6;
         transform: scale(1);
     }
     50% {
         opacity: 1;
         transform: scale(1.2);
-    }
-    100% {
-        opacity: 0.4;
-        transform: scale(1);
     }
 } 

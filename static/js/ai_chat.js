@@ -23,6 +23,15 @@ $(document).ready(function() {
     
     // 添加工作区标题点击事件
     $("#add-workspace-btn").on("click", addNewWorkspace);
+
+    // 工具按钮点击事件
+    $(".tool-btn").on("click", function() {
+        const toolType = $(this).attr('title');
+        handleToolClick(toolType);
+    });
+
+    // 麦克风按钮点击事件
+    $(".mic-button").on("click", startVoiceInput);
 });
 
 /**
@@ -35,45 +44,322 @@ function adjustTextareaHeight(textarea) {
 }
 
 /**
- * 工作区数据
+ * 处理工具按钮点击
+ * @param {string} toolType - 工具类型
  */
-let workspaces = [];
+function handleToolClick(toolType) {
+    switch(toolType) {
+        case '附件':
+            uploadAttachment();
+            break;
+        case '文件':
+            uploadDocument();
+            break;
+        case '提及':
+            insertMention();
+            break;
+        case '代码':
+            insertCodeBlock();
+            break;
+        case '设置':
+            openChatSettings();
+            break;
+        default:
+            console.log('未知工具类型:', toolType);
+    }
+}
+
+/**
+ * 上传附件
+ */
+function uploadAttachment() {
+    if (!currentWorkspaceId) {
+        showError("请先选择一个工作区");
+        return;
+    }
+    
+    // 创建一个隐藏的文件输入元素
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '*/*'; // 接受所有类型的文件
+    fileInput.style.display = 'none';
+    
+    // 添加到DOM并触发点击
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    
+    // 监听文件选择事件
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            const file = this.files[0];
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('workspace_id', currentWorkspaceId);
+            
+            // 上传文件
+            $.ajax({
+                url: '/api/ai_chat/upload_file',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.code === 200) {
+                        showSuccess(`文件 "${file.name}" 上传成功`);
+                        // 在输入框中添加文件引用
+                        const chatInput = document.getElementById('chat-input');
+                        chatInput.value += `[文件: ${file.name}] `;
+                        chatInput.focus();
+                    } else {
+                        showError("上传文件失败：" + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showError("请求失败：" + error);
+                }
+            });
+        }
+        
+        // 移除临时元素
+        document.body.removeChild(fileInput);
+    });
+}
+
+/**
+ * 上传文档
+ */
+function uploadDocument() {
+    if (!currentWorkspaceId) {
+        showError("请先选择一个工作区");
+        return;
+    }
+    
+    // 创建一个隐藏的文件输入元素
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.txt,.pdf,.doc,.docx,.md,.html'; // 接受文档类型的文件
+    fileInput.style.display = 'none';
+    
+    // 添加到DOM并触发点击
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    
+    // 监听文件选择事件
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            const file = this.files[0];
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('workspace_id', currentWorkspaceId);
+            
+            // 上传文件
+            $.ajax({
+                url: '/api/ai_chat/upload_file',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.code === 200) {
+                        showSuccess(`文档 "${file.name}" 上传成功`);
+                        // 在输入框中添加文件引用
+                        const chatInput = document.getElementById('chat-input');
+                        chatInput.value += `[文档: ${file.name}] `;
+                        chatInput.focus();
+                    } else {
+                        showError("上传文档失败：" + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showError("请求失败：" + error);
+                }
+            });
+        }
+        
+        // 移除临时元素
+        document.body.removeChild(fileInput);
+    });
+}
+
+/**
+ * 插入@提及
+ */
+function insertMention() {
+    const chatInput = document.getElementById('chat-input');
+    const cursorPos = chatInput.selectionStart;
+    const textBefore = chatInput.value.substring(0, cursorPos);
+    const textAfter = chatInput.value.substring(cursorPos);
+    
+    chatInput.value = textBefore + '@' + textAfter;
+    chatInput.focus();
+    chatInput.selectionStart = chatInput.selectionEnd = cursorPos + 1;
+}
+
+/**
+ * 插入代码块
+ */
+function insertCodeBlock() {
+    const chatInput = document.getElementById('chat-input');
+    const cursorPos = chatInput.selectionStart;
+    const textBefore = chatInput.value.substring(0, cursorPos);
+    const textAfter = chatInput.value.substring(cursorPos);
+    
+    const codeBlock = "```\n\n```";
+    chatInput.value = textBefore + codeBlock + textAfter;
+    chatInput.focus();
+    chatInput.selectionStart = chatInput.selectionEnd = cursorPos + 4; // 将光标放在代码块中间
+    
+    // 调整文本框高度
+    adjustTextareaHeight(chatInput);
+}
+
+/**
+ * 打开聊天设置
+ */
+function openChatSettings() {
+    const options = [
+        "调整模型参数",
+        "清空当前会话",
+        "切换语言"
+    ];
+    
+    const option = prompt(`请选择设置选项:\n1. ${options[0]}\n2. ${options[1]}\n3. ${options[2]}\n\n请输入选项编号(1-3):`);
+    
+    switch(option) {
+        case "1":
+            alert("模型参数设置功能尚未实现");
+            break;
+        case "2":
+            if (confirm("确定要清空当前会话的所有消息吗？此操作不可撤销。")) {
+                $("#chat-messages").html('<div class="welcome-message">会话已清空，可以开始新的对话了。</div>');
+            }
+            break;
+        case "3":
+            alert("语言切换功能尚未实现");
+            break;
+        default:
+            // 取消或无效输入
+            break;
+    }
+}
+
+/**
+ * 启动语音输入
+ */
+function startVoiceInput() {
+    // 检查浏览器是否支持语音识别
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showError("您的浏览器不支持语音识别功能");
+        return;
+    }
+    
+    // 创建语音识别对象
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    // 设置语音识别参数
+    recognition.lang = 'zh-CN'; // 设置语言为中文
+    recognition.continuous = false; // 不持续录音
+    recognition.interimResults = false; // 不返回中间结果
+    
+    // 语音识别开始事件
+    recognition.onstart = function() {
+        $(".mic-button").css('color', '#007bff'); // 改变麦克风按钮颜色
+        showSuccess("开始语音输入...");
+    };
+    
+    // 语音识别结果事件
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const chatInput = document.getElementById('chat-input');
+        chatInput.value += transcript;
+        adjustTextareaHeight(chatInput);
+    };
+    
+    // 语音识别结束事件
+    recognition.onend = function() {
+        $(".mic-button").css('color', ''); // 恢复麦克风按钮颜色
+    };
+    
+    // 语音识别错误事件
+    recognition.onerror = function(event) {
+        showError("语音识别错误: " + event.error);
+        $(".mic-button").css('color', ''); // 恢复麦克风按钮颜色
+    };
+    
+    // 开始语音识别
+    recognition.start();
+}
+
+/**
+ * 工作区和会话数据
+ */
 let currentWorkspaceId = null;
+let currentSessionId = null;
 
 /**
  * 初始化工作区
  */
 function initWorkspaces() {
-    // 从本地存储加载工作区数据
-    const savedWorkspaces = localStorage.getItem('ai_chat_workspaces');
-    
-    if (savedWorkspaces) {
-        workspaces = JSON.parse(savedWorkspaces);
-    }
-    
-    // 如果没有工作区，创建一个默认工作区
-    if (workspaces.length === 0) {
-        const defaultWorkspace = {
-            id: generateId(),
-            name: "默认对话",
-            messages: []
-        };
-        
-        workspaces.push(defaultWorkspace);
-        saveWorkspaces();
-    }
-    
-    // 渲染工作区列表
-    renderWorkspaceList();
-    
-    // 默认选择第一个工作区
-    selectWorkspace(workspaces[0].id);
+    // 从服务器获取工作区数据
+    $.ajax({
+        url: '/api/ai_chat/workspaces',
+        type: 'GET',
+        success: function(response) {
+            if (response.code === 200) {
+                renderWorkspaceList(response.data.workspaces);
+                
+                // 如果有工作区，默认选择第一个
+                if (response.data.workspaces && response.data.workspaces.length > 0) {
+                    selectWorkspace(response.data.workspaces[0].id);
+                } else {
+                    // 如果没有工作区，创建一个默认工作区
+                    createDefaultWorkspace();
+                }
+            } else {
+                showError("获取工作区失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+            // 创建一个默认工作区作为备用
+            createDefaultWorkspace();
+        }
+    });
+}
+
+/**
+ * 创建默认工作区
+ */
+function createDefaultWorkspace() {
+    $.ajax({
+        url: '/api/ai_chat/workspaces',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ name: "默认工作区" }),
+        success: function(response) {
+            if (response.code === 200) {
+                renderWorkspaceList([response.data.workspace]);
+                selectWorkspace(response.data.workspace.id);
+            } else {
+                showError("创建默认工作区失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
+    });
 }
 
 /**
  * 渲染工作区列表
+ * @param {Array} workspaces - 工作区数组
  */
-function renderWorkspaceList() {
+function renderWorkspaceList(workspaces) {
     const $workspaceList = $("#workspace-list");
     $workspaceList.empty();
     
@@ -142,8 +428,30 @@ function uploadFileToWorkspace(workspaceId) {
     fileInput.addEventListener('change', function() {
         if (this.files && this.files.length > 0) {
             const file = this.files[0];
-            // 这里只是显示一个消息，实际上传功能需要后端支持
-            alert(`已选择文件: ${file.name}。此功能需要后端支持，暂未实现。`);
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('workspace_id', workspaceId);
+            
+            // 上传文件
+            $.ajax({
+                url: '/api/ai_chat/upload_file',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.code === 200) {
+                        showSuccess(`文件 "${file.name}" 上传成功`);
+                    } else {
+                        showError("上传文件失败：" + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showError("请求失败：" + error);
+                }
+            });
         }
         
         // 移除临时元素
@@ -162,63 +470,129 @@ function selectWorkspace(workspaceId) {
     $(".workspace-item").removeClass("active");
     $(`.workspace-item[data-id="${workspaceId}"]`).addClass("active");
     
-    // 加载工作区的聊天记录
-    loadWorkspaceMessages(workspaceId);
+    // 获取工作区的会话列表
+    $.ajax({
+        url: `/api/ai_chat/workspaces/${workspaceId}/sessions`,
+        type: 'GET',
+        success: function(response) {
+            if (response.code === 200) {
+                const sessions = response.data.sessions;
+                
+                // 如果有会话，选择第一个
+                if (sessions && sessions.length > 0) {
+                    selectSession(workspaceId, sessions[0].id);
+                } else {
+                    // 如果没有会话，创建一个新会话
+                    createNewSession(workspaceId, "新会话");
+                }
+            } else {
+                showError("获取会话列表失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
+    });
 }
 
 /**
- * 加载工作区的聊天记录
+ * 选择会话
  * @param {string} workspaceId - 工作区ID
+ * @param {string} sessionId - 会话ID
  */
-function loadWorkspaceMessages(workspaceId) {
-    const workspace = workspaces.find(w => w.id === workspaceId);
+function selectSession(workspaceId, sessionId) {
+    currentWorkspaceId = workspaceId;
+    currentSessionId = sessionId;
     
-    if (!workspace) {
-        return;
-    }
-    
-    // 清空聊天消息区域
-    $("#chat-messages").empty();
-    
-    // 如果没有消息，显示欢迎信息
-    if (workspace.messages.length === 0) {
-        $("#chat-messages").html('<div class="welcome-message">开始一个新的对话吧！</div>');
-        return;
-    }
-    
-    // 显示工作区的消息
-    workspace.messages.forEach(msg => {
-        appendMessage(msg.sender, msg.content, false);
+    // 加载会话消息
+    $.ajax({
+        url: `/api/ai_chat/workspaces/${workspaceId}/sessions/${sessionId}/messages`,
+        type: 'GET',
+        success: function(response) {
+            if (response.code === 200) {
+                const messages = response.data.messages;
+                
+                // 清空聊天消息区域
+                $("#chat-messages").empty();
+                
+                // 如果没有消息，显示欢迎信息
+                if (!messages || messages.length === 0) {
+                    $("#chat-messages").html('<div class="welcome-message">开始一个新的对话吧！</div>');
+                    return;
+                }
+                
+                // 显示会话的消息
+                messages.forEach(msg => {
+                    appendMessage(msg.sender, msg.content, false);
+                });
+                
+                // 滚动到底部
+                scrollToBottom();
+            } else {
+                showError("加载会话消息失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
     });
-    
-    // 滚动到底部
-    scrollToBottom();
 }
 
 /**
  * 添加新工作区
  */
 function addNewWorkspace() {
-    const workspaceName = prompt("请输入对话名称：", "新对话");
+    const workspaceName = prompt("请输入工作区名称：", "新工作区");
     
     if (!workspaceName) {
         return;
     }
     
-    const newWorkspace = {
-        id: generateId(),
-        name: workspaceName,
-        messages: []
-    };
-    
-    workspaces.push(newWorkspace);
-    saveWorkspaces();
-    
-    // 重新渲染工作区列表
-    renderWorkspaceList();
-    
-    // 选择新创建的工作区
-    selectWorkspace(newWorkspace.id);
+    $.ajax({
+        url: '/api/ai_chat/workspaces',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ name: workspaceName }),
+        success: function(response) {
+            if (response.code === 200) {
+                // 获取最新的工作区列表
+                initWorkspaces();
+                
+                // 选择新创建的工作区
+                selectWorkspace(response.data.workspace.id);
+            } else {
+                showError("创建工作区失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
+    });
+}
+
+/**
+ * 创建新会话
+ * @param {string} workspaceId - 工作区ID
+ * @param {string} sessionName - 会话名称
+ */
+function createNewSession(workspaceId, sessionName) {
+    $.ajax({
+        url: `/api/ai_chat/workspaces/${workspaceId}/sessions`,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ name: sessionName }),
+        success: function(response) {
+            if (response.code === 200) {
+                // 选择新创建的会话
+                selectSession(workspaceId, response.data.session.id);
+            } else {
+                showError("创建会话失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
+    });
 }
 
 /**
@@ -226,17 +600,11 @@ function addNewWorkspace() {
  * @param {string} workspaceId - 工作区ID
  */
 function openWorkspaceSettings(workspaceId) {
-    const workspace = workspaces.find(w => w.id === workspaceId);
-    
-    if (!workspace) {
-        return;
-    }
-    
     // 创建设置选项
     const options = [
-        "重命名对话",
-        "清空聊天记录",
-        "删除对话"
+        "重命名工作区",
+        "新建会话",
+        "删除工作区"
     ];
     
     // 显示选项
@@ -248,8 +616,11 @@ function openWorkspaceSettings(workspaceId) {
             renameWorkspace(workspaceId);
             break;
         case "2":
-            // 清空聊天记录
-            clearWorkspaceMessages(workspaceId);
+            // 新建会话
+            const sessionName = prompt("请输入会话名称：", "新会话");
+            if (sessionName) {
+                createNewSession(workspaceId, sessionName);
+            }
             break;
         case "3":
             // 删除工作区
@@ -266,47 +637,32 @@ function openWorkspaceSettings(workspaceId) {
  * @param {string} workspaceId - 工作区ID
  */
 function renameWorkspace(workspaceId) {
-    const workspace = workspaces.find(w => w.id === workspaceId);
+    // 获取当前工作区名称
+    const currentName = $(`.workspace-item[data-id="${workspaceId}"] .workspace-name`).text();
     
-    if (!workspace) {
+    const newName = prompt("请输入工作区名称：", currentName);
+    
+    if (!newName || newName === currentName) {
         return;
     }
     
-    const newName = prompt("请输入对话名称：", workspace.name);
-    
-    if (!newName || newName === workspace.name) {
-        return;
-    }
-    
-    workspace.name = newName;
-    saveWorkspaces();
-    
-    // 重新渲染工作区列表
-    renderWorkspaceList();
-}
-
-/**
- * 清空工作区消息
- * @param {string} workspaceId - 工作区ID
- */
-function clearWorkspaceMessages(workspaceId) {
-    const workspace = workspaces.find(w => w.id === workspaceId);
-    
-    if (!workspace) {
-        return;
-    }
-    
-    if (!confirm("确定要清空此对话的所有聊天记录吗？此操作不可撤销。")) {
-        return;
-    }
-    
-    workspace.messages = [];
-    saveWorkspaces();
-    
-    // 如果是当前工作区，重新加载消息
-    if (workspaceId === currentWorkspaceId) {
-        loadWorkspaceMessages(workspaceId);
-    }
+    $.ajax({
+        url: `/api/ai_chat/workspaces/${workspaceId}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ name: newName }),
+        success: function(response) {
+            if (response.code === 200) {
+                // 更新工作区名称
+                $(`.workspace-item[data-id="${workspaceId}"] .workspace-name`).text(newName);
+            } else {
+                showError("重命名工作区失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
+    });
 }
 
 /**
@@ -314,49 +670,34 @@ function clearWorkspaceMessages(workspaceId) {
  * @param {string} workspaceId - 工作区ID
  */
 function deleteWorkspace(workspaceId) {
+    // 获取工作区数量
+    const workspaceCount = $(".workspace-item").length;
+    
     // 不允许删除最后一个工作区
-    if (workspaces.length <= 1) {
-        alert("至少需要保留一个对话！");
+    if (workspaceCount <= 1) {
+        alert("至少需要保留一个工作区！");
         return;
     }
     
-    if (!confirm("确定要删除此对话吗？删除后将无法恢复。")) {
+    if (!confirm("确定要删除此工作区吗？删除后将无法恢复，包括所有会话和消息。")) {
         return;
     }
     
-    // 找到工作区索引
-    const index = workspaces.findIndex(w => w.id === workspaceId);
-    
-    if (index === -1) {
-        return;
-    }
-    
-    // 删除工作区
-    workspaces.splice(index, 1);
-    saveWorkspaces();
-    
-    // 如果删除的是当前选中的工作区，则选择第一个工作区
-    if (workspaceId === currentWorkspaceId) {
-        selectWorkspace(workspaces[0].id);
-    }
-    
-    // 重新渲染工作区列表
-    renderWorkspaceList();
-}
-
-/**
- * 保存工作区数据到本地存储
- */
-function saveWorkspaces() {
-    localStorage.setItem('ai_chat_workspaces', JSON.stringify(workspaces));
-}
-
-/**
- * 生成唯一ID
- * @returns {string} 唯一ID
- */
-function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    $.ajax({
+        url: `/api/ai_chat/workspaces/${workspaceId}`,
+        type: 'DELETE',
+        success: function(response) {
+            if (response.code === 200) {
+                // 重新加载工作区列表
+                initWorkspaces();
+            } else {
+                showError("删除工作区失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("请求失败：" + error);
+        }
+    });
 }
 
 /**
@@ -366,15 +707,12 @@ function sendMessage() {
     const messageInput = $("#chat-input");
     const message = messageInput.val().trim();
     
-    if (!message || !currentWorkspaceId) {
+    if (!message || !currentWorkspaceId || !currentSessionId) {
         return;
     }
     
     // 显示用户消息
     appendMessage("user", message);
-    
-    // 保存消息到工作区
-    saveMessage("user", message);
     
     // 清空输入框
     messageInput.val("").focus();
@@ -387,12 +725,49 @@ function sendMessage() {
     
     // 调用AI聊天API
     $.ajax({
-        url: '/api/ai_chat/send_message',
+        url: `/api/ai_chat/workspaces/${currentWorkspaceId}/sessions/${currentSessionId}/messages`,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ 
-            message: message,
-            workspace_id: currentWorkspaceId
+            content: message,
+            sender: "user"
+        }),
+        success: function(response) {
+            if (response.code === 200) {
+                // 调用AI回复API
+                getAIReply(message, loadingId);
+            } else {
+                // 移除加载提示
+                removeLoadingMessage(loadingId);
+                
+                // 显示错误消息
+                showError("发送消息失败：" + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            // 移除加载提示
+            removeLoadingMessage(loadingId);
+            
+            // 显示错误消息
+            showError("请求失败：" + error);
+        }
+    });
+}
+
+/**
+ * 获取AI回复
+ * @param {string} userMessage - 用户消息
+ * @param {string} loadingId - 加载提示的ID
+ */
+function getAIReply(userMessage, loadingId) {
+    $.ajax({
+        url: '/api/ai_chat/get_ai_reply',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ 
+            message: userMessage,
+            workspace_id: currentWorkspaceId,
+            session_id: currentSessionId
         }),
         success: function(response) {
             // 移除加载提示
@@ -403,15 +778,12 @@ function sendMessage() {
                 const reply = response.data.reply;
                 appendMessage("ai", reply);
                 
-                // 保存消息到工作区
-                saveMessage("ai", reply);
+                // 保存AI回复到会话
+                saveAIReply(reply);
             } else {
                 // 显示错误消息
                 const errorMsg = "抱歉，发生了错误：" + response.message;
                 appendMessage("ai", errorMsg);
-                
-                // 保存消息到工作区
-                saveMessage("ai", errorMsg);
             }
         },
         error: function(xhr, status, error) {
@@ -421,33 +793,27 @@ function sendMessage() {
             // 显示错误消息
             const errorMsg = "抱歉，请求失败：" + error;
             appendMessage("ai", errorMsg);
-            
-            // 保存消息到工作区
-            saveMessage("ai", errorMsg);
         }
     });
 }
 
 /**
- * 保存消息到当前工作区
- * @param {string} sender - 发送者类型：'user' 或 'ai'
- * @param {string} content - 消息内容
+ * 保存AI回复到会话
+ * @param {string} reply - AI回复内容
  */
-function saveMessage(sender, content) {
-    const workspace = workspaces.find(w => w.id === currentWorkspaceId);
-    
-    if (!workspace) {
-        return;
-    }
-    
-    workspace.messages.push({
-        id: generateId(),
-        sender: sender,
-        content: content,
-        timestamp: new Date().getTime()
+function saveAIReply(reply) {
+    $.ajax({
+        url: `/api/ai_chat/workspaces/${currentWorkspaceId}/sessions/${currentSessionId}/messages`,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ 
+            content: reply,
+            sender: "ai"
+        }),
+        error: function(xhr, status, error) {
+            console.error("保存AI回复失败：", error);
+        }
     });
-    
-    saveWorkspaces();
 }
 
 /**
@@ -514,4 +880,20 @@ function removeLoadingMessage(loadingId) {
 function scrollToBottom() {
     const chatMessages = document.getElementById("chat-messages");
     chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/**
+ * 显示错误消息
+ * @param {string} message - 错误消息
+ */
+function showError(message) {
+    alert(message);
+}
+
+/**
+ * 显示成功消息
+ * @param {string} message - 成功消息
+ */
+function showSuccess(message) {
+    alert(message);
 } 
